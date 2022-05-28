@@ -1,0 +1,20 @@
+15x15
+Place black tiles
+Auto-symmetry
+Automatic WFC (alphabet is tile set, dictionary is constraints)
+- weights are scrabble weights (except inverse I guess)--could also be frequency in valid word list
+- add all updated tiles to queue
+- process through whole queue, finding all words across and down to find letter set (maybe set entropy here, actually)
+- each loop, set component state only when function has collapsed, then proceed to next tile
+Visualize entropy as faded highlights
+
+
+Variable size
+Toggle symmetry
+Toggle enforce NYT rules
+Show counts of 3-letter words
+Allow typing letters and selecting full words for across or down (sorted by increasing difficulty? Maybe use Scrabble weights here?)
+Any time black changed, recalculate off all letters
+Allow clue entry
+Share link to play
+Mobile version
