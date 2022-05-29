@@ -1,0 +1,29 @@
+.tiles-container {
+  display: flex;
+  flex-direction: column;
+}
+
+.puzzle-row {
+  display: flex;
+  flex-direction: row;
+}
+
+.tile {
+  height: 30px;
+  width: 30px;
+  border-style: solid;
+  border-color: black;
+  background-color: white;
+}
+
+.tile:hover {
+  background-color: yellow;
+}
+
+.tile--black {
+  background-color: black;
+}
+
+.tile--black:hover {
+  background-color: #666600;
+}

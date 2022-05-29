@@ -2,64 +2,12 @@ import _ from 'lodash';
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
 import { RootState } from '../../app/store';
+import { ALL_LETTERS, DEFAULT_TILES } from './constants';
 
-const ALL_LETTERS: LetterType[] = [
-  'a',
-  'b',
-  'c',
-  'd',
-  'e',
-  'f',
-  'g',
-  'h',
-  'i',
-  'j',
-  'k',
-  'l',
-  'm',
-  'n',
-  'o',
-  'p',
-  'q',
-  'r',
-  's',
-  't',
-  'u',
-  'v',
-  'w',
-  'x',
-  'y',
-  'z',
-];
-type LetterType =
-  | 'a'
-  | 'b'
-  | 'c'
-  | 'd'
-  | 'e'
-  | 'f'
-  | 'g'
-  | 'h'
-  | 'i'
-  | 'j'
-  | 'k'
-  | 'l'
-  | 'm'
-  | 'n'
-  | 'o'
-  | 'p'
-  | 'q'
-  | 'r'
-  | 's'
-  | 't'
-  | 'u'
-  | 'v'
-  | 'w'
-  | 'x'
-  | 'y'
-  | 'z';
-type TileValueType = LetterType | 'empty' | 'black';
-interface TileType {
+export type LetterType = typeof ALL_LETTERS[number];
+
+export type TileValueType = LetterType | 'empty' | 'black';
+export interface TileType {
   value: TileValueType;
   options: LetterType[];
 }
@@ -72,12 +20,13 @@ interface BuilderState {
 
 const initialState: BuilderState = {
   puzzle: {
-    tiles: _.times(15, (rowIndex) =>
-      _.times(15, (columnIndex) => ({
-        value: 'empty',
-        options: ALL_LETTERS,
-      }))
-    ),
+    //tiles: _.times(15, (rowIndex) =>
+    //_.times(15, (columnIndex) => ({
+    //value: 'empty',
+    //options: [...ALL_LETTERS],
+    //}))
+    //),
+    tiles: DEFAULT_TILES,
   },
 };
 
@@ -85,20 +34,27 @@ export const builderSlice = createSlice({
   name: 'builder',
   initialState,
   reducers: {
-    setTileValue: (
+    toggleTileBlack: (
       state,
       action: PayloadAction<{
         row: number;
         column: number;
-        value: number;
       }>
     ) => {
-      //state.builderId = action.payload;
+      const tile =
+        state.puzzle.tiles[action.payload.row][action.payload.column];
+      const newValue = tile.value === 'black' ? 'empty' : 'black';
+      const puzzleSize = state.puzzle.tiles.length;
+
+      tile.value = newValue;
+      state.puzzle.tiles[puzzleSize - action.payload.row - 1][
+        puzzleSize - action.payload.column - 1
+      ].value = newValue;
     },
   },
 });
 
-export const { setTileValue } = builderSlice.actions;
+export const { toggleTileBlack } = builderSlice.actions;
 
 export const selectPuzzle = (state: RootState) => state.builder.puzzle;
 

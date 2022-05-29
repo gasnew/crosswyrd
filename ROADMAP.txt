@@ -1,6 +1,6 @@
-15x15
-Place black tiles
-Auto-symmetry
++ 15x15
++ Place black tiles
++ Auto-symmetry
 Automatic WFC (alphabet is tile set, dictionary is constraints)
 - weights are scrabble weights (except inverse I guess)--could also be frequency in valid word list
 - add all updated tiles to queue
