@@ -1,15 +1,19 @@
 import _ from 'lodash';
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
-import { selectPuzzle, toggleTileBlack } from './builderSlice';
+import {
+  incorporateWaveIntoPuzzle,
+  selectPuzzle,
+  toggleTileBlack,
+} from './builderSlice';
 import useWaveFunctionCollapse from './useWaveFunctionCollapse';
 
 import './CrosswordBuilder.css';
 
 export default function CrosswordBuilder() {
   const puzzle = useSelector(selectPuzzle);
-  const { wave, observeAtLocation } = useWaveFunctionCollapse();
+  const { wave, observeAtLocation } = useWaveFunctionCollapse(puzzle);
 
   const dispatch = useDispatch();
 
@@ -22,8 +26,21 @@ export default function CrosswordBuilder() {
             column,
           })
         );
+      else {
+        if (!wave) return;
+        const newValue = _.sample(wave.elements[row][column].options);
+        if (!newValue) return;
+        observeAtLocation(row, column, newValue);
+      }
     };
   };
+
+  // Incorporate wave into puzzle
+  useEffect(() => {
+    if (!wave) return;
+    dispatch(incorporateWaveIntoPuzzle(wave));
+  }, [dispatch, wave]);
+
   return (
     <div className="tiles-container">
       {_.map(puzzle.tiles, (row, rowIndex) => (
@@ -36,7 +53,9 @@ export default function CrosswordBuilder() {
               }
               onClick={mkHandleClickTile(rowIndex, columnIndex)}
             >
-              {!_.includes(['empty', 'black'], tile.value) && tile.value}
+              {!_.includes(['empty', 'black'], tile.value)
+                ? tile.value
+                : tile.options.length}
             </div>
           ))}
         </div>

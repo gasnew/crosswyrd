@@ -3,6 +3,7 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
 import { RootState } from '../../app/store';
 import { ALL_LETTERS, DEFAULT_TILES } from './constants';
+import { WaveType } from './useWaveFunctionCollapse';
 
 export type LetterType = typeof ALL_LETTERS[number];
 
@@ -11,7 +12,7 @@ export interface TileType {
   value: TileValueType;
   options: LetterType[];
 }
-interface CrosswordPuzzleType {
+export interface CrosswordPuzzleType {
   tiles: TileType[][];
 }
 interface BuilderState {
@@ -51,10 +52,19 @@ export const builderSlice = createSlice({
         puzzleSize - action.payload.column - 1
       ].value = newValue;
     },
+    incorporateWaveIntoPuzzle: (state, action: PayloadAction<WaveType>) => {
+      _.forEach(action.payload.elements, (row, rowIndex) => {
+        _.forEach(row, (element, columnIndex) => {
+          const tile = state.puzzle.tiles[rowIndex][columnIndex];
+          tile.options = element.options;
+          if (element.options.length === 1) tile.value = element.options[0];
+        });
+      });
+    },
   },
 });
 
-export const { toggleTileBlack } = builderSlice.actions;
+export const { incorporateWaveIntoPuzzle, toggleTileBlack } = builderSlice.actions;
 
 export const selectPuzzle = (state: RootState) => state.builder.puzzle;
 
