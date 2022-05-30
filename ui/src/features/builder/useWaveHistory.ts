@@ -1,5 +1,5 @@
 import _ from 'lodash';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useRef } from 'react';
 
 import { WaveType } from './useWaveFunctionCollapse';
 
@@ -15,14 +15,12 @@ export default function useWaveHistory(wave: WaveType | null): ReturnType {
   const pushStateHistory = useCallback((wave) => {
     if (!wave) return;
     stateHistory.current = [wave, ...stateHistory.current];
-    console.log(stateHistory.current);
   }, []);
 
   const popStateHistory = useCallback(() => {
     if (stateHistory.current.length === 0) return null;
     const state = stateHistory.current[0];
     stateHistory.current = _.drop(stateHistory.current);
-    console.log(stateHistory.current);
     return state;
   }, []);
 

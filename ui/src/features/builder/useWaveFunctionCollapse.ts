@@ -27,6 +27,7 @@ function intersection<T>(setA: Array<T>, setB: Array<T>): Array<T> {
 }
 
 function computeEntropy(options: LetterType[]): number {
+  // TODO: Make this computeWeightedEntropy, and use scrabble weights
   // Adapted from this numpy code
   //value,counts = np.unique(labels, return_counts=True)
   //norm_counts = counts / counts.sum()
@@ -39,7 +40,6 @@ function computeEntropy(options: LetterType[]): number {
   const entropy = -_.sum(
     _.map(normalizedCounts, (count) => count * Math.log(count))
   );
-  //console.log(options.length, entropy);
   return entropy;
 }
 
@@ -269,7 +269,6 @@ export default function useWaveFunctionCollapse(
 
   const stepBack = useCallback(() => {
     const newWave = popStateHistory();
-    console.log(newWave);
     setWave(newWave);
   }, [popStateHistory]);
 

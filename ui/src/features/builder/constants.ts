@@ -1,4 +1,3 @@
-import _ from 'lodash';
 import { TileType } from './builderSlice';
 
 export const ALL_LETTERS = [

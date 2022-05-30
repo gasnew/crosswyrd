@@ -1,7 +1,6 @@
 import _ from 'lodash';
 import { Button, ButtonGroup, Divider } from '@mui/material';
-import { LoadingButton } from '@mui/lab';
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
 import {
@@ -12,6 +11,7 @@ import {
 } from './builderSlice';
 import { LETTER_WEIGHTS } from './constants';
 import useWaveFunctionCollapse, { WaveType } from './useWaveFunctionCollapse';
+import { useInterval } from '../../app/util';
 
 import './CrosswordBuilder.css';
 
@@ -38,6 +38,11 @@ export default function CrosswordBuilder() {
   const puzzle = useSelector(selectPuzzle);
   const { wave, observeAtLocation, stepBack } = useWaveFunctionCollapse(puzzle);
   const [hoveredTile, setHoveredTile] = useState<LocationType | null>(null);
+  const [running, setRunning] = useState(false);
+
+  // negative number means we've passed the last failed depth
+  const stepsToLastFailure = useRef(-1);
+  const stepsToBacktrack = useRef(1);
 
   const dispatch = useDispatch();
 
@@ -64,7 +69,7 @@ export default function CrosswordBuilder() {
       }
     };
   };
-  const handleClickNext = () => {
+  const handleClickNext = useCallback(() => {
     if (!wave) return;
     // Element is either a random element (if this is the first tile placed) or
     // the element with lowest entropy
@@ -81,13 +86,47 @@ export default function CrosswordBuilder() {
     const newValue = pickWeightedRandomLetter(wave, row, column);
     if (!newValue) return;
     observeAtLocation(row, column, newValue);
-  };
+  }, [observeAtLocation, puzzle, wave]);
   const handleClickBack = () => {
     stepBack();
+  };
+  const handleClickRun = () => {
+    setRunning(!running);
   };
   const mkHandleMouseoverTile = (row, column) => {
     return () => setHoveredTile({ row, column });
   };
+
+  useInterval(() => {
+    if (!wave || !running) return;
+    if (!_.some(_.flatten(puzzle.tiles), ['value', 'empty'])) {
+      // The puzzle is finished!
+      setRunning(false);
+      return;
+    }
+
+    if (
+      _.some(
+        _.flatten(wave.elements),
+        (element) => !element.solid && element.options.length === 0
+      )
+    ) {
+      // Backstep N times!
+      _.times(stepsToBacktrack.current, stepBack);
+      // We are now N steps removed from this backtrack
+      stepsToLastFailure.current = stepsToBacktrack.current;
+      // Next time we backtrack at this level, backtrack one more step
+      stepsToBacktrack.current += 1;
+    } else {
+      if (stepsToLastFailure.current <= 0) {
+        // We've passed the barrier! Reset backtrack step count
+        stepsToBacktrack.current = 1;
+      }
+      handleClickNext();
+      // We're one step closer to last backtrack
+      stepsToLastFailure.current -= 1;
+    }
+  }, 100);
 
   return (
     <div className="puzzle-builder-container">
@@ -132,6 +171,7 @@ export default function CrosswordBuilder() {
         <ButtonGroup>
           <Button onClick={handleClickBack}>Back</Button>
           <Button onClick={handleClickNext}>Next</Button>
+          <Button onClick={handleClickRun}>{running ? 'Stop' : 'Run'}</Button>
         </ButtonGroup>
         {wave && hoveredTile && (
           <>
