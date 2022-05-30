@@ -4,9 +4,11 @@ import { useDispatch, useSelector } from 'react-redux';
 
 import {
   incorporateWaveIntoPuzzle,
+  LetterType,
   selectPuzzle,
   toggleTileBlack,
 } from './builderSlice';
+import { LETTER_WEIGHTS } from './constants';
 import useWaveFunctionCollapse from './useWaveFunctionCollapse';
 
 import './CrosswordBuilder.css';
@@ -28,7 +30,13 @@ export default function CrosswordBuilder() {
         );
       else {
         if (!wave) return;
-        const newValue = _.sample(wave.elements[row][column].options);
+        const newValue = _.sample(
+          _.flatMap(LETTER_WEIGHTS, (weight, letter) =>
+            _.includes(wave.elements[row][column].options, letter)
+              ? _.times(weight, () => letter)
+              : []
+          )
+        ) as LetterType | undefined;
         if (!newValue) return;
         observeAtLocation(row, column, newValue);
       }
@@ -51,11 +59,22 @@ export default function CrosswordBuilder() {
               className={
                 'tile' + (tile.value === 'black' ? ' tile--black' : '')
               }
+              style={{
+                ...(tile.value === 'empty'
+                  ? {
+                      backgroundColor:
+                        tile.options.length > 0
+                          ? `rgba(45, 114, 210, ${1 - tile.options.length / 26}`
+                          : 'red',
+                    }
+                  : {}),
+              }}
               onClick={mkHandleClickTile(rowIndex, columnIndex)}
             >
-              {!_.includes(['empty', 'black'], tile.value)
-                ? tile.value
-                : tile.options.length}
+              <div className="tile-contents">
+                {!_.includes(['empty', 'black'], tile.value) &&
+                  _.upperCase(tile.value)}
+              </div>
             </div>
           ))}
         </div>

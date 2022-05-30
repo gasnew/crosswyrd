@@ -9,15 +9,17 @@
 }
 
 .tile {
+  display: flex;
   height: 30px;
   width: 30px;
   border-style: solid;
   border-color: black;
+  border-width: 2px;
   background-color: white;
 }
 
 .tile:hover {
-  background-color: yellow;
+  background-color: yellow !important;
 }
 
 .tile--black {
@@ -26,4 +28,10 @@
 
 .tile--black:hover {
   background-color: #666600;
+}
+
+.tile-contents {
+  pointer-events: none;
+  font-size: 20px;
+  margin: auto;
 }
