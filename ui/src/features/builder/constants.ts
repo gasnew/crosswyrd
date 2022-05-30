@@ -62,931 +62,706 @@ export const DEFAULT_TILES: TileType[][] = [
   [
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'black',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'black',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'black',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
   ],
   [
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'black',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'black',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
   ],
   [
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'black',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'black',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
   ],
   [
     {
       value: 'black',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'black',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'black',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
   ],
   [
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'black',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'black',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'black',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'black',
-      options: [...ALL_LETTERS],
     },
   ],
   [
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'black',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'black',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'black',
-      options: [...ALL_LETTERS],
     },
   ],
   [
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'black',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'black',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'black',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
   ],
   [
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'black',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
   ],
   [
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'black',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'black',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'black',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
   ],
   [
     {
       value: 'black',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'black',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'black',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
   ],
   [
     {
       value: 'black',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'black',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'black',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'black',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
   ],
   [
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'black',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'black',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'black',
-      options: [...ALL_LETTERS],
     },
   ],
   [
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'black',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'black',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
   ],
   [
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'black',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'black',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
   ],
   [
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'black',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'black',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'black',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
     {
       value: 'empty',
-      options: [...ALL_LETTERS],
     },
   ],
 ];

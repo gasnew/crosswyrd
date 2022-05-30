@@ -10,7 +10,6 @@ export type LetterType = typeof ALL_LETTERS[number];
 export type TileValueType = LetterType | 'empty' | 'black';
 export interface TileType {
   value: TileValueType;
-  options: LetterType[];
 }
 export interface CrosswordPuzzleType {
   tiles: TileType[][];
@@ -24,7 +23,6 @@ const initialState: BuilderState = {
     //tiles: _.times(15, (rowIndex) =>
     //_.times(15, (columnIndex) => ({
     //value: 'empty',
-    //options: [...ALL_LETTERS],
     //}))
     //),
     tiles: DEFAULT_TILES,
@@ -56,15 +54,22 @@ export const builderSlice = createSlice({
       _.forEach(action.payload.elements, (row, rowIndex) => {
         _.forEach(row, (element, columnIndex) => {
           const tile = state.puzzle.tiles[rowIndex][columnIndex];
-          tile.options = element.options;
+          // If there is one option, set the value
           if (element.options.length === 1) tile.value = element.options[0];
+          // If there are multiple values, and the tile's value is a letter,
+          // set to empty (i.e., we backtracked)
+          if (element.options.length > 1 && _.includes(ALL_LETTERS, tile.value))
+            tile.value = 'empty';
         });
       });
     },
   },
 });
 
-export const { incorporateWaveIntoPuzzle, toggleTileBlack } = builderSlice.actions;
+export const {
+  incorporateWaveIntoPuzzle,
+  toggleTileBlack,
+} = builderSlice.actions;
 
 export const selectPuzzle = (state: RootState) => state.builder.puzzle;
 

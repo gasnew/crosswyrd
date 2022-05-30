@@ -1,3 +1,8 @@
+.puzzle-builder-container {
+  display: flex;
+  flex-direction: row;
+}
+
 .tiles-container {
   display: flex;
   flex-direction: column;
@@ -34,4 +39,10 @@
   pointer-events: none;
   font-size: 20px;
   margin: auto;
+}
+
+.sidebar-container {
+  display: flex;
+  flex-direction: column;
+  margin: 8px;
 }

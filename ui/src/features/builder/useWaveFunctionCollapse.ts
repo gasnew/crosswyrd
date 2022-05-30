@@ -2,25 +2,19 @@ import axios from 'axios';
 import _ from 'lodash';
 import { useCallback, useEffect, useState } from 'react';
 
-import { CrosswordPuzzleType, LetterType, TileValueType } from './builderSlice';
+import { CrosswordPuzzleType, LetterType } from './builderSlice';
 import { ALL_LETTERS } from './constants';
+import useWaveHistory from './useWaveHistory';
 
 interface ElementType {
   row: number;
   column: number;
   options: LetterType[];
+  entropy: number;
   solid: boolean;
 }
 export interface WaveType {
   elements: ElementType[][];
-}
-interface ReturnType {
-  wave: WaveType | null;
-  observeAtLocation: (
-    row: number,
-    column: number,
-    value: LetterType
-  ) => boolean;
 }
 type DictionaryType = string[];
 
@@ -30,6 +24,23 @@ function isSubset<T extends string>(subset: Array<T>, set: Array<T>): boolean {
 
 function intersection<T>(setA: Array<T>, setB: Array<T>): Array<T> {
   return _.filter(setA, (element) => setB.includes(element));
+}
+
+function computeEntropy(options: LetterType[]): number {
+  // Adapted from this numpy code
+  //value,counts = np.unique(labels, return_counts=True)
+  //norm_counts = counts / counts.sum()
+  //base = e if base is None else base
+  //return -(norm_counts * np.log(norm_counts)/np.log(base)).sum()
+
+  const counts = _.values(_.countBy(options));
+  const countsSum = _.sum(counts);
+  const normalizedCounts = _.map(counts, (count) => count / countsSum);
+  const entropy = -_.sum(
+    _.map(normalizedCounts, (count) => count * Math.log(count))
+  );
+  //console.log(options.length, entropy);
+  return entropy;
 }
 
 function findWordOptions(
@@ -48,24 +59,24 @@ function findWordOptions(
   return _.reject(dictionary, (word) => word.search(regex) === -1);
 }
 
-function wordsToOptionsSet(words: string[]): LetterType[][] {
+function wordsToLettersSets(words: string[]): LetterType[][] {
   if (words.length === 0) return [];
-  const sets = _.times(words[0].length, () => new Set<LetterType>());
+  const lettersSets = _.times(words[0].length, () => new Array<LetterType>());
   _.forEach(words, (word) => {
     _.forEach(word, (letter, letterIndex) => {
-      sets[letterIndex].add(letter as LetterType);
+      lettersSets[letterIndex].push(letter as LetterType);
     });
   });
 
-  return _.map(sets, (set) => Array.from(set));
+  return lettersSets;
 }
 
-function computeDownOptions(
+function computeDownElementUpdates(
   dictionary: DictionaryType,
   wave: WaveType,
   row: number,
   column: number
-): { options: LetterType[]; row: number; column: number }[] {
+): ElementType[] {
   let startRow = row;
   while (startRow > 0 && !wave.elements[startRow - 1][column].solid) startRow--;
   let stopRow = row;
@@ -75,14 +86,8 @@ function computeDownOptions(
   )
     stopRow++;
 
-  //console.log(
-  //startRow,
-  //stopRow,
-  //_.range(startRow, stopRow + 1).length,
-  //wave.elements[row][column]
-  //);
   return _.map(
-    wordsToOptionsSet(
+    wordsToLettersSets(
       findWordOptions(
         dictionary,
         _.map(_.range(startRow, stopRow + 1), (newUpdateRow) => ({
@@ -90,20 +95,22 @@ function computeDownOptions(
         }))
       )
     ),
-    (options, index) => ({
-      options,
+    (letters, index) => ({
+      options: _.uniq(letters),
+      entropy: computeEntropy(letters),
       row: startRow + index,
       column,
+      solid: false,
     })
   );
 }
 
-function computeAcrossOptions(
+function computeAcrossElementUpdates(
   dictionary: DictionaryType,
   wave: WaveType,
   row: number,
   column: number
-): { options: LetterType[]; row: number; column: number }[] {
+): ElementType[] {
   let startColumn = column;
   while (startColumn > 0 && !wave.elements[row][startColumn - 1].solid)
     startColumn--;
@@ -115,7 +122,7 @@ function computeAcrossOptions(
     stopColumn++;
 
   return _.map(
-    wordsToOptionsSet(
+    wordsToLettersSets(
       findWordOptions(
         dictionary,
         _.map(_.range(startColumn, stopColumn + 1), (newUpdateColumn) => ({
@@ -123,10 +130,12 @@ function computeAcrossOptions(
         }))
       )
     ),
-    (options, index) => ({
-      options,
+    (letters, index) => ({
+      options: _.uniq(letters),
+      entropy: computeEntropy(letters),
       row,
       column: startColumn + index,
+      solid: false,
     })
   );
 }
@@ -146,6 +155,7 @@ function withNewObservationAtLocation(
       row,
       column,
       options: [value],
+      entropy: computeEntropy([value]),
       solid: false,
     },
   ];
@@ -164,31 +174,36 @@ function withNewObservationAtLocation(
     // Update the element with the intersection of the current options and the
     // update's options
     element.options = intersection(element.options, update.options);
-    // TODO: compute entropy
+    // TODO: think about if it's OK to set entropy like this, even though we're
+    // not strictly setting this element's options to the update's options
+    // UPDATE: Probably actually calculate entropy from the unique set of
+    // letters with scrabble weights (e.g., ['a', 'e'] is higher entropy than
+    // ['z', 'x'])
+    element.entropy = element.options.length === 1 ? 0 : update.entropy;
 
     // Enqueue updates for all tiles in the down word that intersects this tile
     _.forEach(
-      computeDownOptions(dictionary, waveCopy, update.row, update.column),
-      ({ options, row, column }, index) => {
-        updateQueue.push({
-          row,
-          column,
-          options,
-          solid: false,
-        });
+      computeDownElementUpdates(
+        dictionary,
+        waveCopy,
+        update.row,
+        update.column
+      ),
+      (update, index) => {
+        updateQueue.push(update);
       }
     );
     // Enqueue updates for all tiles in the across word that intersects this
     // tile
     _.forEach(
-      computeAcrossOptions(dictionary, waveCopy, update.row, update.column),
-      ({ options, row, column }, index) => {
-        updateQueue.push({
-          row,
-          column,
-          options,
-          solid: false,
-        });
+      computeAcrossElementUpdates(
+        dictionary,
+        waveCopy,
+        update.row,
+        update.column
+      ),
+      (update, index) => {
+        updateQueue.push(update);
       }
     );
   }
@@ -196,13 +211,23 @@ function withNewObservationAtLocation(
   return waveCopy;
 }
 
+interface ReturnType {
+  wave: WaveType | null;
+  observeAtLocation: (
+    row: number,
+    column: number,
+    value: LetterType
+  ) => boolean;
+  stepBack: () => void;
+}
+
 export default function useWaveFunctionCollapse(
   puzzle: CrosswordPuzzleType
 ): ReturnType {
   const [wave, setWave] = useState<WaveType | null>(null);
   const [dictionary, setDictionary] = useState<DictionaryType | null>(null);
+  const { pushStateHistory, popStateHistory } = useWaveHistory(wave);
 
-  console.log(wave);
   // Ingest puzzle into wave
   useEffect(() => {
     // TODO: Run this effect when the black tiles change
@@ -213,6 +238,8 @@ export default function useWaveFunctionCollapse(
           row: rowIndex,
           column: columnIndex,
           options: [...ALL_LETTERS],
+          entropy:
+            tile.value === 'black' ? 0 : computeEntropy([...ALL_LETTERS]),
           solid: tile.value === 'black',
         }))
       ),
@@ -234,13 +261,21 @@ export default function useWaveFunctionCollapse(
       setWave(
         withNewObservationAtLocation(dictionary, wave, row, column, value)
       );
+      pushStateHistory(wave);
       return true;
     },
-    [dictionary, wave]
+    [dictionary, wave, pushStateHistory]
   );
+
+  const stepBack = useCallback(() => {
+    const newWave = popStateHistory();
+    console.log(newWave);
+    setWave(newWave);
+  }, [popStateHistory]);
 
   return {
     wave,
     observeAtLocation,
+    stepBack,
   };
 }

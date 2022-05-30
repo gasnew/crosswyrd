@@ -9,6 +9,10 @@
   "repository": "github:gasnew/crosswyrd",
   "dependencies": {
     "@blueprintjs/core": "^4.4.0",
+    "@emotion/react": "^11.9.0",
+    "@emotion/styled": "^11.8.1",
+    "@mui/lab": "^5.0.0-alpha.83",
+    "@mui/material": "^5.8.1",
     "@reduxjs/toolkit": "^1.5.1",
     "@testing-library/react": "^9.3.2",
     "@testing-library/user-event": "^7.1.2",
