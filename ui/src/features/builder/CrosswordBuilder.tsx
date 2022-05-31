@@ -51,7 +51,7 @@ function useDictionary(): DictionaryType | null {
   // Fetch dictionary
   useEffect(() => {
     const fetchDictionary = async () => {
-      const response = await axios.get('dictionary.json');
+      const response = await axios.get('word_list.json');
       setDictionary(response.data);
     };
     fetchDictionary();

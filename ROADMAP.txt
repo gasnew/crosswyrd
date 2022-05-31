@@ -11,6 +11,9 @@
 
 
 Variable size
+Some sort of indicator for when long operation is happening
+- Use comlink to make web workers nice? https://dev.to/nicolasrannou/web-workers-in-create-react-app-cra-without-unmounting-4865#attempt-4--comlink
+Edit existing words...?
 Toggle symmetry
 Toggle enforce NYT rules
 Show counts of 3-letter words

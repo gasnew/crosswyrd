@@ -41,6 +41,7 @@
 }
 
 .tile-contents {
+  user-select: none;
   pointer-events: none;
   font-size: 20px;
   margin: auto;

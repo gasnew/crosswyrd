@@ -44,7 +44,7 @@ function computeEntropy(options: LetterType[]): number {
 
 export function findWordOptions(
   dictionary: DictionaryType,
-  optionsSet: LetterType[][]
+  optionsSet: (LetterType | '.')[][]
 ): string[] {
   const regex = new RegExp(
     '^' +
