@@ -1,9 +1,9 @@
-import axios from 'axios';
 import _ from 'lodash';
 import { useCallback, useEffect, useState } from 'react';
 
 import { CrosswordPuzzleType, LetterType } from './builderSlice';
 import { ALL_LETTERS } from './constants';
+import { DictionaryType } from './CrosswordBuilder';
 import useWaveHistory from './useWaveHistory';
 
 interface ElementType {
@@ -16,7 +16,6 @@ interface ElementType {
 export interface WaveType {
   elements: ElementType[][];
 }
-type DictionaryType = string[];
 
 function isSubset<T extends string>(subset: Array<T>, set: Array<T>): boolean {
   return _.every(subset, (element) => set.includes(element));
@@ -43,14 +42,14 @@ function computeEntropy(options: LetterType[]): number {
   return entropy;
 }
 
-function findWordOptions(
+export function findWordOptions(
   dictionary: DictionaryType,
-  optionsSet: { options: LetterType[] }[]
+  optionsSet: LetterType[][]
 ): string[] {
   const regex = new RegExp(
     '^' +
       _.join(
-        _.map(optionsSet, ({ options }) => `(?:${_.join(options, '|')})`),
+        _.map(optionsSet, (options) => `(?:${_.join(options, '|')})`),
         ''
       ) +
       '$'
@@ -90,9 +89,10 @@ function computeDownElementUpdates(
     wordsToLettersSets(
       findWordOptions(
         dictionary,
-        _.map(_.range(startRow, stopRow + 1), (newUpdateRow) => ({
-          options: wave.elements[newUpdateRow][column].options,
-        }))
+        _.map(
+          _.range(startRow, stopRow + 1),
+          (newUpdateRow) => wave.elements[newUpdateRow][column].options
+        )
       )
     ),
     (letters, index) => ({
@@ -125,9 +125,10 @@ function computeAcrossElementUpdates(
     wordsToLettersSets(
       findWordOptions(
         dictionary,
-        _.map(_.range(startColumn, stopColumn + 1), (newUpdateColumn) => ({
-          options: wave.elements[row][newUpdateColumn].options,
-        }))
+        _.map(
+          _.range(startColumn, stopColumn + 1),
+          (newUpdateColumn) => wave.elements[row][newUpdateColumn].options
+        )
       )
     ),
     (letters, index) => ({
@@ -218,14 +219,21 @@ interface ReturnType {
     column: number,
     value: LetterType
   ) => boolean;
+  observeAtLocations: (
+    observations: {
+      row: number;
+      column: number;
+      value: LetterType;
+    }[]
+  ) => boolean;
   stepBack: () => void;
 }
 
 export default function useWaveFunctionCollapse(
+  dictionary: DictionaryType | null,
   puzzle: CrosswordPuzzleType
 ): ReturnType {
   const [wave, setWave] = useState<WaveType | null>(null);
-  const [dictionary, setDictionary] = useState<DictionaryType | null>(null);
   const { pushStateHistory, popStateHistory } = useWaveHistory(wave);
 
   // Ingest puzzle into wave
@@ -246,20 +254,34 @@ export default function useWaveFunctionCollapse(
     });
   }, [puzzle, wave]);
 
-  // Fetch dictionary
-  useEffect(() => {
-    const fetchDictionary = async () => {
-      const response = await axios.get('dictionary.json');
-      setDictionary(response.data);
-    };
-    fetchDictionary();
-  }, []);
-
   const observeAtLocation = useCallback(
     (row: number, column: number, value: LetterType) => {
       if (!wave || !dictionary) return false;
       setWave(
         withNewObservationAtLocation(dictionary, wave, row, column, value)
+      );
+      pushStateHistory(wave);
+      return true;
+    },
+    [dictionary, wave, pushStateHistory]
+  );
+
+  const observeAtLocations = useCallback(
+    (observations: { row: number; column: number; value: LetterType }[]) => {
+      if (!wave || !dictionary) return false;
+      setWave(
+        _.reduce(
+          observations,
+          (finalWave, { row, column, value }) =>
+            withNewObservationAtLocation(
+              dictionary,
+              finalWave,
+              row,
+              column,
+              value
+            ),
+          wave
+        )
       );
       pushStateHistory(wave);
       return true;
@@ -275,6 +297,7 @@ export default function useWaveFunctionCollapse(
   return {
     wave,
     observeAtLocation,
+    observeAtLocations,
     stepBack,
   };
 }

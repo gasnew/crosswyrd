@@ -1,8 +1,16 @@
+import axios from 'axios';
 import _ from 'lodash';
 import { Button, ButtonGroup, Divider } from '@mui/material';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
+import { useInterval } from '../../app/util';
 import {
   incorporateWaveIntoPuzzle,
   LetterType,
@@ -10,15 +18,18 @@ import {
   toggleTileBlack,
 } from './builderSlice';
 import { LETTER_WEIGHTS } from './constants';
+import useTileSelection from './useTileSelection';
 import useWaveFunctionCollapse, { WaveType } from './useWaveFunctionCollapse';
-import { useInterval } from '../../app/util';
+import WordSelector from './WordSelector';
 
 import './CrosswordBuilder.css';
 
-interface LocationType {
+export interface LocationType {
   row: number;
   column: number;
 }
+
+export type DictionaryType = string[];
 
 function pickWeightedRandomLetter(
   wave: WaveType,
@@ -34,11 +45,34 @@ function pickWeightedRandomLetter(
   ) as LetterType | undefined;
 }
 
+function useDictionary(): DictionaryType | null {
+  const [dictionary, setDictionary] = useState<DictionaryType | null>(null);
+
+  // Fetch dictionary
+  useEffect(() => {
+    const fetchDictionary = async () => {
+      const response = await axios.get('dictionary.json');
+      setDictionary(response.data);
+    };
+    fetchDictionary();
+  }, []);
+
+  return dictionary;
+}
+
 export default function CrosswordBuilder() {
   const puzzle = useSelector(selectPuzzle);
-  const { wave, observeAtLocation, stepBack } = useWaveFunctionCollapse(puzzle);
+  const dictionary = useDictionary();
+  const {
+    wave,
+    observeAtLocation,
+    observeAtLocations,
+    stepBack,
+  } = useWaveFunctionCollapse(dictionary, puzzle);
   const [hoveredTile, setHoveredTile] = useState<LocationType | null>(null);
   const [running, setRunning] = useState(false);
+
+  const { onClick, selectedTileLocations } = useTileSelection(puzzle);
 
   // negative number means we've passed the last failed depth
   const stepsToLastFailure = useRef(-1);
@@ -62,10 +96,12 @@ export default function CrosswordBuilder() {
           })
         );
       else {
-        if (!wave) return;
-        const newValue = pickWeightedRandomLetter(wave, row, column);
-        if (!newValue) return;
-        observeAtLocation(row, column, newValue);
+        onClick(row, column);
+        // Below is old way of picking random letter to place
+        //if (!wave) return;
+        //const newValue = pickWeightedRandomLetter(wave, row, column);
+        //if (!newValue) return;
+        //observeAtLocation(row, column, newValue);
       }
     };
   };
@@ -96,6 +132,15 @@ export default function CrosswordBuilder() {
   const mkHandleMouseoverTile = (row, column) => {
     return () => setHoveredTile({ row, column });
   };
+  const handleSelectWord = useCallback((word: string) => {
+    if (word.length !== selectedTileLocations.length) return;
+    observeAtLocations(
+      _.map(word, (letter, index) => ({
+        ...selectedTileLocations[index],
+        value: letter as LetterType,
+      }))
+    );
+  }, [selectedTileLocations, observeAtLocations]);
 
   useInterval(() => {
     if (!wave || !running) return;
@@ -128,6 +173,16 @@ export default function CrosswordBuilder() {
     }
   }, 100);
 
+  const selectedOptionsSet = useMemo(
+    () =>
+      wave &&
+      _.map(
+        selectedTileLocations,
+        ({ row, column }) => wave.elements[row][column].options
+      ),
+    [selectedTileLocations, wave]
+  );
+
   return (
     <div className="puzzle-builder-container">
       <div className="tiles-container" onMouseOut={() => setHoveredTile(null)}>
@@ -137,7 +192,16 @@ export default function CrosswordBuilder() {
               <div
                 key={columnIndex}
                 className={
-                  'tile' + (tile.value === 'black' ? ' tile--black' : '')
+                  'tile' +
+                  (tile.value === 'black' ? ' tile--black' : '') +
+                  (_.some(
+                    selectedTileLocations,
+                    (location) =>
+                      location.row === rowIndex &&
+                      location.column === columnIndex
+                  )
+                    ? ' tile--selected'
+                    : '')
                 }
                 style={{
                   ...(tile.value === 'empty' && wave
@@ -173,6 +237,16 @@ export default function CrosswordBuilder() {
           <Button onClick={handleClickNext}>Next</Button>
           <Button onClick={handleClickRun}>{running ? 'Stop' : 'Run'}</Button>
         </ButtonGroup>
+        {dictionary && selectedOptionsSet && (
+          <>
+            <Divider style={{ margin: 10 }} />
+            <WordSelector
+              dictionary={dictionary}
+              optionsSet={selectedOptionsSet}
+              onSelect={handleSelectWord}
+            />
+          </>
+        )}
         {wave && hoveredTile && (
           <>
             <Divider style={{ margin: 10 }} />
