@@ -32,7 +32,7 @@
 }
 
 .tile--black:hover {
-  background-color: #666600;
+  background-color: #666600 !important;
 }
 
 .tile--selected {

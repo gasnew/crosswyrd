@@ -10,10 +10,17 @@
 + visualize entropy as faded highlights
 
 
+"click to select down/across"
+blue border and outline + higher z-index
 Variable size
+As typing in a word, see yellow-highlighted tile on board--turns white when "enter" => "calculating..." spinner
+search => "write a word" + enter & clear
 Some sort of indicator for when long operation is happening
 - Use comlink to make web workers nice? https://dev.to/nicolasrannou/web-workers-in-create-react-app-cra-without-unmounting-4865#attempt-4--comlink
+- when computing wave, disable entering a new word/dict search
+- "calculating..." indicator
 Edit existing words...?
+autofill never backtracks user-entered words--if it backtracks too many times or cannot proceed without backtracking past user-entered word, show error message, "Auto-fill could not complete. Try clearing or changing one of the words you entered"
 Toggle symmetry
 Toggle enforce NYT rules
 Show counts of 3-letter words

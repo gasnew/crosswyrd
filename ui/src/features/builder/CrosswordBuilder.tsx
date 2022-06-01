@@ -15,6 +15,7 @@ import {
   incorporateWaveIntoPuzzle,
   LetterType,
   selectPuzzle,
+  selectStagedWord,
   toggleTileBlack,
 } from './builderSlice';
 import { LETTER_WEIGHTS } from './constants';
@@ -62,6 +63,7 @@ function useDictionary(): DictionaryType | null {
 
 export default function CrosswordBuilder() {
   const puzzle = useSelector(selectPuzzle);
+  const stagedWord = useSelector(selectStagedWord);
   const dictionary = useDictionary();
   const {
     wave,
@@ -72,7 +74,9 @@ export default function CrosswordBuilder() {
   const [hoveredTile, setHoveredTile] = useState<LocationType | null>(null);
   const [running, setRunning] = useState(false);
 
-  const { onClick, selectedTileLocations } = useTileSelection(puzzle);
+  const { onClick, selectedTileLocations, clearSelection } = useTileSelection(
+    puzzle
+  );
 
   // negative number means we've passed the last failed depth
   const stepsToLastFailure = useRef(-1);
@@ -113,9 +117,7 @@ export default function CrosswordBuilder() {
       _.flatten(puzzle.tiles),
       (tile) => tile.value === 'black' || tile.value === 'empty'
     )
-      ? wave.elements[_.random(0, wave.elements.length - 1)][
-          _.random(0, wave.elements.length - 1)
-        ]
+      ? _.sample(_.reject(_.flatten(wave.elements), 'solid'))
       : _.minBy(_.reject(_.flatten(wave.elements), ['entropy', 0]), 'entropy');
     if (!lowestEntropyElement) return;
     const { row, column } = lowestEntropyElement;
@@ -132,15 +134,19 @@ export default function CrosswordBuilder() {
   const mkHandleMouseoverTile = (row, column) => {
     return () => setHoveredTile({ row, column });
   };
-  const handleSelectWord = useCallback((word: string) => {
-    if (word.length !== selectedTileLocations.length) return;
-    observeAtLocations(
-      _.map(word, (letter, index) => ({
-        ...selectedTileLocations[index],
-        value: letter as LetterType,
-      }))
-    );
-  }, [selectedTileLocations, observeAtLocations]);
+  const handleSelectWord = useCallback(
+    (word: string) => {
+      if (word.length !== selectedTileLocations.length) return;
+      observeAtLocations(
+        _.map(word, (letter, index) => ({
+          ...selectedTileLocations[index],
+          value: letter as LetterType,
+        }))
+      );
+      clearSelection();
+    },
+    [selectedTileLocations, observeAtLocations, clearSelection]
+  );
 
   useInterval(() => {
     if (!wave || !running) return;
@@ -188,46 +194,54 @@ export default function CrosswordBuilder() {
       <div className="tiles-container" onMouseOut={() => setHoveredTile(null)}>
         {_.map(puzzle.tiles, (row, rowIndex) => (
           <div key={rowIndex} className="puzzle-row">
-            {_.map(row, (tile, columnIndex) => (
-              <div
-                key={columnIndex}
-                className={
-                  'tile' +
-                  (tile.value === 'black' ? ' tile--black' : '') +
-                  (_.some(
-                    selectedTileLocations,
-                    (location) =>
-                      location.row === rowIndex &&
-                      location.column === columnIndex
-                  )
-                    ? ' tile--selected'
-                    : '')
-                }
-                style={{
-                  ...(tile.value === 'empty' && wave
-                    ? {
-                        backgroundColor:
-                          wave.elements[rowIndex][columnIndex].options.length >
-                          0
-                            ? `rgba(45, 114, 210, ${
-                                (3.3 -
-                                  wave.elements[rowIndex][columnIndex]
-                                    .entropy) /
-                                3.3
-                              }`
-                            : 'red',
-                      }
-                    : {}),
-                }}
-                onMouseOver={mkHandleMouseoverTile(rowIndex, columnIndex)}
-                onClick={mkHandleClickTile(rowIndex, columnIndex)}
-              >
-                <div className="tile-contents">
-                  {!_.includes(['empty', 'black'], tile.value) &&
-                    _.upperCase(tile.value)}
+            {_.map(row, (tile, columnIndex) => {
+              const selectionIndex = _.findIndex(
+                selectedTileLocations,
+                (location) =>
+                  location.row === rowIndex && location.column === columnIndex
+              );
+              const tileValue =
+                selectionIndex >= 0 && stagedWord[selectionIndex]
+                  ? _.toUpper(stagedWord[selectionIndex])
+                  : !_.includes(['empty', 'black'], tile.value) &&
+                    _.toUpper(tile.value);
+
+              return (
+                <div
+                  key={columnIndex}
+                  className={
+                    'tile' +
+                    (tile.value === 'black' ? ' tile--black' : '') +
+                    (selectionIndex >= 0 ? ' tile--selected' : '')
+                  }
+                  style={{
+                    ...(selectionIndex >= 0 && stagedWord[selectionIndex]
+                      ? // User is typing out a replacement word
+                        { backgroundColor: 'yellow' }
+                      : tile.value === 'empty' && wave
+                      ? {
+                          backgroundColor:
+                            selectionIndex >= 0 && stagedWord[selectionIndex]
+                              ? 'yellow'
+                              : wave.elements[rowIndex][columnIndex].options
+                                  .length > 0
+                              ? `rgba(45, 114, 210, ${
+                                  (3.3 -
+                                    wave.elements[rowIndex][columnIndex]
+                                      .entropy) /
+                                  3.3
+                                })`
+                              : 'red',
+                        }
+                      : {}),
+                  }}
+                  onMouseOver={mkHandleMouseoverTile(rowIndex, columnIndex)}
+                  onClick={mkHandleClickTile(rowIndex, columnIndex)}
+                >
+                  <div className="tile-contents">{tileValue}</div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         ))}
       </div>

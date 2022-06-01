@@ -16,6 +16,7 @@ export interface CrosswordPuzzleType {
 }
 interface BuilderState {
   puzzle: CrosswordPuzzleType;
+  stagedWord: string;
 }
 
 const initialState: BuilderState = {
@@ -27,6 +28,7 @@ const initialState: BuilderState = {
     //),
     tiles: DEFAULT_TILES,
   },
+  stagedWord: '',
 };
 
 export const builderSlice = createSlice({
@@ -63,14 +65,19 @@ export const builderSlice = createSlice({
         });
       });
     },
+    setStagedWord: (state, action: PayloadAction<string>) => {
+      state.stagedWord = action.payload;
+    },
   },
 });
 
 export const {
   incorporateWaveIntoPuzzle,
   toggleTileBlack,
+  setStagedWord,
 } = builderSlice.actions;
 
 export const selectPuzzle = (state: RootState) => state.builder.puzzle;
+export const selectStagedWord = (state: RootState) => state.builder.stagedWord;
 
 export default builderSlice.reducer;

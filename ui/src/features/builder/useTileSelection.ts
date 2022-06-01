@@ -52,6 +52,7 @@ function getDownTileLocations(
 interface ReturnType {
   onClick: (row: number, column: number) => void;
   selectedTileLocations: LocationType[];
+  clearSelection: () => void;
 }
 
 export default function useTileSelection(
@@ -88,8 +89,13 @@ export default function useTileSelection(
     [puzzle, acrossMode, selectedTileLocations]
   );
 
+  const clearSelection = useCallback(() => {
+    setSelectedTileLocations([]);
+  }, []);
+
   return {
     onClick,
     selectedTileLocations,
+    clearSelection,
   };
 }
