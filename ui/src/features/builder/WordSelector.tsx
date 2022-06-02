@@ -24,10 +24,11 @@ import { findWordOptions } from './useWaveFunctionCollapse';
 interface Props {
   dictionary: DictionaryType;
   optionsSet: LetterType[][];
-  onSelect: (word: string) => void;
+  onEnter: (word: string) => void;
+  onClear: () => void;
 }
 
-function WordSelector({ dictionary, optionsSet, onSelect }: Props) {
+function WordSelector({ dictionary, optionsSet, onEnter, onClear }: Props) {
   const stagedWord = useSelector(selectStagedWord);
   const dispatch = useDispatch();
 
@@ -78,7 +79,13 @@ function WordSelector({ dictionary, optionsSet, onSelect }: Props) {
     dispatch(setStagedWord(possibleWords[index]));
     if (inputRef.current) inputRef.current.focus();
   };
-  const handleClickEnter = () => onSelect(stagedWord);
+  const handleClickEnter = () => {
+    if (!canClickEnter) return;
+    onEnter(stagedWord);
+  };
+  const handleClickClear = () => {
+    onClear();
+  };
 
   const canClickEnter =
     stagedWord.length === optionsSet.length && !_.includes(stagedWord, '?');
@@ -119,6 +126,7 @@ function WordSelector({ dictionary, optionsSet, onSelect }: Props) {
             style={{ marginLeft: 5 }}
             color="error"
             startIcon={<ClearIcon />}
+            onClick={handleClickClear}
           >
             Clear
           </Button>

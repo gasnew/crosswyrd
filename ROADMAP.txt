@@ -10,6 +10,7 @@
 + visualize entropy as faded highlights
 
 
+height 100%, overflow-y: hidden
 "click to select down/across"
 blue border and outline + higher z-index
 Variable size

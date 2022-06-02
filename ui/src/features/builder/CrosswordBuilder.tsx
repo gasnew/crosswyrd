@@ -69,6 +69,7 @@ export default function CrosswordBuilder() {
     wave,
     observeAtLocation,
     observeAtLocations,
+    clearLocations,
     stepBack,
   } = useWaveFunctionCollapse(dictionary, puzzle);
   const [hoveredTile, setHoveredTile] = useState<LocationType | null>(null);
@@ -99,14 +100,7 @@ export default function CrosswordBuilder() {
             column,
           })
         );
-      else {
-        onClick(row, column);
-        // Below is old way of picking random letter to place
-        //if (!wave) return;
-        //const newValue = pickWeightedRandomLetter(wave, row, column);
-        //if (!newValue) return;
-        //observeAtLocation(row, column, newValue);
-      }
+      else onClick(row, column);
     };
   };
   const handleClickNext = useCallback(() => {
@@ -134,7 +128,7 @@ export default function CrosswordBuilder() {
   const mkHandleMouseoverTile = (row, column) => {
     return () => setHoveredTile({ row, column });
   };
-  const handleSelectWord = useCallback(
+  const handleEnterWord = useCallback(
     (word: string) => {
       if (word.length !== selectedTileLocations.length) return;
       observeAtLocations(
@@ -147,6 +141,9 @@ export default function CrosswordBuilder() {
     },
     [selectedTileLocations, observeAtLocations, clearSelection]
   );
+  const handleClearSelectedTileRange = useCallback(() => {
+    clearLocations(selectedTileLocations);
+  }, [selectedTileLocations, clearLocations]);
 
   useInterval(() => {
     if (!wave || !running) return;
@@ -257,7 +254,8 @@ export default function CrosswordBuilder() {
             <WordSelector
               dictionary={dictionary}
               optionsSet={selectedOptionsSet}
-              onSelect={handleSelectWord}
+              onEnter={handleEnterWord}
+              onClear={handleClearSelectedTileRange}
             />
           </>
         )}

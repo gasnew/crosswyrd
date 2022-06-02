@@ -3,7 +3,7 @@ import { useCallback, useEffect, useState } from 'react';
 
 import { CrosswordPuzzleType, LetterType } from './builderSlice';
 import { ALL_LETTERS } from './constants';
-import { DictionaryType } from './CrosswordBuilder';
+import { DictionaryType, LocationType } from './CrosswordBuilder';
 import useWaveHistory from './useWaveHistory';
 
 interface ElementType {
@@ -212,6 +212,24 @@ function withNewObservationAtLocation(
   return waveCopy;
 }
 
+function waveFromPuzzle(puzzle: CrosswordPuzzleType): WaveType {
+  // Returns a wave given the pattern of the puzzle. The puzzle values are NOT
+  // transferred, i.e., each non-solid tile has all letters as options.
+  const solid = (tile) => tile.value === 'black';
+  const options = (tile) => (solid(tile) ? [] : [...ALL_LETTERS]);
+  return {
+    elements: _.map(puzzle.tiles, (row, rowIndex) =>
+      _.map(row, (tile, columnIndex) => ({
+        row: rowIndex,
+        column: columnIndex,
+        options: options(tile),
+        entropy: computeEntropy(options(tile)),
+        solid: solid(tile),
+      }))
+    ),
+  };
+}
+
 interface ReturnType {
   wave: WaveType | null;
   observeAtLocation: (
@@ -226,6 +244,7 @@ interface ReturnType {
       value: LetterType;
     }[]
   ) => boolean;
+  clearLocations: (locations: LocationType[]) => boolean;
   stepBack: () => void;
 }
 
@@ -240,18 +259,7 @@ export default function useWaveFunctionCollapse(
   useEffect(() => {
     // TODO: Run this effect when the black tiles change
     if (wave) return;
-    setWave({
-      elements: _.map(puzzle.tiles, (row, rowIndex) =>
-        _.map(row, (tile, columnIndex) => ({
-          row: rowIndex,
-          column: columnIndex,
-          options: [...ALL_LETTERS],
-          entropy:
-            tile.value === 'black' ? 0 : computeEntropy([...ALL_LETTERS]),
-          solid: tile.value === 'black',
-        }))
-      ),
-    });
+    setWave(waveFromPuzzle(puzzle));
   }, [puzzle, wave]);
 
   const observeAtLocation = useCallback(
@@ -267,8 +275,12 @@ export default function useWaveFunctionCollapse(
   );
 
   const observeAtLocations = useCallback(
-    (observations: { row: number; column: number; value: LetterType }[]) => {
-      if (!wave || !dictionary) return false;
+    (
+      observations: { row: number; column: number; value: LetterType }[],
+      customWave?: WaveType
+    ) => {
+      const waveToUse = customWave || wave;
+      if (!wave || !waveToUse || !dictionary) return false;
       setWave(
         _.reduce(
           observations,
@@ -280,13 +292,72 @@ export default function useWaveFunctionCollapse(
               column,
               value
             ),
-          wave
+          waveToUse
         )
       );
+      // Always push the previous wave to history, not waveToUse, because
+      // waveToUse is probably modified in some way (e.g., reset after clearing
+      // a word so not actually a valid state).
       pushStateHistory(wave);
       return true;
     },
     [dictionary, wave, pushStateHistory]
+  );
+
+  const clearLocations = useCallback(
+    (locations) => {
+      // TODO: Fix this--not great right now
+      if (!wave || !dictionary) return false;
+      // Copy puzzle, make empty values at locations, make a new wave, observe
+      // at ALL filled tile locations.
+      //
+      // NOTE(gnewman): We HAVE to re-observe at all filled tile locations
+      // because we are not guaranteed that this clear operation will propagate
+      // across the entire board. This is slow, but this is the only way we can
+      // ensure are wave has resolved correctly.
+      const puzzleCopy: CrosswordPuzzleType = JSON.parse(
+        JSON.stringify(puzzle)
+      );
+      const newWave = waveFromPuzzle(puzzleCopy);
+      _.forEach(locations, (location) => {
+        puzzleCopy.tiles[location.row][location.column].value = 'empty';
+      });
+
+      observeAtLocations(
+        _.compact(
+          _.flatMap(puzzleCopy.tiles, (row, rowIndex) =>
+            _.map(row, (tile, columnIndex) =>
+              tile.value !== 'empty' &&
+              tile.value !== 'black' &&
+              _.some(
+                [
+                  [-1, 0],
+                  [1, 0],
+                  [0, -1],
+                  [0, 1],
+                ],
+                ([xdir, ydir]) => {
+                  return (
+                    puzzleCopy.tiles?.[rowIndex + ydir]?.[columnIndex + xdir]
+                      ?.value === 'empty'
+                  );
+                }
+              )
+                ? {
+                    row: rowIndex,
+                    column: columnIndex,
+                    value: tile.value,
+                  }
+                : null
+            )
+          )
+        ),
+        newWave
+      );
+
+      return true;
+    },
+    [dictionary, puzzle, wave, observeAtLocations]
   );
 
   const stepBack = useCallback(() => {
@@ -298,6 +369,7 @@ export default function useWaveFunctionCollapse(
     wave,
     observeAtLocation,
     observeAtLocations,
+    clearLocations,
     stepBack,
   };
 }
