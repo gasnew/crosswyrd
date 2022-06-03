@@ -1,5 +1,5 @@
 import _ from 'lodash';
-import { useCallback, useLayoutEffect, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 
 import { CrosswordPuzzleType } from './builderSlice';
 import { WaveType } from './useWaveFunctionCollapse';

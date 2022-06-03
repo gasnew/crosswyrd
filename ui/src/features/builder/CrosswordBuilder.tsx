@@ -132,9 +132,7 @@ export default function CrosswordBuilder() {
     }
   }, [dispatch, observeAtLocation, puzzle, wave]);
   const handleClickBack = () => {
-    const previousState = stepBack();
-    //if (previousState)
-    //dispatch(setPuzzleTilesToResolvedWaveElements(previousState.wave));
+    stepBack();
   };
   const handleClickRun = () => {
     setRunning(!running);

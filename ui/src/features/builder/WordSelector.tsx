@@ -119,7 +119,9 @@ function WordSelector({ dictionary, optionsSet, onEnter, onClear }: Props) {
             disabled={!canClickEnter}
             onClick={handleClickEnter}
           >
-            Enter
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+              Enter
+            </div>
           </Button>
           <Button
             size="small"

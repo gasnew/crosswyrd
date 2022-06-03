@@ -268,16 +268,14 @@ export default function useWaveFunctionCollapse(
         value
       );
       setWave(newWave);
-      //pushStateHistory(wave);
       return newWave;
     },
     [dictionary, wave]
   );
 
-  const observeAtLocations = useCallback(
-    (observations: ObservationType[], customWave?: WaveType) => {
-      const waveToUse = customWave || wave;
-      if (!wave || !waveToUse || !dictionary) return false;
+  const commitObservationsToWave = useCallback(
+    (observations: ObservationType[], customWave: WaveType) => {
+      if (!dictionary) return false;
       setWave(
         _.reduce(
           observations,
@@ -289,32 +287,16 @@ export default function useWaveFunctionCollapse(
               column,
               value
             ),
-          waveToUse
+          customWave
         )
       );
-      // Always push the previous wave to history, not waveToUse, because
-      // waveToUse is probably modified in some way (e.g., reset after clearing
-      // a word so not actually a valid state).
-      //pushStateHistory(wave);
       return true;
     },
-    [dictionary, wave]
+    [dictionary]
   );
 
-  const clearLocations = useCallback(
-    (locations) => {
-      // TODO: Fix this--not great right now
-      if (!wave || !dictionary) return false;
-      // Copy puzzle, make empty values at locations, make a new wave, observe
-      // at ALL filled tile locations.
-      //
-      // NOTE(gnewman): We HAVE to re-observe at all filled tile locations
-      // because we are not guaranteed that this clear operation will propagate
-      // across the entire board. This is slow, but this is the only way we can
-      // ensure are wave has resolved correctly.
-      const puzzleCopy: CrosswordPuzzleType = JSON.parse(
-        JSON.stringify(puzzle)
-      );
+  const commitNewWaveFromPuzzle = useCallback(
+    (puzzle: CrosswordPuzzleType) => {
       const surroundingTiles = (row: number, column: number) =>
         _.map(
           [
@@ -323,16 +305,15 @@ export default function useWaveFunctionCollapse(
             [0, -1],
             [0, 1],
           ],
-          ([xdir, ydir]) => puzzleCopy.tiles?.[row + ydir]?.[column + xdir]
+          ([xdir, ydir]) => puzzle.tiles?.[row + ydir]?.[column + xdir]
         );
-      const newWave = waveFromPuzzle(puzzleCopy);
-      _.forEach(locations, (location) => {
-        puzzleCopy.tiles[location.row][location.column].value = 'empty';
-      });
+      const newWave = waveFromPuzzle(puzzle);
 
-      observeAtLocations(
+      // Commit observations on the filled-in tiles touching at least one empty
+      // tile, and just set the collapsed state for the other filled-in tiles.
+      commitObservationsToWave(
         _.compact(
-          _.flatMap(puzzleCopy.tiles, (row, rowIndex) =>
+          _.flatMap(puzzle.tiles, (row, rowIndex) =>
             _.map(row, (tile, columnIndex) => {
               if (tile.value === 'empty' || tile.value === 'black') return;
               // Some surrounding tile is empty
@@ -347,10 +328,9 @@ export default function useWaveFunctionCollapse(
                   column: columnIndex,
                   value: tile.value,
                 };
-              // Carry over old options into new options for elements that
-              // have no empty adjacent tiles (these are already collapsed)
-              newWave.elements[rowIndex][columnIndex].options =
-                wave.elements[rowIndex][columnIndex].options;
+              // Write options directly for elements that have no empty
+              // adjacent tiles (these are already collapsed)
+              newWave.elements[rowIndex][columnIndex].options = [tile.value];
 
               return null;
             })
@@ -358,17 +338,62 @@ export default function useWaveFunctionCollapse(
         ),
         newWave
       );
+    },
+    [commitObservationsToWave]
+  );
+
+  const clearLocations = useCallback(
+    (locations) => {
+      if (!wave || !dictionary) return false;
+      // Copy puzzle, make empty values at locations, make a new wave, observe
+      // at ALL filled tile locations.
+      //
+      // NOTE(gnewman): We HAVE to re-observe at all filled tile locations
+      // because we are not guaranteed that this clear operation will propagate
+      // across the entire board. This is slow, but this is the only way we can
+      // ensure are wave has resolved correctly.
+      const puzzleCopy: CrosswordPuzzleType = JSON.parse(
+        JSON.stringify(puzzle)
+      );
+      _.forEach(locations, (location) => {
+        puzzleCopy.tiles[location.row][location.column].value = 'empty';
+      });
+      commitNewWaveFromPuzzle(puzzleCopy);
 
       return true;
     },
-    [dictionary, puzzle, wave, observeAtLocations]
+    [dictionary, puzzle, wave, commitNewWaveFromPuzzle]
   );
 
-  //const stepBack = useCallback(() => {
-  //const newWave = popStateHistory();
-  //setWave(newWave);
-  //return newWave;
-  //}, [popStateHistory]);
+  const observeAtLocations = useCallback(
+    (observations: ObservationType[]) => {
+      if (!wave) return false;
+      if (
+        _.some(
+          observations,
+          ({ row, column, value }) =>
+            !_.includes(wave.elements[row][column].options, value)
+        )
+      ) {
+        // At least one observation is redefining constraints, e.g., we are
+        // overwriting an existing word. We must now copy puzzle, overwrite these
+        // locations, make a new wave, and observe at ALL filled tile locations
+        // adjacent to empty spaces.
+        const puzzleCopy: CrosswordPuzzleType = JSON.parse(
+          JSON.stringify(puzzle)
+        );
+        _.forEach(observations, ({ row, column, value }) => {
+          puzzleCopy.tiles[row][column].value = value;
+        });
+        commitNewWaveFromPuzzle(puzzleCopy);
+
+        return true;
+      }
+      commitObservationsToWave(observations, wave);
+      return true;
+    },
+    [puzzle, wave, commitNewWaveFromPuzzle, commitObservationsToWave]
+  );
 
   const setWaveState = useCallback((wave: WaveType) => {
     setWave(wave);
