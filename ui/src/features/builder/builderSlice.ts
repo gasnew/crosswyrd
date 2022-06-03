@@ -52,18 +52,39 @@ export const builderSlice = createSlice({
         puzzleSize - action.payload.column - 1
       ].value = newValue;
     },
-    incorporateWaveIntoPuzzle: (state, action: PayloadAction<WaveType>) => {
+    setPuzzleTilesToResolvedWaveElements: (
+      state,
+      action: PayloadAction<WaveType>
+    ) => {
       _.forEach(action.payload.elements, (row, rowIndex) => {
         _.forEach(row, (element, columnIndex) => {
           const tile = state.puzzle.tiles[rowIndex][columnIndex];
           // If there is one option, set the value
           if (element.options.length === 1) tile.value = element.options[0];
-          // If there are multiple values, and the tile's value is a letter,
-          // set to empty (i.e., we backtracked)
-          if (element.options.length > 1 && _.includes(ALL_LETTERS, tile.value))
-            tile.value = 'empty';
+          // If tile is a letter...
+          if (_.includes(ALL_LETTERS, tile.value)) {
+            // If there are zero options, set to empty
+            if (element.options.length === 0) tile.value = 'empty';
+            // If there are multiple values, set to empty (i.e., we
+            // backtracked)
+            else if (element.options.length > 1) tile.value = 'empty';
+          }
         });
       });
+    },
+    setPuzzleTileValues: (
+      state,
+      action: PayloadAction<
+        { row: number; column: number; value: TileValueType }[]
+      >
+    ) => {
+      _.forEach(action.payload, ({ row, column, value }) => {
+        const tile = state.puzzle.tiles[row][column];
+        tile.value = value;
+      });
+    },
+    setPuzzleState: (state, action: PayloadAction<CrosswordPuzzleType>) => {
+      state.puzzle = action.payload;
     },
     setStagedWord: (state, action: PayloadAction<string>) => {
       state.stagedWord = action.payload;
@@ -72,8 +93,10 @@ export const builderSlice = createSlice({
 });
 
 export const {
-  incorporateWaveIntoPuzzle,
+  setPuzzleTilesToResolvedWaveElements,
+  setPuzzleTileValues,
   toggleTileBlack,
+  setPuzzleState,
   setStagedWord,
 } = builderSlice.actions;
 

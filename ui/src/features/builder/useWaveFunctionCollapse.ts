@@ -4,7 +4,6 @@ import { useCallback, useEffect, useState } from 'react';
 import { CrosswordPuzzleType, LetterType } from './builderSlice';
 import { ALL_LETTERS } from './constants';
 import { DictionaryType, LocationType } from './CrosswordBuilder';
-import useWaveHistory from './useWaveHistory';
 
 interface ElementType {
   row: number;
@@ -230,22 +229,19 @@ function waveFromPuzzle(puzzle: CrosswordPuzzleType): WaveType {
   };
 }
 
+export interface ObservationType {
+  row: number;
+  column: number;
+  value: LetterType;
+}
+
 interface ReturnType {
   wave: WaveType | null;
-  observeAtLocation: (
-    row: number,
-    column: number,
-    value: LetterType
-  ) => boolean;
-  observeAtLocations: (
-    observations: {
-      row: number;
-      column: number;
-      value: LetterType;
-    }[]
-  ) => boolean;
+  observeAtLocation: (ObservationType) => WaveType | null;
+  observeAtLocations: (observations: ObservationType[]) => boolean;
   clearLocations: (locations: LocationType[]) => boolean;
-  stepBack: () => void;
+  //stepBack: () => WaveType | null;
+  setWaveState: (wave: WaveType) => void;
 }
 
 export default function useWaveFunctionCollapse(
@@ -253,7 +249,6 @@ export default function useWaveFunctionCollapse(
   puzzle: CrosswordPuzzleType
 ): ReturnType {
   const [wave, setWave] = useState<WaveType | null>(null);
-  const { pushStateHistory, popStateHistory } = useWaveHistory(wave);
 
   // Ingest puzzle into wave
   useEffect(() => {
@@ -263,22 +258,24 @@ export default function useWaveFunctionCollapse(
   }, [puzzle, wave]);
 
   const observeAtLocation = useCallback(
-    (row: number, column: number, value: LetterType) => {
-      if (!wave || !dictionary) return false;
-      setWave(
-        withNewObservationAtLocation(dictionary, wave, row, column, value)
+    ({ row, column, value }: ObservationType) => {
+      if (!wave || !dictionary) return null;
+      const newWave = withNewObservationAtLocation(
+        dictionary,
+        wave,
+        row,
+        column,
+        value
       );
-      pushStateHistory(wave);
-      return true;
+      setWave(newWave);
+      //pushStateHistory(wave);
+      return newWave;
     },
-    [dictionary, wave, pushStateHistory]
+    [dictionary, wave]
   );
 
   const observeAtLocations = useCallback(
-    (
-      observations: { row: number; column: number; value: LetterType }[],
-      customWave?: WaveType
-    ) => {
+    (observations: ObservationType[], customWave?: WaveType) => {
       const waveToUse = customWave || wave;
       if (!wave || !waveToUse || !dictionary) return false;
       setWave(
@@ -298,10 +295,10 @@ export default function useWaveFunctionCollapse(
       // Always push the previous wave to history, not waveToUse, because
       // waveToUse is probably modified in some way (e.g., reset after clearing
       // a word so not actually a valid state).
-      pushStateHistory(wave);
+      //pushStateHistory(wave);
       return true;
     },
-    [dictionary, wave, pushStateHistory]
+    [dictionary, wave]
   );
 
   const clearLocations = useCallback(
@@ -318,6 +315,16 @@ export default function useWaveFunctionCollapse(
       const puzzleCopy: CrosswordPuzzleType = JSON.parse(
         JSON.stringify(puzzle)
       );
+      const surroundingTiles = (row: number, column: number) =>
+        _.map(
+          [
+            [-1, 0],
+            [1, 0],
+            [0, -1],
+            [0, 1],
+          ],
+          ([xdir, ydir]) => puzzleCopy.tiles?.[row + ydir]?.[column + xdir]
+        );
       const newWave = waveFromPuzzle(puzzleCopy);
       _.forEach(locations, (location) => {
         puzzleCopy.tiles[location.row][location.column].value = 'empty';
@@ -326,30 +333,27 @@ export default function useWaveFunctionCollapse(
       observeAtLocations(
         _.compact(
           _.flatMap(puzzleCopy.tiles, (row, rowIndex) =>
-            _.map(row, (tile, columnIndex) =>
-              tile.value !== 'empty' &&
-              tile.value !== 'black' &&
-              _.some(
-                [
-                  [-1, 0],
-                  [1, 0],
-                  [0, -1],
-                  [0, 1],
-                ],
-                ([xdir, ydir]) => {
-                  return (
-                    puzzleCopy.tiles?.[rowIndex + ydir]?.[columnIndex + xdir]
-                      ?.value === 'empty'
-                  );
-                }
+            _.map(row, (tile, columnIndex) => {
+              if (tile.value === 'empty' || tile.value === 'black') return;
+              // Some surrounding tile is empty
+              if (
+                _.some(
+                  surroundingTiles(rowIndex, columnIndex),
+                  (tile) => tile?.value === 'empty'
+                )
               )
-                ? {
-                    row: rowIndex,
-                    column: columnIndex,
-                    value: tile.value,
-                  }
-                : null
-            )
+                return {
+                  row: rowIndex,
+                  column: columnIndex,
+                  value: tile.value,
+                };
+              // Carry over old options into new options for elements that
+              // have no empty adjacent tiles (these are already collapsed)
+              newWave.elements[rowIndex][columnIndex].options =
+                wave.elements[rowIndex][columnIndex].options;
+
+              return null;
+            })
           )
         ),
         newWave
@@ -360,16 +364,21 @@ export default function useWaveFunctionCollapse(
     [dictionary, puzzle, wave, observeAtLocations]
   );
 
-  const stepBack = useCallback(() => {
-    const newWave = popStateHistory();
-    setWave(newWave);
-  }, [popStateHistory]);
+  //const stepBack = useCallback(() => {
+  //const newWave = popStateHistory();
+  //setWave(newWave);
+  //return newWave;
+  //}, [popStateHistory]);
+
+  const setWaveState = useCallback((wave: WaveType) => {
+    setWave(wave);
+  }, []);
 
   return {
     wave,
     observeAtLocation,
     observeAtLocations,
     clearLocations,
-    stepBack,
+    setWaveState,
   };
 }

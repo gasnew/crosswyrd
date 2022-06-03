@@ -12,14 +12,17 @@ import { useDispatch, useSelector } from 'react-redux';
 
 import { useInterval } from '../../app/util';
 import {
-  incorporateWaveIntoPuzzle,
   LetterType,
   selectPuzzle,
   selectStagedWord,
+  setPuzzleState,
+  setPuzzleTilesToResolvedWaveElements,
+  setPuzzleTileValues,
   toggleTileBlack,
 } from './builderSlice';
 import { LETTER_WEIGHTS } from './constants';
 import useTileSelection from './useTileSelection';
+import useWaveAndPuzzleHistory from './useWaveAndPuzzleHistory';
 import useWaveFunctionCollapse, { WaveType } from './useWaveFunctionCollapse';
 import WordSelector from './WordSelector';
 
@@ -69,9 +72,10 @@ export default function CrosswordBuilder() {
     wave,
     observeAtLocation,
     observeAtLocations,
-    clearLocations,
-    stepBack,
+    clearLocations: clearWaveLocations,
+    setWaveState,
   } = useWaveFunctionCollapse(dictionary, puzzle);
+  const { popStateHistory } = useWaveAndPuzzleHistory(wave, puzzle);
   const [hoveredTile, setHoveredTile] = useState<LocationType | null>(null);
   const [running, setRunning] = useState(false);
 
@@ -85,11 +89,13 @@ export default function CrosswordBuilder() {
 
   const dispatch = useDispatch();
 
-  // Incorporate wave into puzzle
-  useEffect(() => {
-    if (!wave) return;
-    dispatch(incorporateWaveIntoPuzzle(wave));
-  }, [dispatch, wave]);
+  const stepBack = useCallback(() => {
+    const previousState = popStateHistory();
+    if (!previousState) return;
+    setWaveState(previousState.wave);
+    dispatch(setPuzzleState(previousState.puzzle));
+    return previousState;
+  }, [dispatch, setWaveState, popStateHistory]);
 
   const mkHandleClickTile = (row, column) => {
     return (event) => {
@@ -117,10 +123,18 @@ export default function CrosswordBuilder() {
     const { row, column } = lowestEntropyElement;
     const newValue = pickWeightedRandomLetter(wave, row, column);
     if (!newValue) return;
-    observeAtLocation(row, column, newValue);
-  }, [observeAtLocation, puzzle, wave]);
+    const observation = { row, column, value: newValue };
+    const newWave = observeAtLocation(observation);
+    if (newWave) {
+      // The observation succeeded, so set tile values for all tiles that are
+      // now collapsed to one state in the new wave.
+      dispatch(setPuzzleTilesToResolvedWaveElements(newWave));
+    }
+  }, [dispatch, observeAtLocation, puzzle, wave]);
   const handleClickBack = () => {
-    stepBack();
+    const previousState = stepBack();
+    //if (previousState)
+    //dispatch(setPuzzleTilesToResolvedWaveElements(previousState.wave));
   };
   const handleClickRun = () => {
     setRunning(!running);
@@ -131,19 +145,27 @@ export default function CrosswordBuilder() {
   const handleEnterWord = useCallback(
     (word: string) => {
       if (word.length !== selectedTileLocations.length) return;
-      observeAtLocations(
-        _.map(word, (letter, index) => ({
-          ...selectedTileLocations[index],
-          value: letter as LetterType,
-        }))
-      );
+      const observations = _.map(word, (letter, index) => ({
+        ...selectedTileLocations[index],
+        value: letter as LetterType,
+      }));
+      observeAtLocations(observations);
+      dispatch(setPuzzleTileValues(observations));
       clearSelection();
     },
-    [selectedTileLocations, observeAtLocations, clearSelection]
+    [dispatch, selectedTileLocations, observeAtLocations, clearSelection]
   );
   const handleClearSelectedTileRange = useCallback(() => {
-    clearLocations(selectedTileLocations);
-  }, [selectedTileLocations, clearLocations]);
+    clearWaveLocations(selectedTileLocations);
+    dispatch(
+      setPuzzleTileValues(
+        _.map(selectedTileLocations, (location) => ({
+          ...location,
+          value: 'empty',
+        }))
+      )
+    );
+  }, [dispatch, selectedTileLocations, clearWaveLocations]);
 
   useInterval(() => {
     if (!wave || !running) return;
@@ -174,7 +196,7 @@ export default function CrosswordBuilder() {
       // We're one step closer to last backtrack
       stepsToLastFailure.current -= 1;
     }
-  }, 100);
+  }, 200);
 
   const selectedOptionsSet = useMemo(
     () =>
@@ -202,6 +224,7 @@ export default function CrosswordBuilder() {
                   ? _.toUpper(stagedWord[selectionIndex])
                   : !_.includes(['empty', 'black'], tile.value) &&
                     _.toUpper(tile.value);
+              const element = wave && wave.elements[rowIndex][columnIndex];
 
               return (
                 <div
@@ -215,20 +238,20 @@ export default function CrosswordBuilder() {
                     ...(selectionIndex >= 0 && stagedWord[selectionIndex]
                       ? // User is typing out a replacement word
                         { backgroundColor: 'yellow' }
-                      : tile.value === 'empty' && wave
+                      : tile.value !== 'black' && element
                       ? {
                           backgroundColor:
                             selectionIndex >= 0 && stagedWord[selectionIndex]
                               ? 'yellow'
-                              : wave.elements[rowIndex][columnIndex].options
-                                  .length > 0
+                              : element.options.length > 1 ||
+                                (element.options.length === 1 &&
+                                  tile.value === 'empty')
                               ? `rgba(45, 114, 210, ${
-                                  (3.3 -
-                                    wave.elements[rowIndex][columnIndex]
-                                      .entropy) /
-                                  3.3
+                                  (3.3 - element.entropy) / 3.3
                                 })`
-                              : 'red',
+                              : element.options.length === 0
+                              ? 'red'
+                              : 'white',
                         }
                       : {}),
                   }}
