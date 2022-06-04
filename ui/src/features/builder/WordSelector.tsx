@@ -32,22 +32,29 @@ function WordSelector({ dictionary, optionsSet, onEnter, onClear }: Props) {
   const stagedWord = useSelector(selectStagedWord);
   const dispatch = useDispatch();
 
+  const allPossibleWords = useMemo(
+    () => findWordOptions(dictionary, optionsSet),
+    [dictionary, optionsSet]
+  );
+  const wordsFilteredByStagedWord = useMemo(
+    () =>
+      findWordOptions(
+        allPossibleWords,
+        _.map(_.range(optionsSet.length), (index) => [
+          (stagedWord[index] ?? '?') === '?'
+            ? '.'
+            : (stagedWord[index] as LetterType),
+        ])
+      ),
+    [allPossibleWords, optionsSet, stagedWord]
+  );
   const possibleWords = useMemo(() => {
-    const allPossibleWords = findWordOptions(dictionary, optionsSet);
-    const wordsFilteredByStagedWord = findWordOptions(
-      allPossibleWords,
-      _.map(_.range(optionsSet.length), (index) => [
-        (stagedWord[index] ?? '?') === '?'
-          ? '.'
-          : (stagedWord[index] as LetterType),
-      ])
-    );
     const wordsExceptStagedWord = _.without(
       wordsFilteredByStagedWord,
       stagedWord
     );
     return wordsExceptStagedWord;
-  }, [dictionary, optionsSet, stagedWord]);
+  }, [wordsFilteredByStagedWord, stagedWord]);
 
   // Auto-focus in input field, and clear staged word. We use useLayoutEffect
   // so that this update happens before the render (otherwise, the staged word
@@ -87,12 +94,23 @@ function WordSelector({ dictionary, optionsSet, onEnter, onClear }: Props) {
     onClear();
   };
 
-  const canClickEnter =
-    stagedWord.length === optionsSet.length && !_.includes(stagedWord, '?');
+  const canClickEnter = useMemo(
+    () =>
+      stagedWord.length === optionsSet.length &&
+      !_.includes(stagedWord, '?') &&
+      _.every(optionsSet, (options, index) =>
+        _.includes(options, stagedWord[index])
+      ),
+    [stagedWord, optionsSet]
+  );
+  const stagedWordFullAndNotInDictionary = useMemo(
+    () => canClickEnter && !_.includes(dictionary, stagedWord),
+    [canClickEnter, dictionary, stagedWord]
+  );
 
   return (
     <div className="word-selector-container">
-      {optionsSet.length > 0 ? (
+      {optionsSet.length > 0 && (
         <div className="word-selector-input-container">
           <Input
             placeholder="Write a word"
@@ -121,6 +139,11 @@ function WordSelector({ dictionary, optionsSet, onEnter, onClear }: Props) {
           >
             <div style={{ display: 'flex', flexDirection: 'column' }}>
               Enter
+              {stagedWordFullAndNotInDictionary && (
+                <span className="selector-add-word-text">
+                  +&nbsp;Add&nbsp;Word
+                </span>
+              )}
             </div>
           </Button>
           <Button
@@ -133,8 +156,9 @@ function WordSelector({ dictionary, optionsSet, onEnter, onClear }: Props) {
             Clear
           </Button>
         </div>
-      ) : (
-        <span style={{ fontStyle: 'italic' }}>
+      )}
+      {optionsSet.length === 0 && (
+        <span className="selector-comment">
           Click a tile to enter a new word!
         </span>
       )}
@@ -144,7 +168,6 @@ function WordSelector({ dictionary, optionsSet, onEnter, onClear }: Props) {
             height={350}
             itemCount={possibleWords.length}
             itemSize={46}
-            //width={200}
             overscanCount={5}
           >
             {({ index, style }) => (

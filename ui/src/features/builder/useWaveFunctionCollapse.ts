@@ -237,15 +237,22 @@ export interface ObservationType {
 
 interface ReturnType {
   wave: WaveType | null;
-  observeAtLocation: (ObservationType) => WaveType | null;
-  observeAtLocations: (observations: ObservationType[]) => boolean;
-  clearLocations: (locations: LocationType[]) => boolean;
-  //stepBack: () => WaveType | null;
+  observeAtLocation: (
+    observation: ObservationType,
+    dictionary: DictionaryType
+  ) => WaveType | null;
+  observeAtLocations: (
+    observations: ObservationType[],
+    dictionary: DictionaryType
+  ) => boolean;
+  clearLocations: (
+    locations: LocationType[],
+    dictionary: DictionaryType
+  ) => boolean;
   setWaveState: (wave: WaveType) => void;
 }
 
 export default function useWaveFunctionCollapse(
-  dictionary: DictionaryType | null,
   puzzle: CrosswordPuzzleType
 ): ReturnType {
   const [wave, setWave] = useState<WaveType | null>(null);
@@ -258,8 +265,8 @@ export default function useWaveFunctionCollapse(
   }, [puzzle, wave]);
 
   const observeAtLocation = useCallback(
-    ({ row, column, value }: ObservationType) => {
-      if (!wave || !dictionary) return null;
+    ({ row, column, value }: ObservationType, dictionary: DictionaryType) => {
+      if (!wave) return null;
       const newWave = withNewObservationAtLocation(
         dictionary,
         wave,
@@ -270,12 +277,15 @@ export default function useWaveFunctionCollapse(
       setWave(newWave);
       return newWave;
     },
-    [dictionary, wave]
+    [wave]
   );
 
   const commitObservationsToWave = useCallback(
-    (observations: ObservationType[], customWave: WaveType) => {
-      if (!dictionary) return false;
+    (
+      observations: ObservationType[],
+      customWave: WaveType,
+      dictionary: DictionaryType
+    ) => {
       setWave(
         _.reduce(
           observations,
@@ -292,11 +302,11 @@ export default function useWaveFunctionCollapse(
       );
       return true;
     },
-    [dictionary]
+    []
   );
 
   const commitNewWaveFromPuzzle = useCallback(
-    (puzzle: CrosswordPuzzleType) => {
+    (puzzle: CrosswordPuzzleType, dictionary: DictionaryType) => {
       const surroundingTiles = (row: number, column: number) =>
         _.map(
           [
@@ -336,15 +346,16 @@ export default function useWaveFunctionCollapse(
             })
           )
         ),
-        newWave
+        newWave,
+        dictionary
       );
     },
     [commitObservationsToWave]
   );
 
   const clearLocations = useCallback(
-    (locations) => {
-      if (!wave || !dictionary) return false;
+    (locations, dictionary) => {
+      if (!wave) return false;
       // Copy puzzle, make empty values at locations, make a new wave, observe
       // at ALL filled tile locations.
       //
@@ -358,15 +369,15 @@ export default function useWaveFunctionCollapse(
       _.forEach(locations, (location) => {
         puzzleCopy.tiles[location.row][location.column].value = 'empty';
       });
-      commitNewWaveFromPuzzle(puzzleCopy);
+      commitNewWaveFromPuzzle(puzzleCopy, dictionary);
 
       return true;
     },
-    [dictionary, puzzle, wave, commitNewWaveFromPuzzle]
+    [puzzle, wave, commitNewWaveFromPuzzle]
   );
 
   const observeAtLocations = useCallback(
-    (observations: ObservationType[]) => {
+    (observations: ObservationType[], dictionary: DictionaryType) => {
       if (!wave) return false;
       if (
         _.some(
@@ -385,11 +396,11 @@ export default function useWaveFunctionCollapse(
         _.forEach(observations, ({ row, column, value }) => {
           puzzleCopy.tiles[row][column].value = value;
         });
-        commitNewWaveFromPuzzle(puzzleCopy);
+        commitNewWaveFromPuzzle(puzzleCopy, dictionary);
 
         return true;
       }
-      commitObservationsToWave(observations, wave);
+      commitObservationsToWave(observations, wave, dictionary);
       return true;
     },
     [puzzle, wave, commitNewWaveFromPuzzle, commitObservationsToWave]
