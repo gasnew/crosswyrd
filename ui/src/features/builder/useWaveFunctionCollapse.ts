@@ -5,6 +5,10 @@ import { CrosswordPuzzleType, LetterType } from './builderSlice';
 import { ALL_LETTERS } from './constants';
 import { DictionaryType, LocationType } from './CrosswordBuilder';
 
+//import Comlink from 'comlink';
+//[> eslint-disable import/no-webpack-loader-syntax <]
+//import Worker from 'worker-loader!../util/worker';
+
 interface ElementType {
   row: number;
   column: number;
@@ -252,6 +256,17 @@ export default function useWaveFunctionCollapse(
   puzzle: CrosswordPuzzleType
 ): ReturnType {
   const [wave, setWave] = useState<WaveType | null>(null);
+
+  //useEffect(() => {
+    //async function eyy() {
+      //const worker = new Worker();
+      //const obj = Comlink.wrap(worker);
+      //console.log(obj);
+      //await obj?.inc();
+      //console.log(obj);
+    //}
+    //eyy();
+  //}, []);
 
   // Ingest puzzle into wave
   useEffect(() => {

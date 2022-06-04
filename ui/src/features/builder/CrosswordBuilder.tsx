@@ -247,7 +247,7 @@ export default function CrosswordBuilder() {
       // We have moved one step further from run start
       stepsFromRunStart.current += 1;
     }
-  }, 200);
+  }, 100);
 
   const selectedOptionsSet = useMemo(
     () =>
@@ -325,7 +325,7 @@ export default function CrosswordBuilder() {
       </div>
       <div className="sidebar-container">
         <ButtonGroup>
-          <Button onClick={handleClickBack}>Back</Button>
+          <Button onClick={handleClickBack}>Undo</Button>
           <Button onClick={handleClickNext}>Next</Button>
           <Button
             onClick={handleClickRun}
