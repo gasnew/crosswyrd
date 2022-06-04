@@ -83,7 +83,6 @@ export default function CrosswordBuilder() {
   const { dictionary, addWordToDictionary } = useDictionary();
   const {
     wave,
-    observeAtLocation,
     observeAtLocations,
     clearLocations: clearWaveLocations,
     setWaveState,
@@ -147,13 +146,13 @@ export default function CrosswordBuilder() {
     const newValue = pickWeightedRandomLetter(wave, row, column);
     if (!newValue) return;
     const observation = { row, column, value: newValue };
-    const newWave = observeAtLocation(observation, dictionary);
+    const newWave = observeAtLocations([observation], dictionary);
     if (newWave) {
       // The observation succeeded, so set tile values for all tiles that are
       // now collapsed to one state in the new wave.
       dispatch(setPuzzleTilesToResolvedWaveElements(newWave));
     }
-  }, [dispatch, dictionary, observeAtLocation, puzzle, wave]);
+  }, [dispatch, dictionary, observeAtLocations, puzzle, wave]);
   const handleClickBack = () => {
     stepBack();
   };
@@ -328,7 +327,12 @@ export default function CrosswordBuilder() {
         <ButtonGroup>
           <Button onClick={handleClickBack}>Back</Button>
           <Button onClick={handleClickNext}>Next</Button>
-          <Button onClick={handleClickRun}>{running ? 'Stop' : 'Run'}</Button>
+          <Button
+            onClick={handleClickRun}
+            color={running ? 'error' : 'primary'}
+          >
+            {running ? 'Stop' : 'Auto-Fill'}
+          </Button>
         </ButtonGroup>
         {runningError && (
           <Alert style={{ marginTop: 10 }} severity="error">

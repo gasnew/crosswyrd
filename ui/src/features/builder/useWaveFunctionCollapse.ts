@@ -237,14 +237,10 @@ export interface ObservationType {
 
 interface ReturnType {
   wave: WaveType | null;
-  observeAtLocation: (
-    observation: ObservationType,
-    dictionary: DictionaryType
-  ) => WaveType | null;
   observeAtLocations: (
     observations: ObservationType[],
     dictionary: DictionaryType
-  ) => boolean;
+  ) => WaveType | null;
   clearLocations: (
     locations: LocationType[],
     dictionary: DictionaryType
@@ -264,49 +260,35 @@ export default function useWaveFunctionCollapse(
     setWave(waveFromPuzzle(puzzle));
   }, [puzzle, wave]);
 
-  const observeAtLocation = useCallback(
-    ({ row, column, value }: ObservationType, dictionary: DictionaryType) => {
-      if (!wave) return null;
-      const newWave = withNewObservationAtLocation(
-        dictionary,
-        wave,
-        row,
-        column,
-        value
-      );
-      setWave(newWave);
-      return newWave;
-    },
-    [wave]
-  );
-
   const commitObservationsToWave = useCallback(
     (
       observations: ObservationType[],
       customWave: WaveType,
       dictionary: DictionaryType
     ) => {
-      setWave(
-        _.reduce(
-          observations,
-          (finalWave, { row, column, value }) =>
-            withNewObservationAtLocation(
-              dictionary,
-              finalWave,
-              row,
-              column,
-              value
-            ),
-          customWave
-        )
+      const newWave = _.reduce(
+        observations,
+        (finalWave, { row, column, value }) =>
+          withNewObservationAtLocation(
+            dictionary,
+            finalWave,
+            row,
+            column,
+            value
+          ),
+        customWave
       );
-      return true;
+      setWave(newWave);
+      return newWave;
     },
     []
   );
 
   const commitNewWaveFromPuzzle = useCallback(
-    (puzzle: CrosswordPuzzleType, dictionary: DictionaryType) => {
+    (
+      puzzle: CrosswordPuzzleType,
+      dictionary: DictionaryType
+    ): WaveType | null => {
       const surroundingTiles = (row: number, column: number) =>
         _.map(
           [
@@ -321,7 +303,7 @@ export default function useWaveFunctionCollapse(
 
       // Commit observations on the filled-in tiles touching at least one empty
       // tile, and just set the collapsed state for the other filled-in tiles.
-      commitObservationsToWave(
+      return commitObservationsToWave(
         _.compact(
           _.flatMap(puzzle.tiles, (row, rowIndex) =>
             _.map(row, (tile, columnIndex) => {
@@ -377,8 +359,11 @@ export default function useWaveFunctionCollapse(
   );
 
   const observeAtLocations = useCallback(
-    (observations: ObservationType[], dictionary: DictionaryType) => {
-      if (!wave) return false;
+    (
+      observations: ObservationType[],
+      dictionary: DictionaryType
+    ): WaveType | null => {
+      if (!wave) return null;
       if (
         _.some(
           observations,
@@ -390,18 +375,17 @@ export default function useWaveFunctionCollapse(
         // overwriting an existing word. We must now copy puzzle, overwrite these
         // locations, make a new wave, and observe at ALL filled tile locations
         // adjacent to empty spaces.
+        // This is the slow path.
         const puzzleCopy: CrosswordPuzzleType = JSON.parse(
           JSON.stringify(puzzle)
         );
         _.forEach(observations, ({ row, column, value }) => {
           puzzleCopy.tiles[row][column].value = value;
         });
-        commitNewWaveFromPuzzle(puzzleCopy, dictionary);
-
-        return true;
+        return commitNewWaveFromPuzzle(puzzleCopy, dictionary);
       }
-      commitObservationsToWave(observations, wave, dictionary);
-      return true;
+      // This is the fast path.
+      return commitObservationsToWave(observations, wave, dictionary);
     },
     [puzzle, wave, commitNewWaveFromPuzzle, commitObservationsToWave]
   );
@@ -412,7 +396,6 @@ export default function useWaveFunctionCollapse(
 
   return {
     wave,
-    observeAtLocation,
     observeAtLocations,
     clearLocations,
     setWaveState,
