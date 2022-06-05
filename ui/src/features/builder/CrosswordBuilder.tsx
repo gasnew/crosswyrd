@@ -85,6 +85,7 @@ export default function CrosswordBuilder() {
     wave,
     updateWaveWithTileUpdates,
     setWaveState,
+    busy: WFCBusy,
   } = useWaveFunctionCollapse(puzzle);
   const { popStateHistory } = useWaveAndPuzzleHistory(wave, puzzle);
   const [hoveredTile, setHoveredTile] = useState<LocationType | null>(null);
@@ -130,7 +131,7 @@ export default function CrosswordBuilder() {
       else onClick(row, column);
     };
   };
-  const handleClickNext = useCallback(() => {
+  const handleClickNext = useCallback(async () => {
     if (!wave || !dictionary) return;
     // Element is either a random element (if this is the first tile placed) or
     // the element with lowest entropy
@@ -144,8 +145,9 @@ export default function CrosswordBuilder() {
     const { row, column } = lowestEntropyElement;
     const newValue = pickWeightedRandomLetter(wave, row, column);
     if (!newValue) return;
-    const observation = { row, column, value: newValue };
-    const newWave = updateWaveWithTileUpdates(dictionary, [observation]);
+    const newWave = await updateWaveWithTileUpdates(dictionary, [
+      { row, column, value: newValue },
+    ]);
     if (newWave) {
       // The observation succeeded, so set tile values for all tiles that are
       // now collapsed to one state in the new wave.
@@ -211,7 +213,7 @@ export default function CrosswordBuilder() {
   }, [dispatch, dictionary, selectedTileLocations, updateWaveWithTileUpdates]);
 
   useInterval(() => {
-    if (!wave || !running) return;
+    if (!wave || !running || WFCBusy) return;
     if (!_.some(_.flatten(puzzle.tiles), ['value', 'empty'])) {
       // The puzzle is finished!
       setRunning(false);
@@ -331,7 +333,7 @@ export default function CrosswordBuilder() {
       <div className="sidebar-container">
         <ButtonGroup>
           <Button onClick={handleClickBack}>Undo</Button>
-          <Button onClick={handleClickNext}>Next</Button>
+          <Button disabled={WFCBusy} onClick={handleClickNext}>Next</Button>
           <Button
             onClick={handleClickRun}
             color={running ? 'error' : 'primary'}
