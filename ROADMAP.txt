@@ -35,6 +35,9 @@
   - blue border and outline + higher z-index
   - do not mark ?s red
   - indicate ?s can be used as wildcards for searches
+  - auto-enter word when leave selection + remove selection when entered word
+    - remove filled-in tile when leave selection if it was red? (try not doing this and see what happens)
+  - auto-fill search with highlighted letters (replacing spaces with ?s?)
 
 add license
 Variable board size
@@ -54,3 +57,4 @@ sell custom dictionaries?
 pentatonic scale sounds
 BEEG BOARD
 juicy animations
+

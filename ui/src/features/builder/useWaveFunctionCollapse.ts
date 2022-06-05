@@ -1,9 +1,13 @@
 import _ from 'lodash';
 import { useCallback, useEffect, useState } from 'react';
 
-import { CrosswordPuzzleType, LetterType } from './builderSlice';
+import { CrosswordPuzzleType, LetterType, TileValueType } from './builderSlice';
 import { ALL_LETTERS } from './constants';
-import { DictionaryType, LocationType } from './CrosswordBuilder';
+import { DictionaryType } from './CrosswordBuilder';
+
+import MyWorker, { api } from './WFCWorker.worker';
+
+import { wrap } from 'comlink';
 
 //import Comlink from 'comlink';
 //[> eslint-disable import/no-webpack-loader-syntax <]
@@ -18,6 +22,11 @@ interface ElementType {
 }
 export interface WaveType {
   elements: ElementType[][];
+}
+interface TileUpdateType {
+  row: number;
+  column: number;
+  value: TileValueType;
 }
 
 function isSubset<T extends string>(subset: Array<T>, set: Array<T>): boolean {
@@ -217,7 +226,8 @@ function withNewObservationAtLocation(
 
 function waveFromPuzzle(puzzle: CrosswordPuzzleType): WaveType {
   // Returns a wave given the pattern of the puzzle. The puzzle values are NOT
-  // transferred, i.e., each non-solid tile has all letters as options.
+  // transferred, only whether the value is solid or not is taken into account.
+  // I.e., each non-solid tile has all letters as options.
   const solid = (tile) => tile.value === 'black';
   const options = (tile) => (solid(tile) ? [] : [...ALL_LETTERS]);
   return {
@@ -241,14 +251,10 @@ export interface ObservationType {
 
 interface ReturnType {
   wave: WaveType | null;
-  observeAtLocations: (
-    observations: ObservationType[],
-    dictionary: DictionaryType
+  updateWaveWithTileUpdates: (
+    dictionary: DictionaryType,
+    tileUpdates: TileUpdateType[]
   ) => WaveType | null;
-  clearLocations: (
-    locations: LocationType[],
-    dictionary: DictionaryType
-  ) => boolean;
   setWaveState: (wave: WaveType) => void;
 }
 
@@ -257,31 +263,40 @@ export default function useWaveFunctionCollapse(
 ): ReturnType {
   const [wave, setWave] = useState<WaveType | null>(null);
 
-  //useEffect(() => {
-    //async function eyy() {
-      //const worker = new Worker();
-      //const obj = Comlink.wrap(worker);
-      //console.log(obj);
-      //await obj?.inc();
-      //console.log(obj);
-    //}
-    //eyy();
-  //}, []);
+  useEffect(() => {
+    // Instantiate worker
+    const myComlinkWorkerInstance: Worker = new MyWorker();
+    const myComlinkWorkerApi = wrap<typeof api>(myComlinkWorkerInstance);
+
+    // Call function in worker
+    console.log('send');
+    myComlinkWorkerApi.createMessage('John Doe').then((message: string) => {
+      console.log(message);
+    });
+    console.log('send');
+    myComlinkWorkerApi.createMessage('John Doe').then((message: string) => {
+      console.log(message);
+    });
+    console.log('send');
+    myComlinkWorkerApi.createMessage('John Doe').then((message: string) => {
+      console.log(message);
+    });
+  }, []);
 
   // Ingest puzzle into wave
   useEffect(() => {
-    // TODO: Run this effect when the black tiles change
+    // TODO: Run this effect when the black tiles change?
     if (wave) return;
     setWave(waveFromPuzzle(puzzle));
   }, [puzzle, wave]);
 
-  const commitObservationsToWave = useCallback(
+  const withNewObservations = useCallback(
     (
-      observations: ObservationType[],
-      customWave: WaveType,
-      dictionary: DictionaryType
-    ) => {
-      const newWave = _.reduce(
+      dictionary: DictionaryType,
+      wave: WaveType,
+      observations: ObservationType[]
+    ): WaveType =>
+      _.reduce(
         observations,
         (finalWave, { row, column, value }) =>
           withNewObservationAtLocation(
@@ -291,19 +306,13 @@ export default function useWaveFunctionCollapse(
             column,
             value
           ),
-        customWave
-      );
-      setWave(newWave);
-      return newWave;
-    },
+        wave
+      ),
     []
   );
 
-  const commitNewWaveFromPuzzle = useCallback(
-    (
-      puzzle: CrosswordPuzzleType,
-      dictionary: DictionaryType
-    ): WaveType | null => {
+  const newWaveFromPuzzle = useCallback(
+    (dictionary: DictionaryType, puzzle: CrosswordPuzzleType): WaveType => {
       const surroundingTiles = (row: number, column: number) =>
         _.map(
           [
@@ -318,7 +327,9 @@ export default function useWaveFunctionCollapse(
 
       // Commit observations on the filled-in tiles touching at least one empty
       // tile, and just set the collapsed state for the other filled-in tiles.
-      return commitObservationsToWave(
+      return withNewObservations(
+        dictionary,
+        newWave,
         _.compact(
           _.flatMap(puzzle.tiles, (row, rowIndex) =>
             _.map(row, (tile, columnIndex) => {
@@ -342,67 +353,70 @@ export default function useWaveFunctionCollapse(
               return null;
             })
           )
-        ),
-        newWave,
-        dictionary
+        )
       );
     },
-    [commitObservationsToWave]
+    [withNewObservations]
   );
 
-  const clearLocations = useCallback(
-    (locations, dictionary) => {
-      if (!wave) return false;
-      // Copy puzzle, make empty values at locations, make a new wave, observe
-      // at ALL filled tile locations.
-      //
-      // NOTE(gnewman): We HAVE to re-observe at all filled tile locations
-      // because we are not guaranteed that this clear operation will propagate
-      // across the entire board. This is slow, but this is the only way we can
-      // ensure are wave has resolved correctly.
+  const withTileUpdates = useCallback(
+    (
+      dictionary: DictionaryType,
+      wave: WaveType,
+      puzzle: CrosswordPuzzleType,
+      tileUpdates: TileUpdateType[]
+    ): WaveType => {
+      // Find all of the observations that are "proper", i.e., they only
+      // further constrain the options for all given wave elements.
+      // NOTE(gnewman): We have to use this strange compact+map syntax so the
+      // type system recognizes we're constraining the type of `value`.
+      const properObservations: ObservationType[] = _.compact(
+        _.map(tileUpdates, ({ row, column, value }) => {
+          if (
+            // Tile value empty or black
+            value === 'empty' ||
+            value === 'black' ||
+            // Tile value not included in options
+            !_.includes(wave.elements[row][column].options, value)
+          )
+            return null;
+          return { row, column, value };
+        })
+      );
+
+      if (properObservations.length === tileUpdates.length) {
+        // All observations are proper! This is the fast path.
+        return withNewObservations(dictionary, wave, properObservations);
+      }
+
+      // At least one observation is redefining constraints, e.g., we are
+      // overwriting an existing word, toggling a grid tile, or clearing a
+      // tile. We must now copy the puzzle, overwrite these locations, make a
+      // new wave, and observe at ALL filled tile locations adjacent to empty
+      // spaces.
+      // This is the slow path.
       const puzzleCopy: CrosswordPuzzleType = JSON.parse(
         JSON.stringify(puzzle)
       );
-      _.forEach(locations, (location) => {
-        puzzleCopy.tiles[location.row][location.column].value = 'empty';
+      _.forEach(tileUpdates, ({ row, column, value }) => {
+        puzzleCopy.tiles[row][column].value = value;
       });
-      commitNewWaveFromPuzzle(puzzleCopy, dictionary);
-
-      return true;
+      return newWaveFromPuzzle(dictionary, puzzleCopy);
     },
-    [puzzle, wave, commitNewWaveFromPuzzle]
+    [withNewObservations, newWaveFromPuzzle]
   );
 
-  const observeAtLocations = useCallback(
+  const updateWaveWithTileUpdates = useCallback(
     (
-      observations: ObservationType[],
-      dictionary: DictionaryType
+      dictionary: DictionaryType,
+      tileUpdates: TileUpdateType[]
     ): WaveType | null => {
       if (!wave) return null;
-      if (
-        _.some(
-          observations,
-          ({ row, column, value }) =>
-            !_.includes(wave.elements[row][column].options, value)
-        )
-      ) {
-        // At least one observation is redefining constraints, e.g., we are
-        // overwriting an existing word. We must now copy puzzle, overwrite these
-        // locations, make a new wave, and observe at ALL filled tile locations
-        // adjacent to empty spaces.
-        // This is the slow path.
-        const puzzleCopy: CrosswordPuzzleType = JSON.parse(
-          JSON.stringify(puzzle)
-        );
-        _.forEach(observations, ({ row, column, value }) => {
-          puzzleCopy.tiles[row][column].value = value;
-        });
-        return commitNewWaveFromPuzzle(puzzleCopy, dictionary);
-      }
-      // This is the fast path.
-      return commitObservationsToWave(observations, wave, dictionary);
+      const newWave = withTileUpdates(dictionary, wave, puzzle, tileUpdates);
+      setWave(newWave);
+      return newWave;
     },
-    [puzzle, wave, commitNewWaveFromPuzzle, commitObservationsToWave]
+    [puzzle, wave, withTileUpdates]
   );
 
   const setWaveState = useCallback((wave: WaveType) => {
@@ -411,8 +425,7 @@ export default function useWaveFunctionCollapse(
 
   return {
     wave,
-    observeAtLocations,
-    clearLocations,
+    updateWaveWithTileUpdates,
     setWaveState,
   };
 }

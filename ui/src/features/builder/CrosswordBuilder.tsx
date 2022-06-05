@@ -83,8 +83,7 @@ export default function CrosswordBuilder() {
   const { dictionary, addWordToDictionary } = useDictionary();
   const {
     wave,
-    observeAtLocations,
-    clearLocations: clearWaveLocations,
+    updateWaveWithTileUpdates,
     setWaveState,
   } = useWaveFunctionCollapse(puzzle);
   const { popStateHistory } = useWaveAndPuzzleHistory(wave, puzzle);
@@ -146,13 +145,13 @@ export default function CrosswordBuilder() {
     const newValue = pickWeightedRandomLetter(wave, row, column);
     if (!newValue) return;
     const observation = { row, column, value: newValue };
-    const newWave = observeAtLocations([observation], dictionary);
+    const newWave = updateWaveWithTileUpdates(dictionary, [observation]);
     if (newWave) {
       // The observation succeeded, so set tile values for all tiles that are
       // now collapsed to one state in the new wave.
       dispatch(setPuzzleTilesToResolvedWaveElements(newWave));
     }
-  }, [dispatch, dictionary, observeAtLocations, puzzle, wave]);
+  }, [dispatch, dictionary, updateWaveWithTileUpdates, puzzle, wave]);
   const handleClickBack = () => {
     stepBack();
   };
@@ -179,7 +178,7 @@ export default function CrosswordBuilder() {
       const possiblyUpdatedDictionary =
         (!_.includes(dictionary, word) && addWordToDictionary(word)) ||
         dictionary;
-      observeAtLocations(observations, possiblyUpdatedDictionary);
+      updateWaveWithTileUpdates(possiblyUpdatedDictionary, observations);
       dispatch(setPuzzleTileValues(observations));
       clearSelection();
     },
@@ -188,13 +187,19 @@ export default function CrosswordBuilder() {
       dictionary,
       addWordToDictionary,
       selectedTileLocations,
-      observeAtLocations,
+      updateWaveWithTileUpdates,
       clearSelection,
     ]
   );
   const handleClearSelectedTileRange = useCallback(() => {
     if (!dictionary) return;
-    clearWaveLocations(selectedTileLocations, dictionary);
+    updateWaveWithTileUpdates(
+      dictionary,
+      _.map(selectedTileLocations, (location) => ({
+        ...location,
+        value: 'empty',
+      }))
+    );
     dispatch(
       setPuzzleTileValues(
         _.map(selectedTileLocations, (location) => ({
@@ -203,7 +208,7 @@ export default function CrosswordBuilder() {
         }))
       )
     );
-  }, [dispatch, dictionary, selectedTileLocations, clearWaveLocations]);
+  }, [dispatch, dictionary, selectedTileLocations, updateWaveWithTileUpdates]);
 
   useInterval(() => {
     if (!wave || !running) return;

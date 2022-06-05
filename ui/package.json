@@ -26,6 +26,7 @@
     "copy-to-clipboard": "^3.3.1",
     "lodash": "^4.17.19",
     "react": "^17.0.2",
+    "react-app-rewired": "^2.2.1",
     "react-dom": "^17.0.2",
     "react-helmet": "^6.1.0",
     "react-redux": "^7.2.0",
@@ -41,13 +42,14 @@
     "react-error-overlay": "6.0.9"
   },
   "scripts": {
-    "start": "TSC_WATCHFILE=UseFsEvents BROWSER=none REACT_APP_VERSION=$npm_package_version react-scripts start",
-    "build": "REACT_APP_VERSION=$npm_package_version react-scripts build",
-    "test": "react-scripts test",
+    "start": "TSC_WATCHFILE=UseFsEvents BROWSER=none REACT_APP_VERSION=$npm_package_version react-app-rewired start",
+    "build": "REACT_APP_VERSION=$npm_package_version react-app-rewired build",
+    "test": "react-app-rewired test",
     "eject": "react-scripts eject",
     "lint": "eslint ./src/**/*.{ts,tsx}",
     "remove-unused-imports": "tslint --config tslint-remove-unused-imports.json --fix --project ."
   },
+  "config-overrides-path": "react-app-rewired.config.js",
   "eslintConfig": {
     "extends": "react-app"
   },
