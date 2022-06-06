@@ -10,41 +10,38 @@
 + visualize entropy as faded highlights
 
 + search => "write a word" + enter & clear
-+ Allow typing letters and selecting full words for across or down 
++ Allow typing letters and selecting full words for across or down
 + As typing in a word, see yellow-highlighted tile on board--turns white when "enter"
 + Overwrite existing words
 + autofill never backtracks user-entered words--if it backtracks too many times
   or cannot proceed without backtracking past user-entered word, show error
   message, "Auto-fill could not complete. Try clearing or changing one of the
   words you entered"
-/ => "calculating..." spinner
-  - Some sort of indicator for when long operation is happening
-  - Use comlink to make web workers nice? https://dev.to/nicolasrannou/web-workers-in-create-react-app-cra-without-unmounting-4865#attempt-4--comlink
-  - when computing wave, disable entering a new word/dict search
-  - "calculating..." indicator
-- sort words by increasing difficulty? Maybe use Scrabble weights here?
-- Any time black changed, recalculate off all letters
++ => "calculating..." spinner
+  + Some sort of indicator for when long operation is happening
+  + Use comlink to make web workers nice? https://dev.to/nicolasrannou/web-workers-in-create-react-app-cra-without-unmounting-4865#attempt-4--comlink
+  + when computing wave, disable entering a new word/dict search
+  + "calculating..." indicator
++ Any time black changed, recalculate off all letters
 - interface for typing in theme words into a word bank you want to have on the
   board
   - see suggestions for where they can go on hover
   - click and drag the word onto a valid slot
+- sort words by increasing difficulty? Maybe use Scrabble weights here?
 
 - QoL
   - height 100%, overflow-y: hidden, center on board
-  - "click to select down/across"
-  - blue border and outline + higher z-index
+  - "click to select down/across" tooltip
+  - blue border and outline + higher z-index + different color than entropy
   - do not mark ?s red
   - indicate ?s can be used as wildcards for searches
   - auto-enter word when leave selection + remove selection when entered word
     - remove filled-in tile when leave selection if it was red? (try not doing this and see what happens)
   - auto-fill search with highlighted letters (replacing spaces with ?s?)
 
+Grid selector/randomizer
 add license
 Variable board size
-Grid selector/randomizer
-Toggle symmetry
-Toggle enforce NYT rules
-Show counts of 3-letter words
 Allow clue entry
 Share link to play
 Mobile version (player only, not builder?)
@@ -58,3 +55,10 @@ pentatonic scale sounds
 BEEG BOARD
 juicy animations
 
+- pro features
+  - download as XML variant
+  - edit from play link
+  - custom dictionary (including ingesting a file)
+  - toggle symmetry
+  - toggle enforce NYT rules
+  - show counts of 3-letter words

@@ -31,6 +31,21 @@ const initialState: BuilderState = {
   stagedWord: '',
 };
 
+export function getSymmetricTile(
+  puzzle: CrosswordPuzzleType,
+  row: number,
+  column: number
+): { tile: TileType; row: number; column: number } {
+  const puzzleSize = puzzle.tiles.length;
+  const newRow = puzzleSize - row - 1;
+  const newColumn = puzzleSize - column - 1;
+  return {
+    tile: puzzle.tiles[newRow][newColumn],
+    row: newRow,
+    column: newColumn,
+  };
+}
+
 export const builderSlice = createSlice({
   name: 'builder',
   initialState,
@@ -42,15 +57,13 @@ export const builderSlice = createSlice({
         column: number;
       }>
     ) => {
-      const tile =
-        state.puzzle.tiles[action.payload.row][action.payload.column];
+      const { row, column } = action.payload;
+      const tile = state.puzzle.tiles[row][column];
       const newValue = tile.value === 'black' ? 'empty' : 'black';
-      const puzzleSize = state.puzzle.tiles.length;
+      const symmetricTile = getSymmetricTile(state.puzzle, row, column).tile;
 
       tile.value = newValue;
-      state.puzzle.tiles[puzzleSize - action.payload.row - 1][
-        puzzleSize - action.payload.column - 1
-      ].value = newValue;
+      symmetricTile.value = newValue;
     },
     setPuzzleTilesToResolvedWaveElements: (
       state,

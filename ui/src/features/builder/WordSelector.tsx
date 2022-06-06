@@ -22,6 +22,17 @@ import { ALL_LETTERS } from './constants';
 import { DictionaryType } from './CrosswordBuilder';
 import { findWordOptions } from './useWaveFunctionCollapse';
 
+function Processing() {
+  return (
+    <span>
+      <span style={{ position: 'relative', top: 3, margin: 5 }}>
+        <CircularProgress size={15} thickness={6} />
+      </span>
+      <span style={{ fontStyle: 'italic' }}>Processing...</span>
+    </span>
+  );
+}
+
 interface Props {
   dictionary: DictionaryType;
   optionsSet: LetterType[][];
@@ -139,12 +150,7 @@ function WordSelector({
             }}
           />
           {processingLastChange ? (
-            <span>
-              <span style={{ position: 'relative', top: 3, margin: 5 }}>
-                <CircularProgress size={15} thickness={6}/>
-              </span>
-              <span style={{fontStyle: 'italic'}}>Processing...</span>
-            </span>
+            <Processing />
           ) : (
             <>
               <Button
@@ -177,11 +183,14 @@ function WordSelector({
           )}
         </div>
       )}
-      {optionsSet.length === 0 && (
-        <span className="selector-comment">
-          Click a tile to enter a new word!
-        </span>
-      )}
+      {optionsSet.length === 0 &&
+        (processingLastChange ? (
+          <Processing />
+        ) : (
+          <span className="selector-comment">
+            Click a tile to enter a new word!
+          </span>
+        ))}
       <Box sx={{ width: '100%', maxWidth: 360, bgcolor: 'background.paper' }}>
         <List>
           <FixedSizeList
@@ -192,7 +201,10 @@ function WordSelector({
           >
             {({ index, style }) => (
               <ListItem disablePadding style={style} component="div">
-                <ListItemButton disabled={processingLastChange} onClick={mkHandleClickWord(index)}>
+                <ListItemButton
+                  disabled={processingLastChange}
+                  onClick={mkHandleClickWord(index)}
+                >
                   <ListItemText primary={_.toUpper(possibleWords[index])} />
                 </ListItemButton>
               </ListItem>

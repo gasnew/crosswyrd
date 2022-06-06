@@ -12,6 +12,7 @@ import { useDispatch, useSelector } from 'react-redux';
 
 import { useInterval } from '../../app/util';
 import {
+  getSymmetricTile,
   LetterType,
   selectPuzzle,
   selectStagedWord,
@@ -67,7 +68,7 @@ function useDictionary(): {
   const addWordToDictionary = useCallback(
     (word: string) => {
       if (!dictionary) return null;
-      const newDictionary = [...dictionary, word];
+      const newDictionary = _.sortBy([...dictionary, word]);
       setDictionary(newDictionary);
       return newDictionary;
     },
@@ -121,14 +122,31 @@ export default function CrosswordBuilder() {
 
   const mkHandleClickTile = (row, column) => {
     return (event) => {
-      if (event.ctrlKey)
+      if (event.ctrlKey && dictionary) {
+        if (WFCBusy) return;
+        const newValue =
+          puzzle.tiles[row][column].value === 'black' ? 'empty' : 'black';
+        const symmetricTileInfo = getSymmetricTile(puzzle, row, column);
+        updateWaveWithTileUpdates(dictionary, [
+          {
+            row,
+            column,
+            value: newValue,
+          },
+          {
+            row: symmetricTileInfo.row,
+            column: symmetricTileInfo.column,
+            value: newValue,
+          },
+        ]);
+        clearSelection();
         dispatch(
           toggleTileBlack({
             row,
             column,
           })
         );
-      else onClick(row, column);
+      } else onClick(row, column);
     };
   };
   const handleClickNext = useCallback(async () => {
@@ -155,6 +173,7 @@ export default function CrosswordBuilder() {
     }
   }, [dispatch, dictionary, updateWaveWithTileUpdates, puzzle, wave]);
   const handleClickBack = () => {
+    if (selectedTileLocations.length > 0) clearSelection();
     stepBack();
   };
   const handleClickRun = () => {
@@ -233,7 +252,7 @@ export default function CrosswordBuilder() {
         // Stop running so that we don't overwrite something the user did
         setRunning(false);
         setRunningError(
-          'The puzzle cannot be filled from here! Try undoing recent changes or clearing up space around any red tiles.'
+          'The puzzle cannot be auto-filled from here! Try undoing recent changes, clearing up space around any red tiles, or adjusting the grid pattern.'
         );
         return;
       }
