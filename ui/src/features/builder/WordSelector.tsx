@@ -2,6 +2,7 @@ import _ from 'lodash';
 import {
   Box,
   Button,
+  CircularProgress,
   Input,
   InputAdornment,
   List,
@@ -24,11 +25,18 @@ import { findWordOptions } from './useWaveFunctionCollapse';
 interface Props {
   dictionary: DictionaryType;
   optionsSet: LetterType[][];
+  processingLastChange: boolean;
   onEnter: (word: string) => void;
   onClear: () => void;
 }
 
-function WordSelector({ dictionary, optionsSet, onEnter, onClear }: Props) {
+function WordSelector({
+  dictionary,
+  optionsSet,
+  processingLastChange,
+  onEnter,
+  onClear,
+}: Props) {
   const stagedWord = useSelector(selectStagedWord);
   const dispatch = useDispatch();
 
@@ -117,6 +125,7 @@ function WordSelector({ dictionary, optionsSet, onEnter, onClear }: Props) {
             style={{ width: 170 }}
             onChange={handleChangeSearchValue}
             value={_.toUpper(stagedWord)}
+            disabled={processingLastChange}
             inputRef={(ref) => {
               inputRef.current = ref;
             }}
@@ -129,32 +138,43 @@ function WordSelector({ dictionary, optionsSet, onEnter, onClear }: Props) {
               if (event.key === 'Enter') handleClickEnter();
             }}
           />
-          <Button
-            size="small"
-            style={{ marginLeft: 5 }}
-            variant="contained"
-            startIcon={<DoneIcon />}
-            disabled={!canClickEnter}
-            onClick={handleClickEnter}
-          >
-            <div style={{ display: 'flex', flexDirection: 'column' }}>
-              Enter
-              {stagedWordFullAndNotInDictionary && (
-                <span className="selector-add-word-text">
-                  +&nbsp;Add&nbsp;Word
-                </span>
-              )}
-            </div>
-          </Button>
-          <Button
-            size="small"
-            style={{ marginLeft: 5 }}
-            color="error"
-            startIcon={<ClearIcon />}
-            onClick={handleClickClear}
-          >
-            Clear
-          </Button>
+          {processingLastChange ? (
+            <span>
+              <span style={{ position: 'relative', top: 3, margin: 5 }}>
+                <CircularProgress size={15} thickness={6}/>
+              </span>
+              <span style={{fontStyle: 'italic'}}>Processing...</span>
+            </span>
+          ) : (
+            <>
+              <Button
+                size="small"
+                style={{ marginLeft: 5 }}
+                variant="contained"
+                startIcon={<DoneIcon />}
+                disabled={!canClickEnter}
+                onClick={handleClickEnter}
+              >
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                  Enter
+                  {stagedWordFullAndNotInDictionary && (
+                    <span className="selector-add-word-text">
+                      +&nbsp;Add&nbsp;Word
+                    </span>
+                  )}
+                </div>
+              </Button>
+              <Button
+                size="small"
+                style={{ marginLeft: 5 }}
+                color="error"
+                startIcon={<ClearIcon />}
+                onClick={handleClickClear}
+              >
+                Clear
+              </Button>
+            </>
+          )}
         </div>
       )}
       {optionsSet.length === 0 && (
@@ -172,7 +192,7 @@ function WordSelector({ dictionary, optionsSet, onEnter, onClear }: Props) {
           >
             {({ index, style }) => (
               <ListItem disablePadding style={style} component="div">
-                <ListItemButton onClick={mkHandleClickWord(index)}>
+                <ListItemButton disabled={processingLastChange} onClick={mkHandleClickWord(index)}>
                   <ListItemText primary={_.toUpper(possibleWords[index])} />
                 </ListItemButton>
               </ListItem>

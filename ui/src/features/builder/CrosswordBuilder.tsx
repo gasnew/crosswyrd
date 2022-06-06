@@ -212,6 +212,7 @@ export default function CrosswordBuilder() {
     );
   }, [dispatch, dictionary, selectedTileLocations, updateWaveWithTileUpdates]);
 
+  // Run auto-fill
   useInterval(() => {
     if (!wave || !running || WFCBusy) return;
     if (!_.some(_.flatten(puzzle.tiles), ['value', 'empty'])) {
@@ -308,9 +309,8 @@ export default function CrosswordBuilder() {
                       : tile.value !== 'black' && element
                       ? {
                           backgroundColor:
-                            element.options.length > 1 ||
-                            (element.options.length === 1 &&
-                              tile.value === 'empty')
+                            tile.value === 'empty' &&
+                            element.options.length >= 1
                               ? `rgba(45, 114, 210, ${
                                   (3.3 - element.entropy) / 3.3
                                 })`
@@ -332,8 +332,12 @@ export default function CrosswordBuilder() {
       </div>
       <div className="sidebar-container">
         <ButtonGroup>
-          <Button onClick={handleClickBack}>Undo</Button>
-          <Button disabled={WFCBusy} onClick={handleClickNext}>Next</Button>
+          <Button disabled={running} onClick={handleClickBack}>
+            Undo
+          </Button>
+          <Button disabled={WFCBusy || running} onClick={handleClickNext}>
+            Next
+          </Button>
           <Button
             onClick={handleClickRun}
             color={running ? 'error' : 'primary'}
@@ -352,6 +356,7 @@ export default function CrosswordBuilder() {
             <WordSelector
               dictionary={dictionary}
               optionsSet={selectedOptionsSet}
+              processingLastChange={WFCBusy}
               onEnter={handleEnterWord}
               onClear={handleClearSelectedTileRange}
             />
