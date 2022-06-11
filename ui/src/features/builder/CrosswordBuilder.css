@@ -24,7 +24,8 @@
 }
 
 .tile:hover {
-  background-color: yellow !important;
+  border-color: yellow !important;
+  border-width: 4px !important;
 }
 
 .tile--black {

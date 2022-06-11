@@ -11,6 +11,7 @@ export interface WaveAndPuzzleType {
 interface ReturnType {
   pushStateHistory: (waveAndPuzzle: WaveAndPuzzleType) => void;
   popStateHistory: () => WaveAndPuzzleType | null;
+  checkHistoryEmpty: () => boolean;
 }
 
 export default function useWaveAndPuzzleHistory(
@@ -31,5 +32,10 @@ export default function useWaveAndPuzzleHistory(
     return state;
   }, []);
 
-  return { pushStateHistory, popStateHistory };
+  const checkHistoryEmpty = useCallback(
+    () => stateHistory.current.length === 0,
+    []
+  );
+
+  return { pushStateHistory, popStateHistory, checkHistoryEmpty };
 }

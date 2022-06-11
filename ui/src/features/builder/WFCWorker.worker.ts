@@ -301,9 +301,10 @@ function newWaveFromPuzzle(
               column: columnIndex,
               value: tile.value,
             };
-          // Write options directly for elements that have no empty
+          // Write options and entropy directly for elements that have no empty
           // adjacent tiles (these are already collapsed)
           newWave.elements[rowIndex][columnIndex].options = [tile.value];
+          newWave.elements[rowIndex][columnIndex].entropy = 0;
 
           return null;
         })

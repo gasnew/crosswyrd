@@ -10,14 +10,18 @@ import {
   ListItemButton,
   ListItemText,
 } from '@mui/material';
-import ClearIcon from '@mui/icons-material/Clear';
+import CancelIcon from '@mui/icons-material/Cancel';
 import CreateIcon from '@mui/icons-material/Create';
-import DoneIcon from '@mui/icons-material/Done';
 import React, { useLayoutEffect, useMemo, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { FixedSizeList } from 'react-window';
 
-import { LetterType, setStagedWord, selectStagedWord } from './builderSlice';
+import {
+  LetterType,
+  setStagedWord,
+  selectStagedWord,
+  TileType,
+} from './builderSlice';
 import { ALL_LETTERS } from './constants';
 import { DictionaryType } from './CrosswordBuilder';
 import { findWordOptions } from './useWaveFunctionCollapse';
@@ -36,17 +40,19 @@ function Processing() {
 interface Props {
   dictionary: DictionaryType;
   optionsSet: LetterType[][];
+  tiles: TileType[];
   processingLastChange: boolean;
   onEnter: (word: string) => void;
-  onClear: () => void;
+  clearSelection: () => void;
 }
 
 function WordSelector({
   dictionary,
   optionsSet,
+  tiles,
   processingLastChange,
   onEnter,
-  onClear,
+  clearSelection,
 }: Props) {
   const stagedWord = useSelector(selectStagedWord);
   const dispatch = useDispatch();
@@ -79,14 +85,31 @@ function WordSelector({
   // so that this update happens before the render (otherwise, the staged word
   // flashes for a moment in the new selection).
   const inputRef = useRef<HTMLElement | null>(null);
+  const initialStagedWord = useRef('');
   useLayoutEffect(() => {
     if (inputRef.current) {
       inputRef.current.focus();
-      dispatch(setStagedWord(''));
-    }
-  }, [dispatch, optionsSet]);
 
-  const handleChangeSearchValue = (event) => {
+      // Seed the staged word with the word on the board up to the last known
+      // letter (?s inserted where appropriate)
+      const lastKnownLetterIndex = _.findLastIndex(
+        tiles,
+        ({ value }) => value !== 'empty'
+      );
+      initialStagedWord.current =
+        lastKnownLetterIndex === -1
+          ? ''
+          : _.join(
+              _.times(lastKnownLetterIndex + 1, (index) =>
+                tiles[index].value === 'empty' ? '?' : tiles[index].value
+              ),
+              ''
+            );
+      dispatch(setStagedWord(initialStagedWord.current));
+    }
+  }, [dispatch, tiles]);
+
+  const handleChangeStagedValue = (event) => {
     dispatch(
       setStagedWord(
         _.join(
@@ -105,27 +128,9 @@ function WordSelector({
     dispatch(setStagedWord(possibleWords[index]));
     if (inputRef.current) inputRef.current.focus();
   };
-  const handleClickEnter = () => {
-    if (!canClickEnter) return;
-    onEnter(stagedWord);
+  const handleClickCancel = () => {
+    clearSelection();
   };
-  const handleClickClear = () => {
-    onClear();
-  };
-
-  const canClickEnter = useMemo(
-    () =>
-      stagedWord.length === optionsSet.length &&
-      !_.includes(stagedWord, '?') &&
-      _.every(optionsSet, (options, index) =>
-        _.includes(options, stagedWord[index])
-      ),
-    [stagedWord, optionsSet]
-  );
-  const stagedWordFullAndNotInDictionary = useMemo(
-    () => canClickEnter && !_.includes(dictionary, stagedWord),
-    [canClickEnter, dictionary, stagedWord]
-  );
 
   return (
     <div className="word-selector-container">
@@ -134,7 +139,7 @@ function WordSelector({
           <Input
             placeholder="Write a word"
             style={{ width: 170 }}
-            onChange={handleChangeSearchValue}
+            onChange={handleChangeStagedValue}
             value={_.toUpper(stagedWord)}
             disabled={processingLastChange}
             inputRef={(ref) => {
@@ -146,40 +151,24 @@ function WordSelector({
               </InputAdornment>
             }
             onKeyPress={(event) => {
-              if (event.key === 'Enter') handleClickEnter();
+              if (event.key === 'Enter') onEnter(stagedWord);
             }}
           />
           {processingLastChange ? (
             <Processing />
           ) : (
-            <>
+            initialStagedWord.current !== stagedWord && (
               <Button
                 size="small"
                 style={{ marginLeft: 5 }}
-                variant="contained"
-                startIcon={<DoneIcon />}
-                disabled={!canClickEnter}
-                onClick={handleClickEnter}
+                color="inherit"
+                variant="outlined"
+                startIcon={<CancelIcon />}
+                onClick={handleClickCancel}
               >
-                <div style={{ display: 'flex', flexDirection: 'column' }}>
-                  Enter
-                  {stagedWordFullAndNotInDictionary && (
-                    <span className="selector-add-word-text">
-                      +&nbsp;Add&nbsp;Word
-                    </span>
-                  )}
-                </div>
+                Cancel
               </Button>
-              <Button
-                size="small"
-                style={{ marginLeft: 5 }}
-                color="error"
-                startIcon={<ClearIcon />}
-                onClick={handleClickClear}
-              >
-                Clear
-              </Button>
-            </>
+            )
           )}
         </div>
       )}
