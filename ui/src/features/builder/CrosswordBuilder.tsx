@@ -88,7 +88,10 @@ export default function CrosswordBuilder() {
     setWaveState,
     busy: WFCBusy,
   } = useWaveFunctionCollapse(puzzle);
-  const { popStateHistory } = useWaveAndPuzzleHistory(wave, puzzle);
+  const { popStateHistory, pushStateHistory } = useWaveAndPuzzleHistory(
+    wave,
+    puzzle
+  );
   const [hoveredTile, setHoveredTile] = useState<LocationType | null>(null);
   const [running, setRunning] = useState(false);
   const [runningError, setRunningError] = useState('');
@@ -123,10 +126,12 @@ export default function CrosswordBuilder() {
   const mkHandleClickTile = (row, column) => {
     return (event) => {
       if (event.ctrlKey && dictionary) {
-        if (WFCBusy) return;
+        if (WFCBusy || !wave) return;
         const newValue =
           puzzle.tiles[row][column].value === 'black' ? 'empty' : 'black';
         const symmetricTileInfo = getSymmetricTile(puzzle, row, column);
+
+        pushStateHistory({ wave, puzzle });
         updateWaveWithTileUpdates(dictionary, [
           {
             row,
@@ -163,15 +168,24 @@ export default function CrosswordBuilder() {
     const { row, column } = lowestEntropyElement;
     const newValue = pickWeightedRandomLetter(wave, row, column);
     if (!newValue) return;
+
     const newWave = await updateWaveWithTileUpdates(dictionary, [
       { row, column, value: newValue },
     ]);
     if (newWave) {
+      pushStateHistory({ wave, puzzle });
       // The observation succeeded, so set tile values for all tiles that are
       // now collapsed to one state in the new wave.
       dispatch(setPuzzleTilesToResolvedWaveElements(newWave));
     }
-  }, [dispatch, dictionary, updateWaveWithTileUpdates, puzzle, wave]);
+  }, [
+    dispatch,
+    pushStateHistory,
+    dictionary,
+    updateWaveWithTileUpdates,
+    puzzle,
+    wave,
+  ]);
   const handleClickBack = () => {
     if (selectedTileLocations.length > 0) clearSelection();
     stepBack();
@@ -189,7 +203,8 @@ export default function CrosswordBuilder() {
   };
   const handleEnterWord = useCallback(
     (word: string) => {
-      if (!dictionary || word.length !== selectedTileLocations.length) return;
+      if (!dictionary || !wave || word.length !== selectedTileLocations.length)
+        return;
       const observations = _.map(word, (letter, index) => ({
         ...selectedTileLocations[index],
         value: letter as LetterType,
@@ -199,12 +214,17 @@ export default function CrosswordBuilder() {
       const possiblyUpdatedDictionary =
         (!_.includes(dictionary, word) && addWordToDictionary(word)) ||
         dictionary;
+
+      pushStateHistory({ wave, puzzle });
       updateWaveWithTileUpdates(possiblyUpdatedDictionary, observations);
       dispatch(setPuzzleTileValues(observations));
       clearSelection();
     },
     [
       dispatch,
+      pushStateHistory,
+      puzzle,
+      wave,
       dictionary,
       addWordToDictionary,
       selectedTileLocations,
@@ -213,7 +233,8 @@ export default function CrosswordBuilder() {
     ]
   );
   const handleClearSelectedTileRange = useCallback(() => {
-    if (!dictionary) return;
+    if (!dictionary || !wave) return;
+    pushStateHistory({ wave, puzzle });
     updateWaveWithTileUpdates(
       dictionary,
       _.map(selectedTileLocations, (location) => ({
@@ -229,7 +250,15 @@ export default function CrosswordBuilder() {
         }))
       )
     );
-  }, [dispatch, dictionary, selectedTileLocations, updateWaveWithTileUpdates]);
+  }, [
+    dispatch,
+    pushStateHistory,
+    wave,
+    puzzle,
+    dictionary,
+    selectedTileLocations,
+    updateWaveWithTileUpdates,
+  ]);
 
   // Run auto-fill
   useInterval(() => {

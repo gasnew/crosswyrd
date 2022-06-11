@@ -28,6 +28,7 @@
   - see suggestions for where they can go on hover
   - click and drag the word onto a valid slot
 - sort words by increasing difficulty? Maybe use Scrabble weights here?
+- maybe update recalculating algorithm to support placing black tiles better
 
 - QoL
   - height 100%, overflow-y: hidden, center on board
