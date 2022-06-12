@@ -12,6 +12,7 @@ import {
 } from '@mui/material';
 import CancelIcon from '@mui/icons-material/Cancel';
 import CreateIcon from '@mui/icons-material/Create';
+import DoneIcon from '@mui/icons-material/Done';
 import React, { useLayoutEffect, useMemo, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { FixedSizeList } from 'react-window';
@@ -131,6 +132,13 @@ function WordSelector({
   const handleClickCancel = () => {
     clearSelection();
   };
+  const stagedWordFullAndNotInDictionary = useMemo(
+    () =>
+      stagedWord.length === optionsSet.length &&
+      !_.includes(stagedWord, '?') &&
+      !_.includes(dictionary, stagedWord),
+    [dictionary, optionsSet.length, stagedWord]
+  );
 
   return (
     <div className="word-selector-container">
@@ -157,18 +165,37 @@ function WordSelector({
           {processingLastChange ? (
             <Processing />
           ) : (
-            initialStagedWord.current !== stagedWord && (
+            <>
               <Button
                 size="small"
                 style={{ marginLeft: 5 }}
-                color="inherit"
-                variant="outlined"
-                startIcon={<CancelIcon />}
-                onClick={handleClickCancel}
+                variant="contained"
+                startIcon={<DoneIcon />}
+                disabled={initialStagedWord.current === stagedWord}
+                onClick={() => onEnter(stagedWord)}
               >
-                Cancel
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                  Enter
+                  {stagedWordFullAndNotInDictionary && (
+                    <span className="selector-add-word-text">
+                      +&nbsp;Add&nbsp;Word
+                    </span>
+                  )}
+                </div>
               </Button>
-            )
+              {initialStagedWord.current !== stagedWord && (
+                <Button
+                  size="small"
+                  style={{ marginLeft: 5 }}
+                  color="inherit"
+                  variant="outlined"
+                  startIcon={<CancelIcon />}
+                  onClick={handleClickCancel}
+                >
+                  Cancel
+                </Button>
+              )}
+            </>
           )}
         </div>
       )}
@@ -193,6 +220,7 @@ function WordSelector({
                 <ListItemButton
                   disabled={processingLastChange}
                   onClick={mkHandleClickWord(index)}
+                  divider
                 >
                   <ListItemText primary={_.toUpper(possibleWords[index])} />
                 </ListItemButton>

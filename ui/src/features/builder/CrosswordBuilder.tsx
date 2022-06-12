@@ -26,10 +26,12 @@ import {
   TileValueType,
   toggleTileBlack,
 } from './builderSlice';
+import BuilderTabs from './BuilderTabs';
 import { ALL_LETTERS, LETTER_WEIGHTS } from './constants';
 import useTileSelection from './useTileSelection';
 import useWaveAndPuzzleHistory from './useWaveAndPuzzleHistory';
 import useWaveFunctionCollapse, { WaveType } from './useWaveFunctionCollapse';
+import WordBank from './WordBank';
 import WordSelector from './WordSelector';
 
 import './CrosswordBuilder.css';
@@ -443,16 +445,28 @@ export default function CrosswordBuilder() {
             {runningError}
           </Alert>
         )}
-        {dictionary && selectedOptionsSet && (
+        {dictionary && wave && selectedOptionsSet && (
           <>
             <Divider style={{ margin: 10 }} />
-            <WordSelector
-              dictionary={dictionary}
-              optionsSet={selectedOptionsSet}
-              tiles={selectedTiles}
-              processingLastChange={WFCBusy}
-              onEnter={handleEnterWord}
-              clearSelection={clearSelection}
+            <BuilderTabs
+              wordSelector={
+                <WordSelector
+                  dictionary={dictionary}
+                  optionsSet={selectedOptionsSet}
+                  tiles={selectedTiles}
+                  processingLastChange={WFCBusy}
+                  onEnter={handleEnterWord}
+                  clearSelection={clearSelection}
+                />
+              }
+              wordBank={
+                <WordBank
+                  wave={wave}
+                  puzzle={puzzle}
+                  processingLastChange={WFCBusy}
+                  fillWordAtLocations={() => null}
+                />
+              }
             />
           </>
         )}

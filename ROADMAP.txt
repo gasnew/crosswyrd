@@ -39,6 +39,7 @@
   + auto-enter word when leave selection + remove selection when entered word
     - remove filled-in tile when leave selection if it was red? (try not doing this and see what happens)
   - auto-fill search with highlighted letters (replacing spaces with ?s?)
+  - place 1 and auto-fill disabled when done + they auto-place any decided wave elements
 
 Grid selector/randomizer
 add license

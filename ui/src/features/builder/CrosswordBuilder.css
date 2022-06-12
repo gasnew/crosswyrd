@@ -67,3 +67,8 @@
   margin-bottom: 2px;
   font-size: 8px;
 }
+
+.word-bank-list-container {
+  height: 350px;
+  overflow-y: scroll;
+}
