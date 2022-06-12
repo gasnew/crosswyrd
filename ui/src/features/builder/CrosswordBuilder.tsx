@@ -31,7 +31,7 @@ import { ALL_LETTERS, LETTER_WEIGHTS } from './constants';
 import useTileSelection from './useTileSelection';
 import useWaveAndPuzzleHistory from './useWaveAndPuzzleHistory';
 import useWaveFunctionCollapse, { WaveType } from './useWaveFunctionCollapse';
-import WordBank from './WordBank';
+import WordBank, { WordLocationsGridType } from './WordBank';
 import WordSelector from './WordSelector';
 
 import './CrosswordBuilder.css';
@@ -103,6 +103,10 @@ export default function CrosswordBuilder() {
   const [hoveredTile, setHoveredTile] = useState<LocationType | null>(null);
   const [running, setRunning] = useState(false);
   const [runningError, setRunningError] = useState('');
+  const [
+    wordLocationsGrid,
+    setWordLocationsGrid,
+  ] = useState<WordLocationsGridType | null>(null);
 
   const { onClick, selectedTileLocations, clearSelection } = useTileSelection(
     puzzle
@@ -284,6 +288,7 @@ export default function CrosswordBuilder() {
       clearSelection,
     ]
   );
+  const fillWordAtLocations = useCallback(() => null, []);
 
   // Run auto-fill
   useInterval(() => {
@@ -359,6 +364,11 @@ export default function CrosswordBuilder() {
                 (location) =>
                   location.row === rowIndex && location.column === columnIndex
               );
+              // Whether this tile is an option for a word bank word
+              const optionForWord: boolean =
+                !!wordLocationsGrid &&
+                (!!wordLocationsGrid[rowIndex][columnIndex].across ||
+                  !!wordLocationsGrid[rowIndex][columnIndex].down);
               const tileValue =
                 selectionIndex >= 0
                   ? stagedWord[selectionIndex]
@@ -374,7 +384,8 @@ export default function CrosswordBuilder() {
                   className={
                     'tile' +
                     (tile.value === 'black' ? ' tile--black' : '') +
-                    (selectionIndex >= 0 ? ' tile--selected' : '')
+                    (selectionIndex >= 0 ? ' tile--selected' : '') +
+                    (optionForWord ? ' tile--option' : '')
                   }
                   style={{
                     ...(element &&
@@ -464,7 +475,8 @@ export default function CrosswordBuilder() {
                   wave={wave}
                   puzzle={puzzle}
                   processingLastChange={WFCBusy}
-                  fillWordAtLocations={() => null}
+                  setWordLocationsGrid={setWordLocationsGrid}
+                  fillWordAtLocations={fillWordAtLocations}
                 />
               }
             />

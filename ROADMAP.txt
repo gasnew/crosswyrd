@@ -27,13 +27,16 @@
   board
   - see suggestions for where they can go on hover
   - click and drag the word onto a valid slot
+  - hint for shift+click to pick down instead of across
+  - letter count
 - sort words by increasing difficulty? Maybe use Scrabble weights here?
 - maybe update recalculating algorithm to support placing black tiles better
 
 - QoL
   + do not mark ?s red
+  - control selections and stuff when changing tabs + clicking on the board
   - height 100%, overflow-y: hidden, center on board
-  - "click to select down/across" tooltip
+  - "click to select down/across" tooltip/hint
   - blue border and outline + higher z-index + different color than entropy
   - indicate ?s can be used as wildcards for searches
   + auto-enter word when leave selection + remove selection when entered word

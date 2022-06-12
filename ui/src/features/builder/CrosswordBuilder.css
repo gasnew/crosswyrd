@@ -41,6 +41,12 @@
   border-color: rgb(45, 114, 210);
 }
 
+.tile--option {
+  border-width: 4px;
+  border-style: dashed;
+  border-color: rgb(45, 114, 210);
+}
+
 .tile-contents {
   user-select: none;
   pointer-events: none;
