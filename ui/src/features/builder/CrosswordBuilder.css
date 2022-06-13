@@ -78,3 +78,11 @@
   height: 350px;
   overflow-y: scroll;
 }
+
+.dragged-word {
+  position: fixed;
+  transform: translate(4px, -33px);
+  pointer-events: none;
+  z-index: 9999;
+  user-select: none;
+}

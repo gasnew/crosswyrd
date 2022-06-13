@@ -30,6 +30,7 @@ import {
 } from './builderSlice';
 import BuilderTabs from './BuilderTabs';
 import { ALL_LETTERS, LETTER_WEIGHTS } from './constants';
+import DraggedWord from './DraggedWord';
 import useTileSelection from './useTileSelection';
 import useWaveAndPuzzleHistory from './useWaveAndPuzzleHistory';
 import useWaveFunctionCollapse, { WaveType } from './useWaveFunctionCollapse';
@@ -451,6 +452,7 @@ export default function CrosswordBuilder() {
                               : 'white',
                         }
                       : {}),
+                    cursor: wordLocationOptions ? 'pointer' : 'initial',
                   }}
                   onMouseOver={mkHandleMouseoverTile(rowIndex, columnIndex)}
                   onClick={mkHandleClickTile(rowIndex, columnIndex)}
@@ -548,6 +550,7 @@ export default function CrosswordBuilder() {
           </>
         )}
       </div>
+      <DraggedWord />
     </div>
   );
 }

@@ -1,5 +1,5 @@
 // This is adapted from https://mui.com/material-ui/react-tabs/
-import React, { useEffect } from 'react';
+import React, { useLayoutEffect } from 'react';
 import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
 import Box from '@mui/material/Box';
@@ -55,7 +55,7 @@ export default function BuilderTabs({
 }: Props) {
   const [value, setValue] = React.useState(0);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (tilesSelected && value !== 0) setValue(0);
   }, [tilesSelected, value]);
   const handleChange = (event: React.SyntheticEvent, newValue: number) => {

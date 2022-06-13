@@ -101,6 +101,28 @@ interface WordLocationOptionsType {
 }
 export type WordLocationsGridType = WordLocationOptionsType[][];
 
+function buildWordLocationsGrid(
+  puzzle: CrosswordPuzzleType,
+  entry: WordEntry
+): WordLocationsGridType {
+  const grid: WordLocationsGridType = _.times(puzzle.tiles.length, (rowIndex) =>
+    _.times(puzzle.tiles.length, (columnIndex) => ({
+      across: null,
+      down: null,
+    }))
+  );
+  _.forEach(entry.validLocationSets, (locations) => {
+    const direction =
+      locations.length > 1 && locations[1].column > locations[0].column
+        ? 'across'
+        : 'down';
+    _.forEach(locations, ({ row, column }) => {
+      grid[row][column][direction] = locations;
+    });
+  });
+  return grid;
+}
+
 interface Props {
   wave: WaveType;
   puzzle: CrosswordPuzzleType;
@@ -158,31 +180,16 @@ function WordBank({
     dispatch(setDraggedWord(wordBank[index].word));
   };
   const mkHandleHoverWord = (index) => () => {
-    const grid: WordLocationsGridType = _.times(
-      puzzle.tiles.length,
-      (rowIndex) =>
-        _.times(puzzle.tiles.length, (columnIndex) => ({
-          across: null,
-          down: null,
-        }))
-    );
-    _.forEach(wordBank[index].validLocationSets, (locations) => {
-      const direction =
-        locations.length > 1 && locations[1].column > locations[0].column
-          ? 'across'
-          : 'down';
-      _.forEach(locations, ({ row, column }) => {
-        grid[row][column][direction] = locations;
-      });
-    });
-
-    setWordLocationsGrid(grid);
+    setWordLocationsGrid(buildWordLocationsGrid(puzzle, wordBank[index]));
   };
   const mkHandleDeleteEntry = (index) => () => {
     setWords(_.sortBy(_.without(words, words[index])));
   };
   const handleMouseOut = () => {
-    if (!draggedWord) setWordLocationsGrid(null);
+    const entry = _.find(wordBank, ['word', draggedWord]);
+    if (draggedWord && entry)
+      setWordLocationsGrid(buildWordLocationsGrid(puzzle, entry));
+    else setWordLocationsGrid(null);
   };
 
   return (
@@ -226,7 +233,8 @@ function WordBank({
                 disabled={
                   processingLastChange ||
                   entry.used ||
-                  entry.validLocationSets.length === 0
+                  entry.validLocationSets.length === 0 ||
+                  !!draggedWord
                 }
                 onClick={mkHandleClickWord(index)}
                 onMouseOver={mkHandleHoverWord(index)}
@@ -259,7 +267,11 @@ function WordBank({
                 />
               </ListItemButton>
               <IconButton
-                disabled={processingLastChange || entry.used}
+                disabled={
+                  processingLastChange ||
+                  entry.used ||
+                  !!draggedWord
+                }
                 size="small"
                 style={{ position: 'absolute', right: 15 }}
                 onClick={mkHandleDeleteEntry(index)}
