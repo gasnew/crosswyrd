@@ -1,5 +1,5 @@
 // This is adapted from https://mui.com/material-ui/react-tabs/
-import React from 'react';
+import React, { useEffect } from 'react';
 import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
 import Box from '@mui/material/Box';
@@ -22,7 +22,10 @@ function TabPanel(props: TabPanelProps) {
       {...other}
     >
       <Box
-        style={{ visibility: value === index ? 'visible' : 'hidden', paddingTop: 8 }}
+        style={{
+          visibility: value === index ? 'visible' : 'hidden',
+          paddingTop: 8,
+        }}
       >
         {children}
       </Box>
@@ -38,14 +41,25 @@ function a11yProps(index: number) {
 }
 
 interface Props {
+  tilesSelected: boolean;
+  clearSelection: () => void;
   wordSelector: React.ReactNode;
   wordBank: React.ReactNode;
 }
 
-export default function BuilderTabs({ wordSelector, wordBank }: Props) {
+export default function BuilderTabs({
+  tilesSelected,
+  clearSelection,
+  wordSelector,
+  wordBank,
+}: Props) {
   const [value, setValue] = React.useState(0);
 
+  useEffect(() => {
+    if (tilesSelected && value !== 0) setValue(0);
+  }, [tilesSelected, value]);
   const handleChange = (event: React.SyntheticEvent, newValue: number) => {
+    if (newValue === 1) clearSelection();
     setValue(newValue);
   };
 

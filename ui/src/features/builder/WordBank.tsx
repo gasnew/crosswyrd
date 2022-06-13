@@ -3,8 +3,7 @@ import {
   Box,
   Button,
   Chip,
-  CircularProgress,
-  Divider,
+  IconButton,
   Input,
   InputAdornment,
   List,
@@ -12,25 +11,16 @@ import {
   ListItemButton,
   ListItemText,
 } from '@mui/material';
-import CancelIcon from '@mui/icons-material/Cancel';
 import CreateIcon from '@mui/icons-material/Create';
+import DeleteIcon from '@mui/icons-material/Delete';
 import DoneIcon from '@mui/icons-material/Done';
-import React, {
-  useCallback,
-  useEffect,
-  useLayoutEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { FixedSizeList } from 'react-window';
 
 import {
   CrosswordPuzzleType,
-  LetterType,
-  setStagedWord,
-  selectStagedWord,
+  setDraggedWord,
+  selectDraggedWord,
   TileType,
 } from './builderSlice';
 import { ALL_LETTERS } from './constants';
@@ -76,14 +66,18 @@ function computeWordEntry(
   allElementSets: ElementType[][],
   word: string
 ): WordEntry {
-  const validLocationSets = _.map(
+  const allMatchingElementSets = _.filter(
+    allElementSets,
+    (elements) =>
+      elements.length === word.length &&
+      _.every(word, (letter, index) =>
+        _.includes(elements[index].options, letter)
+      )
+  );
+  const unusedValidLocationSets = _.map(
     _.filter(
-      allElementSets,
+      allMatchingElementSets,
       (elements) =>
-        elements.length === word.length &&
-        _.every(word, (letter, index) =>
-          _.includes(elements[index].options, letter)
-        ) &&
         !_.every(elements, (element) => element.options.length === 1)
     ),
     (elements) => _.map(elements, ({ row, column }) => ({ row, column }))
@@ -91,12 +85,14 @@ function computeWordEntry(
 
   return {
     word,
-    validLocationSets,
+    used: allMatchingElementSets.length !== unusedValidLocationSets.length,
+    validLocationSets: unusedValidLocationSets,
   };
 }
 
 interface WordEntry {
   word: string;
+  used: boolean;
   validLocationSets: LocationType[][];
 }
 interface WordLocationOptionsType {
@@ -110,7 +106,6 @@ interface Props {
   puzzle: CrosswordPuzzleType;
   processingLastChange: boolean;
   setWordLocationsGrid: (grid: WordLocationsGridType | null) => void;
-  fillWordAtLocations: (word: string, locations: LocationType[]) => void;
 }
 
 function WordBank({
@@ -118,10 +113,18 @@ function WordBank({
   puzzle,
   processingLastChange,
   setWordLocationsGrid,
-  fillWordAtLocations,
 }: Props) {
   const [currentWord, setCurrentWord] = useState('');
   const [words, setWords] = useState<string[]>([]);
+
+  const draggedWord = useSelector(selectDraggedWord);
+
+  const dispatch = useDispatch();
+
+  // Cancel word locations grid when dragging stops
+  useEffect(() => {
+    if (!draggedWord) setWordLocationsGrid(null);
+  }, [setWordLocationsGrid, draggedWord]);
 
   const allElementSets = useMemo(() => getAllElementSets(puzzle, wave), [
     puzzle,
@@ -147,11 +150,12 @@ function WordBank({
     );
   };
   const handleInsertCurrentWord = () => {
-    setWords(_.sortBy([...words, currentWord]));
     setCurrentWord('');
+    if (_.includes(words, currentWord)) return;
+    setWords(_.sortBy([...words, currentWord]));
   };
   const mkHandleClickWord = (index) => () => {
-    console.log('click');
+    dispatch(setDraggedWord(wordBank[index].word));
   };
   const mkHandleHoverWord = (index) => () => {
     const grid: WordLocationsGridType = _.times(
@@ -173,6 +177,12 @@ function WordBank({
     });
 
     setWordLocationsGrid(grid);
+  };
+  const mkHandleDeleteEntry = (index) => () => {
+    setWords(_.sortBy(_.without(words, words[index])));
+  };
+  const handleMouseOut = () => {
+    if (!draggedWord) setWordLocationsGrid(null);
   };
 
   return (
@@ -204,15 +214,19 @@ function WordBank({
         </Button>
       </div>
       <Box sx={{ width: '100%', maxWidth: 360, bgcolor: 'background.paper' }}>
-        <List
-          className="word-bank-list-container"
-          onMouseOut={() => setWordLocationsGrid(null)}
-        >
+        <List className="word-bank-list-container" onMouseOut={handleMouseOut}>
           {_.map(wordBank, (entry, index) => (
-            <ListItem key={index} disablePadding component="div">
+            <ListItem
+              key={entry.word}
+              disablePadding
+              component="div"
+              style={{ position: 'relative' }}
+            >
               <ListItemButton
                 disabled={
-                  processingLastChange || entry.validLocationSets.length === 0
+                  processingLastChange ||
+                  entry.used ||
+                  entry.validLocationSets.length === 0
                 }
                 onClick={mkHandleClickWord(index)}
                 onMouseOver={mkHandleHoverWord(index)}
@@ -220,17 +234,38 @@ function WordBank({
               >
                 <ListItemText primary={_.toUpper(entry.word)} />
                 <Chip
+                  style={{ marginRight: 40 }}
                   color={
-                    entry.validLocationSets.length > 0 ? 'success' : 'error'
+                    entry.used
+                      ? 'warning'
+                      : entry.validLocationSets.length > 0
+                      ? 'success'
+                      : 'error'
                   }
                   variant={
-                    entry.validLocationSets.length > 0 ? 'filled' : 'outlined'
+                    entry.used
+                      ? 'filled'
+                      : entry.validLocationSets.length > 0
+                      ? 'filled'
+                      : 'outlined'
                   }
-                  label={`${entry.validLocationSets.length} option${
-                    entry.validLocationSets.length === 1 ? '' : 's'
-                  }`}
+                  label={
+                    entry.used
+                      ? 'Used'
+                      : `${entry.validLocationSets.length} option${
+                          entry.validLocationSets.length === 1 ? '' : 's'
+                        }`
+                  }
                 />
               </ListItemButton>
+              <IconButton
+                disabled={processingLastChange || entry.used}
+                size="small"
+                style={{ position: 'absolute', right: 15 }}
+                onClick={mkHandleDeleteEntry(index)}
+              >
+                <DeleteIcon />
+              </IconButton>
             </ListItem>
           ))}
         </List>

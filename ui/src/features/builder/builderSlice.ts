@@ -17,6 +17,7 @@ export interface CrosswordPuzzleType {
 interface BuilderState {
   puzzle: CrosswordPuzzleType;
   stagedWord: string;
+  draggedWord: string | null;
 }
 
 const initialState: BuilderState = {
@@ -29,6 +30,7 @@ const initialState: BuilderState = {
     tiles: DEFAULT_TILES,
   },
   stagedWord: '',
+  draggedWord: null,
 };
 
 export function getSymmetricTile(
@@ -102,6 +104,9 @@ export const builderSlice = createSlice({
     setStagedWord: (state, action: PayloadAction<string>) => {
       state.stagedWord = action.payload;
     },
+    setDraggedWord: (state, action: PayloadAction<string | null>) => {
+      state.draggedWord = action.payload;
+    },
   },
 });
 
@@ -111,9 +116,12 @@ export const {
   toggleTileBlack,
   setPuzzleState,
   setStagedWord,
+  setDraggedWord,
 } = builderSlice.actions;
 
 export const selectPuzzle = (state: RootState) => state.builder.puzzle;
 export const selectStagedWord = (state: RootState) => state.builder.stagedWord;
+export const selectDraggedWord = (state: RootState) =>
+  state.builder.draggedWord;
 
 export default builderSlice.reducer;
