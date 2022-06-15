@@ -23,17 +23,20 @@
   + when computing wave, disable entering a new word/dict search
   + "calculating..." indicator
 + Any time black changed, recalculate off all letters
-- interface for typing in theme words into a word bank you want to have on the
++ interface for typing in theme words into a word bank you want to have on the
   board
-  - see suggestions for where they can go on hover
-  - click and drag the word onto a valid slot
-  - hint for shift+click to pick down instead of across
-  - letter count
+  + see suggestions for where they can go on hover
+  + click and drag the word onto a valid slot
+  x hint for shift+click to pick down instead of across
+  x letter count
 - sort words by increasing difficulty? Maybe use Scrabble weights here?
 - maybe update recalculating algorithm to support placing black tiles better
+- Allow clue entry
+  - keyboard for mobile???
 
 - QoL
   + do not mark ?s red
+  + optimization: sort dictionary by word size
   - control selections and stuff when changing tabs + clicking on the board
   - height 100%, overflow-y: hidden, center on board
   - "click to select down/across" tooltip/hint
@@ -43,11 +46,11 @@
     - remove filled-in tile when leave selection if it was red? (try not doing this and see what happens)
   - auto-fill search with highlighted letters (replacing spaces with ?s?)
   - place 1 and auto-fill disabled when done + they auto-place any decided wave elements
+  - focus on word input if type while a word is selected
 
 Grid selector/randomizer
 add license
 Variable board size
-Allow clue entry
 Share link to play
 Mobile version (player only, not builder?)
 - feedback
@@ -67,3 +70,4 @@ juicy animations
   - toggle symmetry
   - toggle enforce NYT rules
   - show counts of 3-letter words
+  - load word bank

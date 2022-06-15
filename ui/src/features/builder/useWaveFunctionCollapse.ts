@@ -26,7 +26,7 @@ export interface TileUpdateType {
 }
 
 export function findWordOptions(
-  dictionary: DictionaryType,
+  words: string[],
   optionsSet: (LetterType | '.')[][]
 ): string[] {
   const regex = new RegExp(
@@ -38,7 +38,13 @@ export function findWordOptions(
       '$'
   );
 
-  return _.reject(dictionary, (word) => word.search(regex) === -1);
+  return _.reject(words, (word) => word.search(regex) === -1);
+}
+export function findWordOptionsFromDictionary(
+  dictionary: DictionaryType,
+  optionsSet: (LetterType | '.')[][]
+): string[] {
+  return findWordOptions(dictionary[optionsSet.length] || [], optionsSet);
 }
 
 function computeEntropy(options: LetterType[]): number {

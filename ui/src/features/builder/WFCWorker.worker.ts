@@ -23,7 +23,7 @@ import {
 // useWaveFunctionCollapse.ts because packaging this Web Worker fails if we try
 // to import it from elsewhere.
 function findWordOptions(
-  dictionary: DictionaryType,
+  words: string[],
   optionsSet: (LetterType | '.')[][]
 ): string[] {
   const regex = new RegExp(
@@ -35,7 +35,13 @@ function findWordOptions(
       '$'
   );
 
-  return _.reject(dictionary, (word) => word.search(regex) === -1);
+  return _.reject(words, (word) => word.search(regex) === -1);
+}
+export function findWordOptionsFromDictionary(
+  dictionary: DictionaryType,
+  optionsSet: (LetterType | '.')[][]
+): string[] {
+  return findWordOptions(dictionary[optionsSet.length] || [], optionsSet);
 }
 
 function waveFromPuzzle(puzzle: CrosswordPuzzleType): WaveType {
@@ -126,7 +132,7 @@ function computeDownElementUpdates(
 
   return _.map(
     wordsToLettersSets(
-      findWordOptions(
+      findWordOptionsFromDictionary(
         dictionary,
         _.map(
           _.range(startRow, stopRow + 1),
@@ -162,7 +168,7 @@ function computeAcrossElementUpdates(
 
   return _.map(
     wordsToLettersSets(
-      findWordOptions(
+      findWordOptionsFromDictionary(
         dictionary,
         _.map(
           _.range(startColumn, stopColumn + 1),

@@ -44,7 +44,9 @@ export interface LocationType {
   column: number;
 }
 
-export type DictionaryType = string[];
+export interface DictionaryType {
+  [length: number]: string[];
+}
 
 function pickWeightedRandomLetter(
   wave: WaveType,
@@ -70,7 +72,9 @@ function useDictionary(): {
   useEffect(() => {
     const fetchDictionary = async () => {
       const response = await axios.get('word_list.json');
-      setDictionary(response.data);
+      const words = response.data as string[];
+      const dictionary = _.groupBy(words, 'length');
+      setDictionary(_.mapValues(dictionary, (words) => _.sortBy(words)));
     };
     fetchDictionary();
   }, []);
@@ -78,7 +82,9 @@ function useDictionary(): {
   const addWordToDictionary = useCallback(
     (word: string) => {
       if (!dictionary) return null;
-      const newDictionary = _.sortBy([...dictionary, word]);
+      const newDictionary = _.mapValues(dictionary, (words) =>
+        word.length === words[0].length ? _.sortBy([...words, word]) : words
+      );
       setDictionary(newDictionary);
       return newDictionary;
     },
@@ -86,6 +92,12 @@ function useDictionary(): {
   );
 
   return { dictionary, addWordToDictionary };
+}
+export function inDictionary(
+  dictionary: DictionaryType,
+  word: string
+): boolean {
+  return _.includes(dictionary[word.length] || [], word);
 }
 
 export default function CrosswordBuilder() {
@@ -285,7 +297,7 @@ export default function CrosswordBuilder() {
       // word fragment, which we wouldn't want in the dictionary)
       const possiblyUpdatedDictionary =
         (!_.includes(word, ' ') &&
-          !_.includes(dictionary, word) &&
+          !inDictionary(dictionary, word) &&
           addWordToDictionary(word)) ||
         dictionary;
 

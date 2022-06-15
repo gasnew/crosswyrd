@@ -24,8 +24,11 @@ import {
   TileType,
 } from './builderSlice';
 import { ALL_LETTERS } from './constants';
-import { DictionaryType } from './CrosswordBuilder';
-import { findWordOptions } from './useWaveFunctionCollapse';
+import { DictionaryType, inDictionary } from './CrosswordBuilder';
+import {
+  findWordOptions,
+  findWordOptionsFromDictionary,
+} from './useWaveFunctionCollapse';
 
 function Processing() {
   return (
@@ -59,7 +62,7 @@ function WordSelector({
   const dispatch = useDispatch();
 
   const allPossibleWords = useMemo(
-    () => findWordOptions(dictionary, optionsSet),
+    () => findWordOptionsFromDictionary(dictionary, optionsSet),
     [dictionary, optionsSet]
   );
   const wordsFilteredByStagedWord = useMemo(
@@ -136,7 +139,7 @@ function WordSelector({
     () =>
       stagedWord.length === optionsSet.length &&
       !_.includes(stagedWord, '?') &&
-      !_.includes(dictionary, stagedWord),
+      !inDictionary(dictionary, stagedWord),
     [dictionary, optionsSet.length, stagedWord]
   );
 
