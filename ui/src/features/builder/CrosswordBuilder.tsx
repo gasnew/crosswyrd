@@ -29,7 +29,7 @@ import {
   toggleTileBlack,
 } from './builderSlice';
 import BuilderTabs from './BuilderTabs';
-import { useClueData } from './ClueEntry';
+import ClueEntry, { useClueData } from './ClueEntry';
 import { ALL_LETTERS, LETTER_WEIGHTS } from './constants';
 import DraggedWord from './DraggedWord';
 import useTileSelection from './useTileSelection';
@@ -536,6 +536,9 @@ export default function CrosswordBuilder() {
                   processingLastChange={WFCBusy}
                   setWordLocationsGrid={setWordLocationsGrid}
                 />
+              }
+              clueEntry={
+                <ClueEntry puzzle={puzzle} tileNumbers={tileNumbers} />
               }
             />
           </>

@@ -32,8 +32,8 @@
 + maybe update recalculating algorithm to support placing black tiles better
 - Allow clue entry
 - add words to dictionary when formed by changing black tiles
+  - may need to do binary search in dictionary to check all words?
 - sort words by increasing difficulty? Maybe use Scrabble weights here?
-
 - QoL
   + do not mark ?s red
   + optimization: sort dictionary by word size
@@ -50,16 +50,16 @@
   - undo to before auto-fill
   - persist puzzle builder state in local storage
   - go to best next word when finish one word
-
-Grid selector/randomizer
-add license
-Variable board size
-Share link to play
-Mobile version (player only, not builder?)
-- feedback
-  - possibly categorize dictionary words
   - note for when red tile appears
-  - show all letters allowed on a tile
+  - show all letters allowed on a tile (when selected?)
+- Grid selector/randomizer
+- add license
+- Share link to play
+- Mobile version (player only, not builder?)
+
+- INITIAL RELEASE!
+
+Variable board size
 ingest files as dictionaries
 sell custom dictionaries?
 pentatonic scale sounds

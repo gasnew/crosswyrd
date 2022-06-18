@@ -45,6 +45,7 @@ interface Props {
   clearSelection: () => void;
   wordSelector: React.ReactNode;
   wordBank: React.ReactNode;
+  clueEntry: React.ReactNode;
 }
 
 export default function BuilderTabs({
@@ -52,14 +53,18 @@ export default function BuilderTabs({
   clearSelection,
   wordSelector,
   wordBank,
+  clueEntry,
 }: Props) {
   const [value, setValue] = React.useState(0);
 
+  // Set tab to "Dictionary" when tiles are selected
   useLayoutEffect(() => {
     if (tilesSelected && value !== 0) setValue(0);
   }, [tilesSelected, value]);
+
   const handleChange = (event: React.SyntheticEvent, newValue: number) => {
-    if (newValue === 1) clearSelection();
+    // Clear selection if moved tab from "Dictionary"
+    if (newValue !== 0) clearSelection();
     setValue(newValue);
   };
 
@@ -73,6 +78,7 @@ export default function BuilderTabs({
         >
           <Tab label="Dictionary" {...a11yProps(0)} />
           <Tab label="Word Bank" {...a11yProps(1)} />
+          <Tab label="Clues" {...a11yProps(1)} />
         </Tabs>
       </Box>
       <TabPanel value={value} index={0}>
@@ -80,6 +86,9 @@ export default function BuilderTabs({
       </TabPanel>
       <TabPanel value={value} index={1}>
         {wordBank}
+      </TabPanel>
+      <TabPanel value={value} index={2}>
+        {clueEntry}
       </TabPanel>
     </Box>
   );
