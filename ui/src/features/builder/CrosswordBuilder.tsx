@@ -29,6 +29,7 @@ import {
   toggleTileBlack,
 } from './builderSlice';
 import BuilderTabs from './BuilderTabs';
+import { useClueData } from './ClueEntry';
 import { ALL_LETTERS, LETTER_WEIGHTS } from './constants';
 import DraggedWord from './DraggedWord';
 import useTileSelection from './useTileSelection';
@@ -105,6 +106,7 @@ export default function CrosswordBuilder() {
   const stagedWord = useSelector(selectStagedWord);
   const draggedWord = useSelector(selectDraggedWord);
   const { dictionary, addWordToDictionary } = useDictionary();
+  const { tileNumbers } = useClueData(puzzle);
   const {
     wave,
     updateWaveWithTileUpdates,
@@ -425,6 +427,7 @@ export default function CrosswordBuilder() {
                   : !_.includes(['empty', 'black'], tile.value) &&
                     _.toUpper(tile.value);
               const element = wave && wave.elements[rowIndex][columnIndex];
+              const tileNumber = tileNumbers[rowIndex][columnIndex];
 
               return (
                 <div
@@ -470,6 +473,9 @@ export default function CrosswordBuilder() {
                   onClick={mkHandleClickTile(rowIndex, columnIndex)}
                 >
                   <div className="tile-contents">{tileValue}</div>
+                  {tileNumber && (
+                    <div className="tile-number">{tileNumber}</div>
+                  )}
                 </div>
               );
             })}

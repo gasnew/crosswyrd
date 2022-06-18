@@ -14,9 +14,10 @@
 }
 
 .tile {
+  position: relative;
   display: flex;
-  height: 30px;
-  width: 30px;
+  height: 35px;
+  width: 35px;
   border-style: solid;
   border-color: black;
   border-width: 2px;
@@ -26,6 +27,7 @@
 .tile:hover {
   border-color: yellow !important;
   border-width: 4px !important;
+  /*padding: -4px !important;*/
 }
 
 .tile--black {
@@ -48,10 +50,19 @@
 }
 
 .tile-contents {
+  position: relative;
   user-select: none;
   pointer-events: none;
   font-size: 20px;
   margin: auto;
+  top: 3px;
+}
+
+.tile-number {
+  position: absolute;
+  user-select: none;
+  pointer-events: none;
+  font-size: 10px;
 }
 
 .sidebar-container {

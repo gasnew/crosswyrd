@@ -31,6 +31,7 @@ function getAllElementSets(
   puzzle: CrosswordPuzzleType,
   wave: WaveType
 ): ElementType[][] {
+  // Returns a list of all possible wave element sets (across and down)
   const solid = (tile: TileType): boolean => !tile || tile.value === 'black';
   return _.reject(
     _.flatMap(puzzle.tiles, (row, rowIndex) =>

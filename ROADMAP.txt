@@ -29,10 +29,10 @@
   + click and drag the word onto a valid slot
   x hint for shift+click to pick down instead of across
   x letter count
-- sort words by increasing difficulty? Maybe use Scrabble weights here?
-- maybe update recalculating algorithm to support placing black tiles better
++ maybe update recalculating algorithm to support placing black tiles better
 - Allow clue entry
-  - keyboard for mobile???
+- add words to dictionary when formed by changing black tiles
+- sort words by increasing difficulty? Maybe use Scrabble weights here?
 
 - QoL
   + do not mark ?s red
@@ -47,6 +47,9 @@
   - auto-fill search with highlighted letters (replacing spaces with ?s?)
   - place 1 and auto-fill disabled when done + they auto-place any decided wave elements
   - focus on word input if type while a word is selected
+  - undo to before auto-fill
+  - persist puzzle builder state in local storage
+  - go to best next word when finish one word
 
 Grid selector/randomizer
 add license

@@ -272,17 +272,29 @@ function withNewObservations(
 
 function newWaveFromPuzzle(
   dictionary: DictionaryType,
-  puzzle: CrosswordPuzzleType
+  puzzle: CrosswordPuzzleType,
+  tileUpdates: TileUpdateType[]
 ): WaveType {
-  const surroundingTiles = (row: number, column: number) =>
-    _.map(
-      [
-        [-1, 0],
-        [1, 0],
-        [0, -1],
-        [0, 1],
-      ],
-      ([xdir, ydir]) => puzzle.tiles?.[row + ydir]?.[column + xdir]
+  const surroundingTiles = (row: number, column: number): TileUpdateType[] =>
+    _.compact(
+      _.map(
+        [
+          [-1, 0],
+          [1, 0],
+          [0, -1],
+          [0, 1],
+        ],
+        ([xdir, ydir]) => {
+          const tile = puzzle.tiles?.[row + ydir]?.[column + xdir];
+          return (
+            tile && {
+              row,
+              column,
+              value: tile.value,
+            }
+          );
+        }
+      )
     );
   const newWave = waveFromPuzzle(puzzle);
 
@@ -295,11 +307,23 @@ function newWaveFromPuzzle(
       _.flatMap(puzzle.tiles, (row, rowIndex) =>
         _.map(row, (tile, columnIndex) => {
           if (tile.value === 'empty' || tile.value === 'black') return;
-          // Some surrounding tile is empty
+          // Tile was updated, or some surrounding tile is empty or was updated
           if (
+            // Tile was updated
+            _.some(
+              tileUpdates,
+              (update) =>
+                update.row === rowIndex && update.column === columnIndex
+            ) ||
+            // Some surrounding tile is empty or was updated
             _.some(
               surroundingTiles(rowIndex, columnIndex),
-              (tile) => tile?.value === 'empty'
+              (tile) =>
+                _.some(
+                  tileUpdates,
+                  (update) =>
+                    update.row === tile.row && update.column === tile.column
+                ) || tile?.value === 'empty'
             )
           )
             return {
@@ -359,7 +383,7 @@ const WFCWorkerAPI: WFCWorkerAPIType = {
     _.forEach(tileUpdates, ({ row, column, value }) => {
       puzzleCopy.tiles[row][column].value = value;
     });
-    return newWaveFromPuzzle(dictionary, puzzleCopy);
+    return newWaveFromPuzzle(dictionary, puzzleCopy, tileUpdates);
   },
 };
 
