@@ -59,12 +59,12 @@ export default function BuilderTabs({
 
   // Set tab to "Dictionary" when tiles are selected
   useLayoutEffect(() => {
-    if (tilesSelected && value !== 0) setValue(0);
+    if (tilesSelected && value === 1) setValue(0);
   }, [tilesSelected, value]);
 
   const handleChange = (event: React.SyntheticEvent, newValue: number) => {
-    // Clear selection if moved tab from "Dictionary"
-    if (newValue !== 0) clearSelection();
+    // Clear selection if moved tab to "Word Bank"
+    if (newValue === 1) clearSelection();
     setValue(newValue);
   };
 

@@ -51,6 +51,7 @@ function getDownTileLocations(
 
 interface ReturnType {
   onClick: (row: number, column: number) => void;
+  setSelectedTileLocations: (locations: LocationType[]) => void;
   selectedTileLocations: LocationType[];
   clearSelection: () => void;
 }
@@ -95,6 +96,7 @@ export default function useTileSelection(
 
   return {
     onClick,
+    setSelectedTileLocations,
     selectedTileLocations,
     clearSelection,
   };

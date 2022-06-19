@@ -126,9 +126,12 @@ export default function CrosswordBuilder() {
     setWordLocationsGrid,
   ] = useState<WordLocationsGridType | null>(null);
 
-  const { onClick, selectedTileLocations, clearSelection } = useTileSelection(
-    puzzle
-  );
+  const {
+    onClick,
+    setSelectedTileLocations,
+    selectedTileLocations,
+    clearSelection,
+  } = useTileSelection(puzzle);
 
   // negative number means we've passed the last failed depth
   const stepsToLastFailure = useRef(-1);
@@ -538,7 +541,12 @@ export default function CrosswordBuilder() {
                 />
               }
               clueEntry={
-                <ClueEntry puzzle={puzzle} tileNumbers={tileNumbers} />
+                <ClueEntry
+                  puzzle={puzzle}
+                  tileNumbers={tileNumbers}
+                  setSelectedTileLocations={setSelectedTileLocations}
+                  selectedTileLocations={selectedTileLocations}
+                />
               }
             />
           </>

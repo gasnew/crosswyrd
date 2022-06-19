@@ -30,26 +30,28 @@
   x hint for shift+click to pick down instead of across
   x letter count
 + maybe update recalculating algorithm to support placing black tiles better
-- Allow clue entry
++ Allow clue entry
+- guided filling
+  - button for "best next word" instead of "place 1"
+  - sort words by increasing difficulty. Maybe use Scrabble weights here?
+  - when word entered, go to next best automatically
 - add words to dictionary when formed by changing black tiles
   - may need to do binary search in dictionary to check all words?
-- sort words by increasing difficulty? Maybe use Scrabble weights here?
 - QoL
   + do not mark ?s red
   + optimization: sort dictionary by word size
-  - control selections and stuff when changing tabs + clicking on the board
+  + control selections and stuff when changing tabs + clicking on the board
+  + auto-enter word when leave selection + remove selection when entered word
+    x remove filled-in tile when leave selection if it was red? (try not doing this and see what happens)
+  + auto-fill search with highlighted letters (replacing spaces with ?s?)
   - height 100%, overflow-y: hidden, center on board
   - "click to select down/across" tooltip/hint
   - blue border and outline + higher z-index + different color than entropy
   - indicate ?s can be used as wildcards for searches
-  + auto-enter word when leave selection + remove selection when entered word
-    - remove filled-in tile when leave selection if it was red? (try not doing this and see what happens)
-  - auto-fill search with highlighted letters (replacing spaces with ?s?)
   - place 1 and auto-fill disabled when done + they auto-place any decided wave elements
-  - focus on word input if type while a word is selected
+  - focus on word input if type while a word is selected (same with backspace)
   - undo to before auto-fill
   - persist puzzle builder state in local storage
-  - go to best next word when finish one word
   - note for when red tile appears
   - show all letters allowed on a tile (when selected?)
 - Grid selector/randomizer

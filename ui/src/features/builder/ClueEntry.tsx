@@ -1,12 +1,6 @@
 import _ from 'lodash';
-import {
-  Input,
-  List,
-  ListItem,
-  ListItemText,
-  ListSubheader,
-} from '@mui/material';
-import React, { useMemo, useRef, useState } from 'react';
+import { Input, List, ListItem, ListSubheader } from '@mui/material';
+import React, { useLayoutEffect, useMemo, useRef } from 'react';
 
 import { CrosswordPuzzleType, TileType } from './builderSlice';
 import { LocationType } from './CrosswordBuilder';
@@ -143,8 +137,14 @@ function AnswerListItem({
   setSelected: () => void;
   selectNext: () => void;
 }) {
+  const inputRef = useRef<HTMLElement | null>(null);
+
+  useLayoutEffect(() => {
+    if (selected && inputRef.current) inputRef.current.focus();
+  }, [selected]);
+
   return (
-    <ListItem onClick={setSelected}>
+    <ListItem style={{ paddingTop: 1, paddingBottom: 1 }} onClick={setSelected}>
       <div
         style={{
           width: 20,
@@ -167,10 +167,17 @@ function AnswerListItem({
       </div>
       &nbsp;
       <Input
+        style={{ height: 32 }}
         multiline
-        autoFocus={selected}
+        inputRef={(ref) => {
+          inputRef.current = ref;
+        }}
+        onFocus={() => !selected && setSelected()}
         onKeyPress={(event) => {
-          if (event.key === 'Enter') selectNext();
+          if (event.key === 'Enter') {
+            event.preventDefault();
+            selectNext();
+          }
         }}
       />
     </ListItem>
@@ -180,35 +187,56 @@ function AnswerListItem({
 interface Props {
   puzzle: CrosswordPuzzleType;
   tileNumbers: TileNumbersType;
+  setSelectedTileLocations: (locations: LocationType[]) => void;
+  selectedTileLocations: LocationType[];
 }
-function ClueEntry({ puzzle, tileNumbers }: Props) {
-  const [selectedLocation, setSelectedLocation] = useState<LocationType | null>(
-    null
-  );
-
+function ClueEntry({
+  puzzle,
+  tileNumbers,
+  setSelectedTileLocations,
+  selectedTileLocations,
+}: Props) {
   const answerGrid = useMemo(() => getAnswerGrid(puzzle), [puzzle]);
   const flattenedAnswers: {
     row: number;
     column: number;
-    answer: AnswerGridCellType;
+    direction: 'across' | 'down';
+    answer: AnswerType;
   }[] = useMemo(
     () =>
-      _.compact(
-        _.flatMap(answerGrid, (row, rowIndex) =>
-          _.flatMap(
-            row,
-            (answer, columnIndex) =>
-              (answer.across || answer.down) && {
+      _.sortBy(
+        _.compact(
+          _.flatMap(answerGrid, (row, rowIndex) =>
+            _.flatMap(row, (answer, columnIndex) => [
+              answer.across && {
                 row: rowIndex,
                 column: columnIndex,
-                answer,
-              }
+                answer: answer.across,
+                direction: 'across',
+              },
+              answer.down && {
+                row: rowIndex,
+                column: columnIndex,
+                answer: answer.down,
+                direction: 'down',
+              },
+            ])
           )
-        )
+        ),
+        'direction'
       ),
     [answerGrid]
   );
 
+  const selectAnswer = (direction, row, column, answer) =>
+    setSelectedTileLocations(
+      _.map(_.range(answer.word.length), (index) => ({
+        row: row + (direction === 'down' ? index : 0),
+        column: column + (direction === 'across' ? index : 0),
+      }))
+    );
+
+  // replace onclick with onfocus?? also focus when clicked? also focus on tile selection change
   return (
     <List
       sx={{
@@ -221,29 +249,44 @@ function ClueEntry({ puzzle, tileNumbers }: Props) {
     >
       <li>
         <ul>
-          {_.map(['across', 'down'], (direction) => (
-            <div key={direction}>
-              <ListSubheader>{_.capitalize(direction)}</ListSubheader>
-              {_.map(flattenedAnswers, ({ row, column, answer }) =>
-                answer[direction] && tileNumbers[row][column] ? (
-                  <AnswerListItem
-                    key={`answer-${row}-${column}`}
-                    tileNumber={tileNumbers[row][column] || 999}
-                    answer={answer[direction]}
-                    selected={
-                      !!selectedLocation &&
-                      row === selectedLocation.row &&
-                      column === selectedLocation.column
-                    }
-                    setSelected={() =>
-                      setSelectedLocation({
-                        row: row,
-                        column: column,
-                      })
-                    }
-                    selectNext={() => null}
-                  />
-                ) : null
+          {_.map(['across', 'down'], (currentDirection) => (
+            <div key={currentDirection}>
+              <ListSubheader>{_.capitalize(currentDirection)}</ListSubheader>
+              {_.map(
+                flattenedAnswers,
+                ({ row, column, answer, direction: answerDirection }, index) =>
+                  currentDirection === answerDirection &&
+                  tileNumbers[row][column] ? (
+                    <AnswerListItem
+                      key={`answer-${row}-${column}`}
+                      tileNumber={tileNumbers[row][column] || 999}
+                      answer={answer}
+                      selected={
+                        selectedTileLocations.length > 1 &&
+                        currentDirection ===
+                          (selectedTileLocations[1].row >
+                          selectedTileLocations[0].row
+                            ? 'down'
+                            : 'across') &&
+                        row === selectedTileLocations[0].row &&
+                        column === selectedTileLocations[0].column
+                      }
+                      setSelected={() =>
+                        selectAnswer(answerDirection, row, column, answer)
+                      }
+                      selectNext={() => {
+                        const {
+                          direction,
+                          row,
+                          column,
+                          answer,
+                        } = flattenedAnswers[
+                          (index + 1) % flattenedAnswers.length
+                        ];
+                        selectAnswer(direction, row, column, answer);
+                      }}
+                    />
+                  ) : null
               )}
             </div>
           ))}
