@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { CrosswordPuzzleType } from './builderSlice';
 import { LocationType } from './CrosswordBuilder';
+import { WaveAndPuzzleType } from './useWaveAndPuzzleHistory';
 import { WaveType } from './useWaveFunctionCollapse';
 import { getAllElementSets } from './WordBank';
 
@@ -56,14 +57,14 @@ interface ReturnType {
   setSelectedTileLocations: (locations: LocationType[]) => void;
   selectedTileLocations: LocationType[];
   clearSelection: () => void;
-  selectBestNext: () => void;
+  selectBestNext: (state?: WaveAndPuzzleType) => void;
 }
 
 export default function useTileSelection(
   puzzle: CrosswordPuzzleType,
   wave: WaveType | null,
   processingLastChange: boolean,
-  running: boolean,
+  running: boolean
 ): ReturnType {
   const [selectedTileLocations, setSelectedTileLocations] = useState<
     LocationType[]
@@ -72,28 +73,37 @@ export default function useTileSelection(
   // selected tile)
   const [acrossMode, setAcrossMode] = useState(true);
 
-  const selectBestNext = useCallback(() => {
-    // Select the element set with the lowest average entropy
-    const prioritizedElementSets = _.sortBy(
-      _.filter(getAllElementSets(puzzle, wave), (elements) =>
-        // Some tile in this set is empty
-        _.some(
-          elements,
-          ({ row, column }) => puzzle.tiles[row][column].value === 'empty'
-        )
-      ),
-      [
-        // Sort by average entropy
-        (elements) => -_.sumBy(elements, (element) => 3.3 - element.entropy),
-        // Sort by length
-        (elements) => -elements.length,
-      ]
-    );
-    if (prioritizedElementSets.length > 0)
-      setSelectedTileLocations(
-        _.map(prioritizedElementSets[0], ({ row, column }) => ({ row, column }))
+  const selectBestNext = useCallback(
+    (state?: WaveAndPuzzleType) => {
+      const thisPuzzle = state?.puzzle || puzzle;
+      const thisWave = state?.wave || wave;
+
+      // Select the element set with the lowest average entropy
+      const prioritizedElementSets = _.sortBy(
+        _.filter(getAllElementSets(thisPuzzle, thisWave), (elements) =>
+          // Some tile in this set is empty
+          _.some(
+            elements,
+            ({ row, column }) => thisPuzzle.tiles[row][column].value === 'empty'
+          )
+        ),
+        [
+          // Sort by average entropy
+          (elements) => -_.sumBy(elements, (element) => 3.3 - element.entropy),
+          // Sort by length
+          (elements) => -elements.length,
+        ]
       );
-  }, [puzzle, wave]);
+      if (prioritizedElementSets.length > 0)
+        setSelectedTileLocations(
+          _.map(prioritizedElementSets[0], ({ row, column }) => ({
+            row,
+            column,
+          }))
+        );
+    },
+    [puzzle, wave]
+  );
 
   // Automatically select best next word
   const prevProcessingLastChange = useRef(processingLastChange);

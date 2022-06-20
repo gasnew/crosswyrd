@@ -1,5 +1,13 @@
 import _ from 'lodash';
-import { Alert, Button, ButtonGroup, Divider } from '@mui/material';
+import {
+  Alert,
+  Button,
+  ButtonGroup,
+  colors,
+  Divider,
+  Slide,
+  Snackbar,
+} from '@mui/material';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import StopIcon from '@mui/icons-material/Stop';
@@ -32,6 +40,7 @@ import ClueEntry, { useClueData } from './ClueEntry';
 import { ALL_LETTERS, LETTER_WEIGHTS } from './constants';
 import DraggedWord from './DraggedWord';
 import PuzzleBanner from './PuzzleBanner';
+import TileLetterOptions from './TileLetterOptions';
 import useDictionary, { inDictionary } from './useDictionary';
 import useGrid, { GridType } from './useGrid';
 import useTileSelection from './useTileSelection';
@@ -61,6 +70,22 @@ function pickWeightedRandomLetter(
   ) as LetterType | undefined;
 }
 
+const AlertSnackbar = React.memo(
+  ({ open, error }: { open: boolean; error: string }) => {
+    return (
+      <Snackbar
+        open={open}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+        TransitionComponent={(props) => <Slide {...props} direction="down" />}
+      >
+        <Alert severity="error" sx={{ width: '100%' }}>
+          {error}
+        </Alert>
+      </Snackbar>
+    );
+  }
+);
+
 export default function CrosswordBuilder() {
   const puzzle = useSelector(selectPuzzle);
   const stagedWord = useSelector(selectStagedWord);
@@ -81,7 +106,6 @@ export default function CrosswordBuilder() {
   } = useWaveAndPuzzleHistory(wave, puzzle);
   const [hoveredTile, setHoveredTile] = useState<LocationType | null>(null);
   const [running, setRunning] = useState(false);
-  const [runningError, setRunningError] = useState('');
   const [
     wordLocationsGrid,
     setWordLocationsGrid,
@@ -105,10 +129,22 @@ export default function CrosswordBuilder() {
 
   const dispatch = useDispatch();
 
-  // Reset running error when the puzzle changes
-  useEffect(() => {
-    setRunningError('');
-  }, [puzzle]);
+  const puzzleError = useMemo(() => {
+    if (running || !wave) return '';
+    if (
+      _.some(puzzle.tiles, (row, rowIndex) =>
+        _.some(
+          row,
+          (tile, columnIndex) =>
+            tile.value !== 'black' &&
+            wave.elements[rowIndex][columnIndex].options.length === 0
+        )
+      )
+    )
+      return 'The puzzle cannot be filled from here! Try undoing recent changes, clearing up space around any red tiles, or adjusting the grid pattern.';
+    return '';
+  }, [running, puzzle, wave]);
+  const showPuzzleError = useMemo(() => !!puzzleError, [puzzleError]);
 
   const setPuzzleToGrid = useCallback(
     (grid: GridType) => {
@@ -239,8 +275,8 @@ export default function CrosswordBuilder() {
     selectBestNext();
   };
   const handleClickBack = () => {
-    if (selectedTileLocations.length > 0) selectBestNext();
-    stepBack();
+    const previousState = stepBack();
+    if (selectedTileLocations.length > 0) selectBestNext(previousState);
   };
   const handleClickRun = () => {
     // Reset these to their default values for the run
@@ -344,9 +380,6 @@ export default function CrosswordBuilder() {
       if (stepsFromRunStart.current < 0) {
         // Stop running so that we don't overwrite something the user did
         setRunning(false);
-        setRunningError(
-          'The puzzle cannot be auto-filled from here! Try undoing recent changes, clearing up space around any red tiles, or adjusting the grid pattern.'
-        );
         return;
       }
 
@@ -447,6 +480,11 @@ export default function CrosswordBuilder() {
                         _.toUpper(tile.value);
                   const element = wave && wave.elements[rowIndex][columnIndex];
                   const tileNumber = tileNumbers[rowIndex][columnIndex];
+                  const showTileLetterOptions =
+                    tile.value === 'empty' &&
+                    selectionIndex >= 0 &&
+                    element &&
+                    element.options.length <= 9;
 
                   return (
                     <div
@@ -468,11 +506,11 @@ export default function CrosswordBuilder() {
                                   element.options,
                                   stagedWord[selectionIndex]
                                 ) || stagedWord[selectionIndex] === '?'
-                                  ? 'yellow'
-                                  : 'red',
+                                  ? colors.yellow[300]
+                                  : colors.red[300],
                             }
                           : draggedWordLetterIndex >= 0
-                          ? { backgroundColor: 'yellow' }
+                          ? { backgroundColor: colors.yellow[300] }
                           : tile.value !== 'black' && element
                           ? {
                               backgroundColor:
@@ -483,7 +521,7 @@ export default function CrosswordBuilder() {
                                       (3.3 - element.entropy) / 3.3
                                     })`
                                   : element.options.length === 0
-                                  ? 'red'
+                                  ? colors.red[200]
                                   : 'white',
                             }
                           : {}),
@@ -492,8 +530,14 @@ export default function CrosswordBuilder() {
                       onMouseOver={mkHandleMouseoverTile(rowIndex, columnIndex)}
                       onClick={mkHandleClickTile(rowIndex, columnIndex)}
                     >
-                      <div className="tile-contents">{tileValue}</div>
-                      {tileNumber && (
+                      <div className="tile-contents">
+                        {showTileLetterOptions && element ? (
+                          <TileLetterOptions options={element.options} />
+                        ) : (
+                          tileValue
+                        )}
+                      </div>
+                      {tileNumber && !showTileLetterOptions && (
                         <div className="tile-number">{tileNumber}</div>
                       )}
                     </div>
@@ -529,11 +573,6 @@ export default function CrosswordBuilder() {
               {running ? 'Stop' : 'Auto-Fill'}
             </Button>
           </ButtonGroup>
-          {runningError && (
-            <Alert style={{ marginTop: 10 }} severity="error">
-              {runningError}
-            </Alert>
-          )}
           {dictionary && (
             <>
               <Divider style={{ margin: 10 }} />
@@ -572,6 +611,7 @@ export default function CrosswordBuilder() {
         </div>
         <DraggedWord />
       </div>
+      <AlertSnackbar open={showPuzzleError} error={puzzleError} />
     </div>
   );
 }

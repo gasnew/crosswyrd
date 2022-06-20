@@ -146,3 +146,28 @@ body,
   z-index: 9999;
   user-select: none;
 }
+
+.tile-letter-options {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  top: 2px;
+  height: 27px;
+  width: 27px;
+}
+
+.tile-letter-options-row {
+  display: flex;
+  flex-direction: row;
+  margin: auto;
+  justify-content: space-between;
+}
+
+.tile-letter-options-letter {
+  height: 9px;
+  width: 9px;
+  font-size: 10px;
+  font-weight: bold;
+  line-height: 0px;
+  text-align: center;
+}
