@@ -29,8 +29,9 @@ import { ElementType, WaveType } from './useWaveFunctionCollapse';
 
 function getAllElementSets(
   puzzle: CrosswordPuzzleType,
-  wave: WaveType
+  wave: WaveType | null
 ): ElementType[][] {
+  if (!wave) return [];
   // Returns a list of all possible wave element sets (across and down)
   const solid = (tile: TileType): boolean => !tile || tile.value === 'black';
   return _.reject(
@@ -125,7 +126,7 @@ function buildWordLocationsGrid(
 }
 
 interface Props {
-  wave: WaveType;
+  wave: WaveType | null;
   puzzle: CrosswordPuzzleType;
   processingLastChange: boolean;
   setWordLocationsGrid: (grid: WordLocationsGridType | null) => void;

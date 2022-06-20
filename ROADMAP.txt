@@ -57,6 +57,7 @@
   - show all letters allowed on a tile (when selected?)
   - convert things to underscore?
   - arrow key controls?
+  - auto-fill by word?
 - add license
 - Share link to play
 - Mobile version (player only, not builder?)

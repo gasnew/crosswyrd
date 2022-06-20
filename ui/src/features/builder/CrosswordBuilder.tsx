@@ -123,6 +123,8 @@ export default function CrosswordBuilder() {
     [dispatch, setWaveState]
   );
   const clearLetters = useCallback(() => {
+    if (!wave) return;
+    pushStateHistory({ wave, puzzle });
     setWaveState(null);
     dispatch(
       setPuzzleState({
@@ -133,7 +135,7 @@ export default function CrosswordBuilder() {
         ),
       })
     );
-  }, [dispatch, setWaveState, puzzle]);
+  }, [dispatch, setWaveState, puzzle, pushStateHistory, wave]);
   // Update puzzle with grid on load
   useEffect(() => {
     if (!grid) return;
@@ -148,6 +150,12 @@ export default function CrosswordBuilder() {
     return previousState;
   }, [dispatch, setWaveState, popStateHistory]);
 
+  const handleNewGrid = useCallback(() => {
+    if (!wave) return;
+    pushStateHistory({ wave, puzzle });
+    clearSelection();
+    newGrid();
+  }, [wave, puzzle, pushStateHistory, newGrid, clearSelection]);
   const mkHandleClickTile = (row, column) => {
     return (event) => {
       if (event.ctrlKey && dictionary) {
@@ -363,11 +371,12 @@ export default function CrosswordBuilder() {
 
   const selectedOptionsSet = useMemo(
     () =>
-      wave &&
-      _.map(
-        selectedTileLocations,
-        ({ row, column }) => wave.elements[row][column].options
-      ),
+      wave
+        ? _.map(
+            selectedTileLocations,
+            ({ row, column }) => wave.elements[row][column].options
+          )
+        : _.map(selectedTileLocations, ({ row, column }) => []),
     [selectedTileLocations, wave]
   );
   const selectedTiles = useMemo(
@@ -400,7 +409,7 @@ export default function CrosswordBuilder() {
             <PuzzleBanner
               disabled={WFCBusy || running}
               grid={grid}
-              newGrid={newGrid}
+              newGrid={handleNewGrid}
               clearLetters={clearLetters}
             />
           )}
@@ -525,7 +534,7 @@ export default function CrosswordBuilder() {
               {runningError}
             </Alert>
           )}
-          {dictionary && wave && selectedOptionsSet && (
+          {dictionary && (
             <>
               <Divider style={{ margin: 10 }} />
               <BuilderTabs

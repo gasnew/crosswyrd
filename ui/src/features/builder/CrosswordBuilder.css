@@ -113,9 +113,15 @@ body,
   height: 597px;
 }
 
+.word-selector-container {
+  display: flex;
+  flex-direction: column;
+}
+
 .selector-comment {
   font-style: italic;
   margin: auto;
+  margin-top: 10px;
 }
 
 .selector-add-word-text {

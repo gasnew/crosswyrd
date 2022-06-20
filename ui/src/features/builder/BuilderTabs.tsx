@@ -57,7 +57,7 @@ export default function BuilderTabs({
 }: Props) {
   const [value, setValue] = React.useState(0);
 
-  // Set tab to "Dictionary" when tiles are selected
+  // Set tab to "Fill" when tiles are selected
   useLayoutEffect(() => {
     if (tilesSelected && value === 1) setValue(0);
   }, [tilesSelected, value]);
@@ -70,13 +70,16 @@ export default function BuilderTabs({
 
   return (
     <Box sx={{ width: '100%' }}>
-      <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+      <Box
+        sx={{ borderBottom: 1, borderColor: 'divider' }}
+        style={{ marginRight: 10 }}
+      >
         <Tabs
           value={value}
           onChange={handleChange}
           aria-label="basic tabs example"
         >
-          <Tab label="Dictionary" {...a11yProps(0)} />
+          <Tab label="Fill" {...a11yProps(0)} />
           <Tab label="Word Bank" {...a11yProps(1)} />
           <Tab label="Clues" {...a11yProps(1)} />
         </Tabs>
