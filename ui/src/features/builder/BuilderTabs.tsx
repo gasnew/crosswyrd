@@ -1,8 +1,11 @@
 // This is adapted from https://mui.com/material-ui/react-tabs/
-import React, { useLayoutEffect } from 'react';
 import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
 import Box from '@mui/material/Box';
+import React, { useLayoutEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+
+import { setCurrentTab, selectCurrentTab } from './builderSlice';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -55,17 +58,19 @@ export default function BuilderTabs({
   wordBank,
   clueEntry,
 }: Props) {
-  const [value, setValue] = React.useState(0);
+  const currentTab = useSelector(selectCurrentTab);
+
+  const dispatch = useDispatch();
 
   // Set tab to "Fill" when tiles are selected
   useLayoutEffect(() => {
-    if (tilesSelected && value === 1) setValue(0);
-  }, [tilesSelected, value]);
+    if (tilesSelected && currentTab === 1) dispatch(setCurrentTab(0));
+  }, [tilesSelected, dispatch, currentTab]);
 
-  const handleChange = (event: React.SyntheticEvent, newValue: number) => {
+  const handleChange = (event: React.SyntheticEvent, newCurrentTab: number) => {
     // Clear selection if moved tab to "Word Bank"
-    if (newValue === 1) clearSelection();
-    setValue(newValue);
+    if (newCurrentTab === 1) clearSelection();
+    dispatch(setCurrentTab(newCurrentTab));
   };
 
   return (
@@ -75,7 +80,7 @@ export default function BuilderTabs({
         style={{ marginRight: 10 }}
       >
         <Tabs
-          value={value}
+          value={currentTab}
           onChange={handleChange}
           aria-label="basic tabs example"
         >
@@ -84,13 +89,13 @@ export default function BuilderTabs({
           <Tab label="Clues" {...a11yProps(1)} />
         </Tabs>
       </Box>
-      <TabPanel value={value} index={0}>
+      <TabPanel value={currentTab} index={0}>
         {wordSelector}
       </TabPanel>
-      <TabPanel value={value} index={1}>
+      <TabPanel value={currentTab} index={1}>
         {wordBank}
       </TabPanel>
-      <TabPanel value={value} index={2}>
+      <TabPanel value={currentTab} index={2}>
         {clueEntry}
       </TabPanel>
     </Box>

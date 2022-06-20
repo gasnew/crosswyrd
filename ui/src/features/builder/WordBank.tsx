@@ -222,63 +222,75 @@ function WordBank({
           Add Word
         </Button>
       </div>
-      <Box sx={{ width: '100%', maxWidth: 360, bgcolor: 'background.paper' }}>
-        <List className="word-bank-list-container" onMouseOut={handleMouseOut}>
-          {_.map(wordBank, (entry, index) => (
-            <ListItem
-              key={entry.word}
-              disablePadding
-              component="div"
-              style={{ position: 'relative' }}
-            >
-              <ListItemButton
-                disabled={
-                  processingLastChange ||
-                  entry.used ||
-                  entry.validLocationSets.length === 0 ||
-                  !!draggedWord
-                }
-                onClick={mkHandleClickWord(index)}
-                onMouseOver={mkHandleHoverWord(index)}
-                divider
+      <Box
+        className="word-bank-list-box-container"
+        sx={{ width: '100%', maxWidth: 360, bgcolor: 'background.paper' }}
+      >
+        {wordBank.length > 0 ? (
+          <List
+            className="word-bank-list-container"
+            onMouseOut={handleMouseOut}
+          >
+            {_.map(wordBank, (entry, index) => (
+              <ListItem
+                key={entry.word}
+                disablePadding
+                component="div"
+                style={{ position: 'relative' }}
               >
-                <ListItemText primary={_.toUpper(entry.word)} />
-                <Chip
-                  style={{ marginRight: 40 }}
-                  color={
-                    entry.used
-                      ? 'warning'
-                      : entry.validLocationSets.length > 0
-                      ? 'success'
-                      : 'error'
+                <ListItemButton
+                  disabled={
+                    processingLastChange ||
+                    entry.used ||
+                    entry.validLocationSets.length === 0 ||
+                    !!draggedWord
                   }
-                  variant={
-                    entry.used
-                      ? 'filled'
-                      : entry.validLocationSets.length > 0
-                      ? 'filled'
-                      : 'outlined'
-                  }
-                  label={
-                    entry.used
-                      ? 'Used'
-                      : `${entry.validLocationSets.length} option${
-                          entry.validLocationSets.length === 1 ? '' : 's'
-                        }`
-                  }
-                />
-              </ListItemButton>
-              <IconButton
-                disabled={processingLastChange || entry.used || !!draggedWord}
-                size="small"
-                style={{ position: 'absolute', right: 15 }}
-                onClick={mkHandleDeleteEntry(index)}
-              >
-                <DeleteIcon />
-              </IconButton>
-            </ListItem>
-          ))}
-        </List>
+                  onClick={mkHandleClickWord(index)}
+                  onMouseOver={mkHandleHoverWord(index)}
+                  divider
+                >
+                  <ListItemText primary={_.toUpper(entry.word)} />
+                  <Chip
+                    style={{ marginRight: 40 }}
+                    color={
+                      entry.used
+                        ? 'warning'
+                        : entry.validLocationSets.length > 0
+                        ? 'success'
+                        : 'error'
+                    }
+                    variant={
+                      entry.used
+                        ? 'filled'
+                        : entry.validLocationSets.length > 0
+                        ? 'filled'
+                        : 'outlined'
+                    }
+                    label={
+                      entry.used
+                        ? 'Used'
+                        : `${entry.validLocationSets.length} option${
+                            entry.validLocationSets.length === 1 ? '' : 's'
+                          }`
+                    }
+                  />
+                </ListItemButton>
+                <IconButton
+                  disabled={processingLastChange || entry.used || !!draggedWord}
+                  size="small"
+                  style={{ position: 'absolute', right: 15 }}
+                  onClick={mkHandleDeleteEntry(index)}
+                >
+                  <DeleteIcon />
+                </IconButton>
+              </ListItem>
+            ))}
+          </List>
+        ) : (
+          <span className="word-bank-comment">
+            Add a word to see where it fits on the board!
+          </span>
+        )}
       </Box>
     </div>
   );

@@ -1,7 +1,8 @@
 import _ from 'lodash';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { useSelector } from 'react-redux';
 
-import { CrosswordPuzzleType } from './builderSlice';
+import { CrosswordPuzzleType, selectCurrentTab } from './builderSlice';
 import { LocationType } from './CrosswordBuilder';
 import { WaveAndPuzzleType } from './useWaveAndPuzzleHistory';
 import { WaveType } from './useWaveFunctionCollapse';
@@ -73,6 +74,8 @@ export default function useTileSelection(
   // selected tile)
   const [acrossMode, setAcrossMode] = useState(true);
 
+  const currentTab = useSelector(selectCurrentTab);
+
   const selectBestNext = useCallback(
     (state?: WaveAndPuzzleType) => {
       const thisPuzzle = state?.puzzle || puzzle;
@@ -108,7 +111,7 @@ export default function useTileSelection(
   // Automatically select best next word
   const prevProcessingLastChange = useRef(processingLastChange);
   useEffect(() => {
-    if (running || selectedTileLocations.length > 0) return;
+    if (currentTab !== 0 || running || selectedTileLocations.length > 0) return;
 
     // Only proceed if we are not processing a change now, but we were last
     // time this was run (i.e., the user probably wants to move on to the next
@@ -120,7 +123,13 @@ export default function useTileSelection(
     prevProcessingLastChange.current = processingLastChange;
 
     selectBestNext();
-  }, [running, processingLastChange, selectedTileLocations, selectBestNext]);
+  }, [
+    currentTab,
+    running,
+    processingLastChange,
+    selectedTileLocations,
+    selectBestNext,
+  ]);
 
   const onClick = useCallback(
     (row, column) => {

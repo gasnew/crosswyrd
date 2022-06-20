@@ -109,7 +109,7 @@ body,
   display: flex;
   flex-direction: column;
   margin-left: 8px;
-  width:400px;
+  width: 400px;
   height: 597px;
 }
 
@@ -133,10 +133,21 @@ body,
   font-size: 8px;
 }
 
+.word-bank-list-box-container {
+  display: flex;
+  flex-direction: column;
+}
+
 .word-bank-list-container {
   height: 416px;
   overflow-y: scroll;
   margin-bottom: 0;
+}
+
+.word-bank-comment {
+  font-style: italic;
+  margin: auto;
+  margin-top: 20px;
 }
 
 .dragged-word {
