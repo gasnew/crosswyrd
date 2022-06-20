@@ -23,7 +23,7 @@ import {
   selectStagedWord,
   TileType,
 } from './builderSlice';
-import { ALL_LETTERS } from './constants';
+import { ALL_LETTERS, LETTER_WEIGHTS } from './constants';
 import { DictionaryType, inDictionary } from './useDictionary';
 import {
   findWordOptions,
@@ -78,9 +78,9 @@ function WordSelector({
     [allPossibleWords, optionsSet, stagedWord]
   );
   const possibleWords = useMemo(() => {
-    const wordsExceptStagedWord = _.without(
-      wordsFilteredByStagedWord,
-      stagedWord
+    const wordsExceptStagedWord = _.sortBy(
+      _.without(wordsFilteredByStagedWord, stagedWord),
+      (word) => -_.sumBy(word, (letter) => LETTER_WEIGHTS[letter])
     );
     return wordsExceptStagedWord;
   }, [wordsFilteredByStagedWord, stagedWord]);
@@ -129,7 +129,7 @@ function WordSelector({
     );
   };
   const mkHandleClickWord = (index: number) => () => {
-    dispatch(setStagedWord(possibleWords[index]));
+    onEnter(possibleWords[index]);
     if (inputRef.current) inputRef.current.focus();
   };
   const handleClickCancel = () => {
@@ -211,7 +211,7 @@ function WordSelector({
           </span>
         ))}
       <Box sx={{ width: '100%', maxWidth: 360, bgcolor: 'background.paper' }}>
-        <List style={{padding: 0}}>
+        <List style={{ padding: 0 }}>
           <FixedSizeList
             height={416}
             itemCount={possibleWords.length}

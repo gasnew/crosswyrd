@@ -32,10 +32,10 @@
 + maybe update recalculating algorithm to support placing black tiles better
 + Allow clue entry
 - Grid selector/randomizer
-- guided filling
-  - button for "best next word" instead of "place 1"
-  - sort words by increasing difficulty. Maybe use Scrabble weights here?
-  - when word entered, go to next best automatically
++ guided filling
+  + button for "best next word" instead of "place 1"
+  + sort words by increasing difficulty. Maybe use Scrabble weights here?
+  + when word entered, go to next best automatically
 - add words to dictionary when formed by changing black tiles
   - may need to do binary search in dictionary to check all words?
 - QoL

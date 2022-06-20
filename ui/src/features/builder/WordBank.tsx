@@ -27,7 +27,7 @@ import { ALL_LETTERS } from './constants';
 import { LocationType } from './CrosswordBuilder';
 import { ElementType, WaveType } from './useWaveFunctionCollapse';
 
-function getAllElementSets(
+export function getAllElementSets(
   puzzle: CrosswordPuzzleType,
   wave: WaveType | null
 ): ElementType[][] {

@@ -92,7 +92,8 @@ export default function CrosswordBuilder() {
     setSelectedTileLocations,
     selectedTileLocations,
     clearSelection,
-  } = useTileSelection(puzzle);
+    selectBestNext,
+  } = useTileSelection(puzzle, wave, WFCBusy, running);
 
   // negative number means we've passed the last failed depth
   const stepsToLastFailure = useRef(-1);
@@ -234,12 +235,11 @@ export default function CrosswordBuilder() {
     puzzle,
     wave,
   ]);
-  const handleClickPlaceOneTile = useCallback(async () => {
-    clearSelection();
-    await placeOneTile();
-  }, [clearSelection, placeOneTile]);
+  const handleClickBestNext = () => {
+    selectBestNext();
+  };
   const handleClickBack = () => {
-    if (selectedTileLocations.length > 0) clearSelection();
+    if (selectedTileLocations.length > 0) selectBestNext();
     stepBack();
   };
   const handleClickRun = () => {
@@ -514,10 +514,10 @@ export default function CrosswordBuilder() {
             </Button>
             <Button
               disabled={WFCBusy || running}
-              onClick={handleClickPlaceOneTile}
+              onClick={handleClickBestNext}
               endIcon={<NavigateNextIcon />}
             >
-              Place 1
+              Next
             </Button>
             <Button
               onClick={handleClickRun}

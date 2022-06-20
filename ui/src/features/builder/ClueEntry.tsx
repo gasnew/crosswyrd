@@ -124,6 +124,39 @@ function getAnswerGrid(puzzle: CrosswordPuzzleType): AnswerGridCellType[][] {
   );
 }
 
+interface AnswerEntryType {
+  row: number;
+  column: number;
+  direction: 'across' | 'down';
+  answer: AnswerType;
+}
+
+export function getFlattenedAnswers(puzzle: CrosswordPuzzleType): AnswerEntryType[] {
+  // Returns a list of answer entries, first across, then down
+  const answerGrid = getAnswerGrid(puzzle);
+  return _.sortBy(
+    _.compact(
+      _.flatMap(answerGrid, (row, rowIndex) =>
+        _.flatMap(row, (answer, columnIndex) => [
+          answer.across && {
+            row: rowIndex,
+            column: columnIndex,
+            answer: answer.across,
+            direction: 'across',
+          },
+          answer.down && {
+            row: rowIndex,
+            column: columnIndex,
+            answer: answer.down,
+            direction: 'down',
+          },
+        ])
+      )
+    ),
+    'direction'
+  );
+}
+
 function AnswerListItem({
   tileNumber,
   answer,
@@ -155,7 +188,7 @@ function AnswerListItem({
         {tileNumber}.
       </div>
       &nbsp;
-      <div style={{ width: 120 }}>
+      <div style={{ width: 130 }}>
         <span
           style={{
             backgroundColor: answer.complete ? 'initial' : 'yellow',
@@ -167,7 +200,7 @@ function AnswerListItem({
       </div>
       &nbsp;
       <Input
-        style={{ height: 32 }}
+        style={{ minHeight: 32 }}
         multiline
         inputRef={(ref) => {
           inputRef.current = ref;
@@ -196,36 +229,9 @@ function ClueEntry({
   setSelectedTileLocations,
   selectedTileLocations,
 }: Props) {
-  const answerGrid = useMemo(() => getAnswerGrid(puzzle), [puzzle]);
-  const flattenedAnswers: {
-    row: number;
-    column: number;
-    direction: 'across' | 'down';
-    answer: AnswerType;
-  }[] = useMemo(
-    () =>
-      _.sortBy(
-        _.compact(
-          _.flatMap(answerGrid, (row, rowIndex) =>
-            _.flatMap(row, (answer, columnIndex) => [
-              answer.across && {
-                row: rowIndex,
-                column: columnIndex,
-                answer: answer.across,
-                direction: 'across',
-              },
-              answer.down && {
-                row: rowIndex,
-                column: columnIndex,
-                answer: answer.down,
-                direction: 'down',
-              },
-            ])
-          )
-        ),
-        'direction'
-      ),
-    [answerGrid]
+  const flattenedAnswers: AnswerEntryType[] = useMemo(
+    () => getFlattenedAnswers(puzzle),
+    [puzzle]
   );
 
   const selectAnswer = (direction, row, column, answer) =>

@@ -1,8 +1,10 @@
 import _ from 'lodash';
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { CrosswordPuzzleType } from './builderSlice';
 import { LocationType } from './CrosswordBuilder';
+import { WaveType } from './useWaveFunctionCollapse';
+import { getAllElementSets } from './WordBank';
 
 function getAcrossTileLocations(
   puzzle: CrosswordPuzzleType,
@@ -54,10 +56,14 @@ interface ReturnType {
   setSelectedTileLocations: (locations: LocationType[]) => void;
   selectedTileLocations: LocationType[];
   clearSelection: () => void;
+  selectBestNext: () => void;
 }
 
 export default function useTileSelection(
-  puzzle: CrosswordPuzzleType
+  puzzle: CrosswordPuzzleType,
+  wave: WaveType | null,
+  processingLastChange: boolean,
+  running: boolean,
 ): ReturnType {
   const [selectedTileLocations, setSelectedTileLocations] = useState<
     LocationType[]
@@ -65,6 +71,46 @@ export default function useTileSelection(
   // Default to selecting across, not down (this can be toggled by clicking a
   // selected tile)
   const [acrossMode, setAcrossMode] = useState(true);
+
+  const selectBestNext = useCallback(() => {
+    // Select the element set with the lowest average entropy
+    const prioritizedElementSets = _.sortBy(
+      _.filter(getAllElementSets(puzzle, wave), (elements) =>
+        // Some tile in this set is empty
+        _.some(
+          elements,
+          ({ row, column }) => puzzle.tiles[row][column].value === 'empty'
+        )
+      ),
+      [
+        // Sort by average entropy
+        (elements) => -_.sumBy(elements, (element) => 3.3 - element.entropy),
+        // Sort by length
+        (elements) => -elements.length,
+      ]
+    );
+    if (prioritizedElementSets.length > 0)
+      setSelectedTileLocations(
+        _.map(prioritizedElementSets[0], ({ row, column }) => ({ row, column }))
+      );
+  }, [puzzle, wave]);
+
+  // Automatically select best next word
+  const prevProcessingLastChange = useRef(processingLastChange);
+  useEffect(() => {
+    if (running || selectedTileLocations.length > 0) return;
+
+    // Only proceed if we are not processing a change now, but we were last
+    // time this was run (i.e., the user probably wants to move on to the next
+    // best word).
+    if (processingLastChange || !prevProcessingLastChange.current) {
+      prevProcessingLastChange.current = processingLastChange;
+      return;
+    }
+    prevProcessingLastChange.current = processingLastChange;
+
+    selectBestNext();
+  }, [running, processingLastChange, selectedTileLocations, selectBestNext]);
 
   const onClick = useCallback(
     (row, column) => {
@@ -99,5 +145,6 @@ export default function useTileSelection(
     setSelectedTileLocations,
     selectedTileLocations,
     clearSelection,
+    selectBestNext,
   };
 }
