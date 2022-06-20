@@ -268,11 +268,7 @@ function WordBank({
                 />
               </ListItemButton>
               <IconButton
-                disabled={
-                  processingLastChange ||
-                  entry.used ||
-                  !!draggedWord
-                }
+                disabled={processingLastChange || entry.used || !!draggedWord}
                 size="small"
                 style={{ position: 'absolute', right: 15 }}
                 onClick={mkHandleDeleteEntry(index)}

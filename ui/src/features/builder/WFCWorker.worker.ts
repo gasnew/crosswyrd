@@ -11,7 +11,7 @@ import _ from 'lodash';
 
 import { CrosswordPuzzleType, LetterType } from './builderSlice';
 import { ALL_LETTERS } from './constants';
-import { DictionaryType } from './CrosswordBuilder';
+import { DictionaryType } from './useDictionary';
 import {
   ElementType,
   TileUpdateType,

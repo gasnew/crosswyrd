@@ -3,7 +3,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { CrosswordPuzzleType, LetterType, TileValueType } from './builderSlice';
 import { ALL_LETTERS } from './constants';
-import { DictionaryType } from './CrosswordBuilder';
+import { DictionaryType } from './useDictionary';
 
 import WFCWorker, { WFCWorkerAPIType } from './WFCWorker.worker';
 
@@ -89,7 +89,7 @@ interface ReturnType {
     dictionary: DictionaryType,
     tileUpdates: TileUpdateType[]
   ) => Promise<WaveType | null>;
-  setWaveState: (wave: WaveType) => void;
+  setWaveState: (wave: WaveType | null) => void;
   busy: boolean;
 }
 
@@ -142,7 +142,7 @@ export default function useWaveFunctionCollapse(
     [puzzle, wave]
   );
 
-  const setWaveState = useCallback((wave: WaveType) => {
+  const setWaveState = useCallback((wave: WaveType | null) => {
     setWave(wave);
   }, []);
 

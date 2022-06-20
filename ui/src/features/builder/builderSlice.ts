@@ -2,7 +2,7 @@ import _ from 'lodash';
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
 import { RootState } from '../../app/store';
-import { ALL_LETTERS, DEFAULT_TILES } from './constants';
+import { ALL_LETTERS, PUZZLE_SIZE } from './constants';
 import { WaveType } from './useWaveFunctionCollapse';
 
 export type LetterType = typeof ALL_LETTERS[number];
@@ -19,6 +19,10 @@ interface BuilderState {
   stagedWord: string;
   draggedWord: string | null;
 }
+
+const DEFAULT_TILES: TileType[][] = Array.from(Array(PUZZLE_SIZE), () =>
+  new Array(PUZZLE_SIZE).fill({ value: 'empty' })
+);
 
 const initialState: BuilderState = {
   puzzle: {

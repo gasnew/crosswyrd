@@ -1,4 +1,41 @@
+html,
+body,
+#root {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+
+.sheet {
+  position: relative;
+  background-color: #fff;
+  border: 1px solid;
+  border-radius: 8px;
+  border-color: #e0e2e6;
+  padding: 16px;
+}
+
+.content-container {
+  background-color: #fafbfb;
+  margin: 0 auto;
+  height: 100%;
+  width: 100%;
+  overflow-y: hidden;
+  display: flex;
+}
+
 .puzzle-builder-container {
+  margin: auto;
+  display: flex;
+  flex-direction: row;
+}
+
+.puzzle-container {
+  display: flex;
+  flex-direction: column;
+}
+
+.puzzle-banner-container {
   display: flex;
   flex-direction: row;
 }
@@ -6,6 +43,9 @@
 .tiles-container {
   display: flex;
   flex-direction: column;
+  outline-style: solid;
+  outline-color: black;
+  outline-width: 2px;
 }
 
 .puzzle-row {
@@ -68,7 +108,9 @@
 .sidebar-container {
   display: flex;
   flex-direction: column;
-  margin: 8px;
+  margin-left: 8px;
+  width:400px;
+  height: 597px;
 }
 
 .selector-comment {
@@ -86,8 +128,9 @@
 }
 
 .word-bank-list-container {
-  height: 350px;
+  height: 416px;
   overflow-y: scroll;
+  margin-bottom: 0;
 }
 
 .dragged-word {

@@ -24,6 +24,7 @@
     "axios": "^0.21.4",
     "comlink": "^4.3.1",
     "copy-to-clipboard": "^3.3.1",
+    "dayjs": "^1.11.3",
     "lodash": "^4.17.19",
     "react": "^17.0.2",
     "react-app-rewired": "^2.2.1",

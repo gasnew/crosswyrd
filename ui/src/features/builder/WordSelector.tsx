@@ -24,7 +24,7 @@ import {
   TileType,
 } from './builderSlice';
 import { ALL_LETTERS } from './constants';
-import { DictionaryType, inDictionary } from './CrosswordBuilder';
+import { DictionaryType, inDictionary } from './useDictionary';
 import {
   findWordOptions,
   findWordOptionsFromDictionary,
@@ -211,9 +211,9 @@ function WordSelector({
           </span>
         ))}
       <Box sx={{ width: '100%', maxWidth: 360, bgcolor: 'background.paper' }}>
-        <List>
+        <List style={{padding: 0}}>
           <FixedSizeList
-            height={350}
+            height={416}
             itemCount={possibleWords.length}
             itemSize={46}
             overscanCount={5}

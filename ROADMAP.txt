@@ -31,6 +31,7 @@
   x letter count
 + maybe update recalculating algorithm to support placing black tiles better
 + Allow clue entry
+- Grid selector/randomizer
 - guided filling
   - button for "best next word" instead of "place 1"
   - sort words by increasing difficulty. Maybe use Scrabble weights here?
@@ -54,7 +55,8 @@
   - persist puzzle builder state in local storage
   - note for when red tile appears
   - show all letters allowed on a tile (when selected?)
-- Grid selector/randomizer
+  - convert things to underscore?
+  - arrow key controls?
 - add license
 - Share link to play
 - Mobile version (player only, not builder?)

@@ -1,4 +1,3 @@
-import axios from 'axios';
 import _ from 'lodash';
 import { Alert, Button, ButtonGroup, Divider } from '@mui/material';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
@@ -32,6 +31,9 @@ import BuilderTabs from './BuilderTabs';
 import ClueEntry, { useClueData } from './ClueEntry';
 import { ALL_LETTERS, LETTER_WEIGHTS } from './constants';
 import DraggedWord from './DraggedWord';
+import PuzzleBanner from './PuzzleBanner';
+import useDictionary, { inDictionary } from './useDictionary';
+import useGrid, { GridType } from './useGrid';
 import useTileSelection from './useTileSelection';
 import useWaveAndPuzzleHistory from './useWaveAndPuzzleHistory';
 import useWaveFunctionCollapse, { WaveType } from './useWaveFunctionCollapse';
@@ -43,10 +45,6 @@ import './CrosswordBuilder.css';
 export interface LocationType {
   row: number;
   column: number;
-}
-
-export interface DictionaryType {
-  [length: number]: string[];
 }
 
 function pickWeightedRandomLetter(
@@ -63,48 +61,11 @@ function pickWeightedRandomLetter(
   ) as LetterType | undefined;
 }
 
-function useDictionary(): {
-  dictionary: DictionaryType | null;
-  addWordToDictionary: (word: string) => DictionaryType | null;
-} {
-  const [dictionary, setDictionary] = useState<DictionaryType | null>(null);
-
-  // Fetch dictionary
-  useEffect(() => {
-    const fetchDictionary = async () => {
-      const response = await axios.get('word_list.json');
-      const words = response.data as string[];
-      const dictionary = _.groupBy(words, 'length');
-      setDictionary(_.mapValues(dictionary, (words) => _.sortBy(words)));
-    };
-    fetchDictionary();
-  }, []);
-
-  const addWordToDictionary = useCallback(
-    (word: string) => {
-      if (!dictionary) return null;
-      const newDictionary = _.mapValues(dictionary, (words) =>
-        word.length === words[0].length ? _.sortBy([...words, word]) : words
-      );
-      setDictionary(newDictionary);
-      return newDictionary;
-    },
-    [dictionary]
-  );
-
-  return { dictionary, addWordToDictionary };
-}
-export function inDictionary(
-  dictionary: DictionaryType,
-  word: string
-): boolean {
-  return _.includes(dictionary[word.length] || [], word);
-}
-
 export default function CrosswordBuilder() {
   const puzzle = useSelector(selectPuzzle);
   const stagedWord = useSelector(selectStagedWord);
   const draggedWord = useSelector(selectDraggedWord);
+  const { grid, newGrid } = useGrid();
   const { dictionary, addWordToDictionary } = useDictionary();
   const { tileNumbers } = useClueData(puzzle);
   const {
@@ -147,6 +108,37 @@ export default function CrosswordBuilder() {
   useEffect(() => {
     setRunningError('');
   }, [puzzle]);
+
+  const setPuzzleToGrid = useCallback(
+    (grid: GridType) => {
+      setWaveState(null);
+      dispatch(
+        setPuzzleState({
+          tiles: _.map(grid.tiles, (row) =>
+            _.map(row, (tile) => ({ value: tile ? 'black' : 'empty' }))
+          ),
+        })
+      );
+    },
+    [dispatch, setWaveState]
+  );
+  const clearLetters = useCallback(() => {
+    setWaveState(null);
+    dispatch(
+      setPuzzleState({
+        tiles: _.map(puzzle.tiles, (row) =>
+          _.map(row, (tile) => ({
+            value: tile.value === 'black' ? 'black' : 'empty',
+          }))
+        ),
+      })
+    );
+  }, [dispatch, setWaveState, puzzle]);
+  // Update puzzle with grid on load
+  useEffect(() => {
+    if (!grid) return;
+    setPuzzleToGrid(grid);
+  }, [setPuzzleToGrid, grid]);
 
   const stepBack = useCallback(() => {
     const previousState = popStateHistory();
@@ -401,185 +393,176 @@ export default function CrosswordBuilder() {
   ]);
 
   return (
-    <div className="puzzle-builder-container">
-      <div className="tiles-container" onMouseOut={() => setHoveredTile(null)}>
-        {_.map(puzzle.tiles, (row, rowIndex) => (
-          <div key={rowIndex} className="puzzle-row">
-            {_.map(row, (tile, columnIndex) => {
-              const selectionIndex = _.findIndex(
-                selectedTileLocations,
-                (location) =>
-                  location.row === rowIndex && location.column === columnIndex
-              );
-              // The word bank word location options this tile intersects
-              const wordLocationOptions: LocationType[] | null =
-                wordLocationsGrid &&
-                (wordLocationsGrid[rowIndex][columnIndex].across ||
-                  wordLocationsGrid[rowIndex][columnIndex].down);
-              const draggedWordLetterIndex = _.findIndex(
-                hoveredTiles,
-                (tile) => tile.row === rowIndex && tile.column === columnIndex
-              );
-              const tileValue =
-                draggedWord && draggedWordLetterIndex >= 0 // User is hovering with a dragged word
-                  ? _.toUpper(draggedWord[draggedWordLetterIndex])
-                  : selectionIndex >= 0
-                  ? stagedWord[selectionIndex]
-                    ? _.toUpper(stagedWord[selectionIndex])
-                    : ''
-                  : !_.includes(['empty', 'black'], tile.value) &&
-                    _.toUpper(tile.value);
-              const element = wave && wave.elements[rowIndex][columnIndex];
-              const tileNumber = tileNumbers[rowIndex][columnIndex];
-
-              return (
-                <div
-                  key={columnIndex}
-                  className={
-                    'tile' +
-                    (tile.value === 'black' ? ' tile--black' : '') +
-                    (selectionIndex >= 0 ? ' tile--selected' : '') +
-                    (wordLocationOptions ? ' tile--option' : '')
-                  }
-                  style={{
-                    ...(element &&
-                    selectionIndex >= 0 &&
-                    stagedWord[selectionIndex]
-                      ? // User is typing out a replacement word
-                        {
-                          backgroundColor:
-                            _.includes(
-                              element.options,
-                              stagedWord[selectionIndex]
-                            ) || stagedWord[selectionIndex] === '?'
-                              ? 'yellow'
-                              : 'red',
-                        }
-                      : draggedWordLetterIndex >= 0
-                      ? { backgroundColor: 'yellow' }
-                      : tile.value !== 'black' && element
-                      ? {
-                          backgroundColor:
-                            (tile.value === 'empty' || selectionIndex >= 0) &&
-                            element.options.length >= 1
-                              ? `rgba(45, 114, 210, ${
-                                  (3.3 - element.entropy) / 3.3
-                                })`
-                              : element.options.length === 0
-                              ? 'red'
-                              : 'white',
-                        }
-                      : {}),
-                    cursor: wordLocationOptions ? 'pointer' : 'initial',
-                  }}
-                  onMouseOver={mkHandleMouseoverTile(rowIndex, columnIndex)}
-                  onClick={mkHandleClickTile(rowIndex, columnIndex)}
-                >
-                  <div className="tile-contents">{tileValue}</div>
-                  {tileNumber && (
-                    <div className="tile-number">{tileNumber}</div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        ))}
-      </div>
-      <div className="sidebar-container">
-        <ButtonGroup>
-          <Button
-            disabled={WFCBusy || running || checkHistoryEmpty()}
-            onClick={handleClickBack}
-            startIcon={<UndoIcon />}
-          >
-            Undo
-          </Button>
-          <Button
-            disabled={WFCBusy || running}
-            onClick={handleClickPlaceOneTile}
-            endIcon={<NavigateNextIcon />}
-          >
-            Place 1
-          </Button>
-          <Button
-            onClick={handleClickRun}
-            color={running ? 'error' : 'primary'}
-            variant="contained"
-            disabled={WFCBusy && !running}
-            endIcon={running ? <StopIcon /> : <PlayArrowIcon />}
-          >
-            {running ? 'Stop' : 'Auto-Fill'}
-          </Button>
-        </ButtonGroup>
-        {runningError && (
-          <Alert style={{ marginTop: 10 }} severity="error">
-            {runningError}
-          </Alert>
-        )}
-        {dictionary && wave && selectedOptionsSet && (
-          <>
-            <Divider style={{ margin: 10 }} />
-            <BuilderTabs
-              tilesSelected={tilesSelected}
-              clearSelection={clearSelection}
-              wordSelector={
-                <WordSelector
-                  dictionary={dictionary}
-                  optionsSet={selectedOptionsSet}
-                  tiles={selectedTiles}
-                  processingLastChange={WFCBusy}
-                  onEnter={handleEnterWord}
-                  clearSelection={clearSelection}
-                />
-              }
-              wordBank={
-                <WordBank
-                  wave={wave}
-                  puzzle={puzzle}
-                  processingLastChange={WFCBusy}
-                  setWordLocationsGrid={setWordLocationsGrid}
-                />
-              }
-              clueEntry={
-                <ClueEntry
-                  puzzle={puzzle}
-                  tileNumbers={tileNumbers}
-                  setSelectedTileLocations={setSelectedTileLocations}
-                  selectedTileLocations={selectedTileLocations}
-                />
-              }
+    <div className="content-container">
+      <div className="puzzle-builder-container">
+        <div className="puzzle-container sheet">
+          {grid && (
+            <PuzzleBanner
+              disabled={WFCBusy || running}
+              grid={grid}
+              newGrid={newGrid}
+              clearLetters={clearLetters}
             />
-          </>
-        )}
-        {wave && hoveredTile && (
-          <>
-            <Divider style={{ margin: 10 }} />
-            <div>
-              <div>
-                Hovered tile ({hoveredTile.row}, {hoveredTile.column})
+          )}
+          <div
+            className="tiles-container"
+            onMouseOut={() => setHoveredTile(null)}
+          >
+            {_.map(puzzle.tiles, (row, rowIndex) => (
+              <div key={rowIndex} className="puzzle-row">
+                {_.map(row, (tile, columnIndex) => {
+                  const selectionIndex = _.findIndex(
+                    selectedTileLocations,
+                    (location) =>
+                      location.row === rowIndex &&
+                      location.column === columnIndex
+                  );
+                  // The word bank word location options this tile intersects
+                  const wordLocationOptions: LocationType[] | null =
+                    wordLocationsGrid &&
+                    (wordLocationsGrid[rowIndex][columnIndex].across ||
+                      wordLocationsGrid[rowIndex][columnIndex].down);
+                  const draggedWordLetterIndex = _.findIndex(
+                    hoveredTiles,
+                    (tile) =>
+                      tile.row === rowIndex && tile.column === columnIndex
+                  );
+                  const tileValue =
+                    draggedWord && draggedWordLetterIndex >= 0 // User is hovering with a dragged word
+                      ? _.toUpper(draggedWord[draggedWordLetterIndex])
+                      : selectionIndex >= 0
+                      ? stagedWord[selectionIndex]
+                        ? _.toUpper(stagedWord[selectionIndex])
+                        : ''
+                      : !_.includes(['empty', 'black'], tile.value) &&
+                        _.toUpper(tile.value);
+                  const element = wave && wave.elements[rowIndex][columnIndex];
+                  const tileNumber = tileNumbers[rowIndex][columnIndex];
+
+                  return (
+                    <div
+                      key={columnIndex}
+                      className={
+                        'tile' +
+                        (tile.value === 'black' ? ' tile--black' : '') +
+                        (selectionIndex >= 0 ? ' tile--selected' : '') +
+                        (wordLocationOptions ? ' tile--option' : '')
+                      }
+                      style={{
+                        ...(element &&
+                        selectionIndex >= 0 &&
+                        stagedWord[selectionIndex]
+                          ? // User is typing out a replacement word
+                            {
+                              backgroundColor:
+                                _.includes(
+                                  element.options,
+                                  stagedWord[selectionIndex]
+                                ) || stagedWord[selectionIndex] === '?'
+                                  ? 'yellow'
+                                  : 'red',
+                            }
+                          : draggedWordLetterIndex >= 0
+                          ? { backgroundColor: 'yellow' }
+                          : tile.value !== 'black' && element
+                          ? {
+                              backgroundColor:
+                                (tile.value === 'empty' ||
+                                  selectionIndex >= 0) &&
+                                element.options.length >= 1
+                                  ? `rgba(45, 114, 210, ${
+                                      (3.3 - element.entropy) / 3.3
+                                    })`
+                                  : element.options.length === 0
+                                  ? 'red'
+                                  : 'white',
+                            }
+                          : {}),
+                        cursor: wordLocationOptions ? 'pointer' : 'initial',
+                      }}
+                      onMouseOver={mkHandleMouseoverTile(rowIndex, columnIndex)}
+                      onClick={mkHandleClickTile(rowIndex, columnIndex)}
+                    >
+                      <div className="tile-contents">{tileValue}</div>
+                      {tileNumber && (
+                        <div className="tile-number">{tileNumber}</div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
-              <div>
-                Letter options:{' '}
-                {
-                  wave.elements[hoveredTile.row][hoveredTile.column].options
-                    .length
+            ))}
+          </div>
+        </div>
+        <div className="sidebar-container sheet">
+          <ButtonGroup>
+            <Button
+              disabled={WFCBusy || running || checkHistoryEmpty()}
+              onClick={handleClickBack}
+              startIcon={<UndoIcon />}
+            >
+              Undo
+            </Button>
+            <Button
+              disabled={WFCBusy || running}
+              onClick={handleClickPlaceOneTile}
+              endIcon={<NavigateNextIcon />}
+            >
+              Place 1
+            </Button>
+            <Button
+              onClick={handleClickRun}
+              color={running ? 'error' : 'primary'}
+              variant="contained"
+              disabled={WFCBusy && !running}
+              endIcon={running ? <StopIcon /> : <PlayArrowIcon />}
+            >
+              {running ? 'Stop' : 'Auto-Fill'}
+            </Button>
+          </ButtonGroup>
+          {runningError && (
+            <Alert style={{ marginTop: 10 }} severity="error">
+              {runningError}
+            </Alert>
+          )}
+          {dictionary && wave && selectedOptionsSet && (
+            <>
+              <Divider style={{ margin: 10 }} />
+              <BuilderTabs
+                tilesSelected={tilesSelected}
+                clearSelection={clearSelection}
+                wordSelector={
+                  <WordSelector
+                    dictionary={dictionary}
+                    optionsSet={selectedOptionsSet}
+                    tiles={selectedTiles}
+                    processingLastChange={WFCBusy}
+                    onEnter={handleEnterWord}
+                    clearSelection={clearSelection}
+                  />
                 }
-              </div>
-              <div>
-                Entropy:{' '}
-                {wave.elements[hoveredTile.row][hoveredTile.column].entropy}
-              </div>
-              <div>
-                Solid?{' '}
-                {wave.elements[hoveredTile.row][hoveredTile.column].solid
-                  ? 'Yes'
-                  : 'No'}
-              </div>
-            </div>
-          </>
-        )}
+                wordBank={
+                  <WordBank
+                    wave={wave}
+                    puzzle={puzzle}
+                    processingLastChange={WFCBusy}
+                    setWordLocationsGrid={setWordLocationsGrid}
+                  />
+                }
+                clueEntry={
+                  <ClueEntry
+                    puzzle={puzzle}
+                    tileNumbers={tileNumbers}
+                    setSelectedTileLocations={setSelectedTileLocations}
+                    selectedTileLocations={selectedTileLocations}
+                  />
+                }
+              />
+            </>
+          )}
+        </div>
+        <DraggedWord />
       </div>
-      <DraggedWord />
     </div>
   );
 }
