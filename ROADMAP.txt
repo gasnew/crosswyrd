@@ -31,7 +31,9 @@
   x letter count
 + maybe update recalculating algorithm to support placing black tiles better
 + Allow clue entry
-- Grid selector/randomizer
++ Grid selector
+  + list of legacy grids
+  + can just use plain grid
 + guided filling
   + button for "best next word" instead of "place 1"
   + sort words by increasing difficulty. Maybe use Scrabble weights here?
@@ -58,6 +60,14 @@
   - convert things to underscore?
   - arrow key controls?
   - auto-fill by word?
+  - traverse by tile--fill input box is removed
+- turn off solver
+  - can place words and blocks rapidly when solver is off
+  - automatically turns on after 70+ words?
+  - notification for when solver is turned on
+  - when solver off, still filters on existing words
+  - spinner on solver
+  - possibly filter out grids that have too few words
 - add license
 - Share link to play
 - Mobile version (player only, not builder?)

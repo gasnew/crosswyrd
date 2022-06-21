@@ -1,22 +1,22 @@
 import axios from 'axios';
 import _ from 'lodash';
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { PUZZLE_SIZE } from './constants';
 
 export interface GridType {
   tiles: boolean[][];
-  date: string;
+  date?: string;
 }
 
-export default function useGrid(): {
-  grid: GridType | null;
-  newGrid: () => void;
-} {
-  const [grids, setGrids] = useState<GridType[]>([]);
-  const [grid, setGrid] = useState<GridType | null>(null);
+interface ReturnType {
+  grids: GridType[];
+}
 
-  // Fetch grid on mount
+export default function useGrids(): ReturnType {
+  const [grids, setGrids] = useState<GridType[]>([]);
+
+  // Fetch grids on mount
   useEffect(() => {
     const fetchGrids = async () => {
       const response = await axios.get('grid_list.json');
@@ -33,15 +33,9 @@ export default function useGrid(): {
       }));
 
       setGrids(grids);
-      setGrid(_.sample(grids) || null);
     };
     fetchGrids();
   }, []);
 
-  const newGrid = useCallback(() => {
-    if (grids.length === 0) return;
-    setGrid(_.sample(grids) || grid);
-  }, [grids, grid]);
-
-  return { grid, newGrid };
+  return { grids };
 }

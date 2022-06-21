@@ -14,7 +14,6 @@ import StopIcon from '@mui/icons-material/Stop';
 import UndoIcon from '@mui/icons-material/Undo';
 import React, {
   useCallback,
-  useEffect,
   useMemo,
   useRef,
   useState,
@@ -42,7 +41,7 @@ import DraggedWord from './DraggedWord';
 import PuzzleBanner from './PuzzleBanner';
 import TileLetterOptions from './TileLetterOptions';
 import useDictionary, { inDictionary } from './useDictionary';
-import useGrid, { GridType } from './useGrid';
+import { GridType } from './useGrids';
 import useTileSelection from './useTileSelection';
 import useWaveAndPuzzleHistory from './useWaveAndPuzzleHistory';
 import useWaveFunctionCollapse, { WaveType } from './useWaveFunctionCollapse';
@@ -90,7 +89,6 @@ export default function CrosswordBuilder() {
   const puzzle = useSelector(selectPuzzle);
   const stagedWord = useSelector(selectStagedWord);
   const draggedWord = useSelector(selectDraggedWord);
-  const { grid, newGrid } = useGrid();
   const { dictionary, addWordToDictionary } = useDictionary();
   const { tileNumbers } = useClueData(puzzle);
   const {
@@ -148,6 +146,9 @@ export default function CrosswordBuilder() {
 
   const setPuzzleToGrid = useCallback(
     (grid: GridType) => {
+      if (!wave) return;
+      pushStateHistory({ wave, puzzle });
+      clearSelection();
       setWaveState(null);
       dispatch(
         setPuzzleState({
@@ -157,7 +158,7 @@ export default function CrosswordBuilder() {
         })
       );
     },
-    [dispatch, setWaveState]
+    [dispatch, setWaveState, clearSelection, pushStateHistory, puzzle, wave]
   );
   const clearLetters = useCallback(() => {
     if (!wave) return;
@@ -173,11 +174,6 @@ export default function CrosswordBuilder() {
       })
     );
   }, [dispatch, setWaveState, puzzle, pushStateHistory, wave]);
-  // Update puzzle with grid on load
-  useEffect(() => {
-    if (!grid) return;
-    setPuzzleToGrid(grid);
-  }, [setPuzzleToGrid, grid]);
 
   const stepBack = useCallback(() => {
     const previousState = popStateHistory();
@@ -187,12 +183,6 @@ export default function CrosswordBuilder() {
     return previousState;
   }, [dispatch, setWaveState, popStateHistory]);
 
-  const handleNewGrid = useCallback(() => {
-    if (!wave) return;
-    pushStateHistory({ wave, puzzle });
-    clearSelection();
-    newGrid();
-  }, [wave, puzzle, pushStateHistory, newGrid, clearSelection]);
   const mkHandleClickTile = (row, column) => {
     return (event) => {
       if (event.ctrlKey && dictionary) {
@@ -438,14 +428,11 @@ export default function CrosswordBuilder() {
     <div className="content-container">
       <div className="puzzle-builder-container">
         <div className="puzzle-container sheet">
-          {grid && (
-            <PuzzleBanner
-              disabled={WFCBusy || running}
-              grid={grid}
-              newGrid={handleNewGrid}
-              clearLetters={clearLetters}
-            />
-          )}
+          <PuzzleBanner
+            disabled={WFCBusy || running}
+            setPuzzleToGrid={setPuzzleToGrid}
+            clearLetters={clearLetters}
+          />
           <div
             className="tiles-container"
             onMouseOut={() => setHoveredTile(null)}
