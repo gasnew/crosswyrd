@@ -149,7 +149,6 @@ export default function CrosswordBuilder() {
       if (!wave) return;
       pushStateHistory({ wave, puzzle });
       clearSelection();
-      setWaveState(null);
       dispatch(
         setPuzzleState({
           tiles: _.map(grid.tiles, (row) =>
@@ -157,6 +156,7 @@ export default function CrosswordBuilder() {
           ),
         })
       );
+      setWaveState(null);
     },
     [dispatch, setWaveState, clearSelection, pushStateHistory, puzzle, wave]
   );

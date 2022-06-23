@@ -9,7 +9,7 @@ import {
   DialogTitle,
   IconButton,
 } from '@mui/material';
-import { useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { FixedSizeList } from 'react-window';
 
 import { PUZZLE_SIZE } from './constants';
@@ -51,9 +51,13 @@ function countBlocks(grid: GridType): number {
 function GridButton({
   grid,
   onClick,
+  disabled,
+  selected,
 }: {
   grid: GridType;
   onClick: () => void;
+  disabled: boolean;
+  selected: boolean;
 }) {
   const difficulty = getDifficulty(grid);
   return (
@@ -66,7 +70,11 @@ function GridButton({
         borderRadius: 8,
         borderColor: '#e0e2e6',
       }}
-      className="grid-button"
+      className={
+        'grid-button' +
+        (disabled ? ' grid-button--disabled' : '') +
+        (selected ? ' grid-button--selected' : '')
+      }
       onClick={onClick}
     >
       {grid.date ? (
@@ -108,6 +116,48 @@ function GridButton({
   );
 }
 
+function GridButtonRow({
+  data: { chunkedGrids, mkHandleClick, selectedGridIndex },
+  index: rowIndex,
+  style,
+}: {
+  data: {
+    chunkedGrids: GridType[][];
+    mkHandleClick: (
+      rowIndex: number,
+      columnIndex: number,
+      grid: GridType
+    ) => () => void;
+    selectedGridIndex: string | null;
+  };
+  index: number;
+  style: any;
+}) {
+  return (
+    <div key={rowIndex} className="grid-button-row" style={style}>
+      {_.map(chunkedGrids[rowIndex], (grid, columnIndex) => (
+        <GridButton
+          key={columnIndex}
+          grid={grid}
+          onClick={mkHandleClick(rowIndex, columnIndex, grid)}
+          disabled={
+            selectedGridIndex !== null &&
+            selectedGridIndex !== gridIndex(rowIndex, columnIndex)
+          }
+          selected={
+            selectedGridIndex !== null &&
+            selectedGridIndex === gridIndex(rowIndex, columnIndex)
+          }
+        />
+      ))}
+    </div>
+  );
+}
+
+function gridIndex(rowIndex: number, columnIndex: number): string {
+  return `r${rowIndex}c${columnIndex}`;
+}
+
 interface GridsDialogProps {
   open: boolean;
   canClose: boolean;
@@ -122,13 +172,34 @@ function GridsDialog({
   grids,
   selectGrid,
 }: GridsDialogProps) {
+  const [selectedGridIndex, setSelectedGridIndex] = useState<string | null>(
+    null
+  );
+
+  useEffect(() => {
+    // Reset state 1 second after the dialog closes
+    if (!open) setTimeout(() => setSelectedGridIndex(null), 1000);
+  }, [open]);
+
   const chunkedGrids = useMemo(
     () => _.chunk([BLANK_GRID, ..._.shuffle(grids)], 3),
     [grids]
   );
 
+  const mkHandleClick = useCallback(
+    (rowIndex: number, columnIndex: number, grid: GridType) => () => {
+      if (selectedGridIndex) return;
+      setSelectedGridIndex(gridIndex(rowIndex, columnIndex));
+      // Wait a second before running the expensive selectGrid function so that
+      // the animations can play out
+      setTimeout(() => selectGrid(grid), 20);
+    },
+    [selectedGridIndex, selectGrid]
+  );
+
   return (
     <Dialog
+      keepMounted={false}
       maxWidth="lg"
       PaperProps={{ style: { backgroundColor: '#fafbfb' } }}
       open={open}
@@ -161,21 +232,12 @@ function GridsDialog({
           <FixedSizeList
             height={650}
             width={800}
+            itemData={{ chunkedGrids, mkHandleClick, selectedGridIndex }}
             itemCount={chunkedGrids.length}
             itemSize={265}
             overscanCount={5}
           >
-            {({ index, style }) => (
-              <div className="grid-button-row" style={style}>
-                {_.map(chunkedGrids[index], (grid, columnIndex) => (
-                  <GridButton
-                    key={columnIndex}
-                    grid={grid}
-                    onClick={() => selectGrid(grid)}
-                  />
-                ))}
-              </div>
-            )}
+            {GridButtonRow}
           </FixedSizeList>
         )}
       </div>

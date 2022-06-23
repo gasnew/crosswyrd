@@ -34,6 +34,7 @@
 + Grid selector
   + list of legacy grids
   + can just use plain grid
+  + added some frankly dope animations
 + guided filling
   + button for "best next word" instead of "place 1"
   + sort words by increasing difficulty. Maybe use Scrabble weights here?
@@ -61,6 +62,7 @@
   - arrow key controls?
   - auto-fill by word?
   - traverse by tile--fill input box is removed
+  - optimize word list, too
 - turn off solver
   - can place words and blocks rapidly when solver is off
   - automatically turns on after 70+ words?

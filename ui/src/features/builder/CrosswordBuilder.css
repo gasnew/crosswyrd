@@ -200,12 +200,22 @@ body,
   display: flex;
   flex-direction: column;
   background-color: white;
-  transition: background-color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
+  transition: background-color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms,
+    opacity 500ms ease-in-out, transform 500ms ease-in-out !important;
   width: 240px;
   height: 240px;
 }
 .grid-button:hover {
   background-color: #e3e8e8 !important;
+}
+
+.grid-button--disabled {
+  opacity: 0.25;
+  pointer-events: none;
+  cursor: initial;
+}
+.grid-button--selected {
+  transform: scale(1.05);
 }
 
 .grid-display-tiles-container {
