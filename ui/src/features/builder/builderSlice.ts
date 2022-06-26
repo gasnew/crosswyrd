@@ -16,7 +16,6 @@ export interface CrosswordPuzzleType {
 }
 interface BuilderState {
   puzzle: CrosswordPuzzleType;
-  stagedWord: string;
   draggedWord: string | null;
   currentTab: number;
 }
@@ -34,7 +33,6 @@ const initialState: BuilderState = {
     //),
     tiles: DEFAULT_TILES,
   },
-  stagedWord: '',
   draggedWord: null,
   currentTab: 0,
 };
@@ -102,9 +100,6 @@ export const builderSlice = createSlice({
     setPuzzleState: (state, action: PayloadAction<CrosswordPuzzleType>) => {
       state.puzzle = action.payload;
     },
-    setStagedWord: (state, action: PayloadAction<string>) => {
-      state.stagedWord = action.payload;
-    },
     setDraggedWord: (state, action: PayloadAction<string | null>) => {
       state.draggedWord = action.payload;
     },
@@ -119,13 +114,11 @@ export const {
   setPuzzleTileValues,
   toggleTileBlack,
   setPuzzleState,
-  setStagedWord,
   setDraggedWord,
   setCurrentTab,
 } = builderSlice.actions;
 
 export const selectPuzzle = (state: RootState) => state.builder.puzzle;
-export const selectStagedWord = (state: RootState) => state.builder.stagedWord;
 export const selectDraggedWord = (state: RootState) =>
   state.builder.draggedWord;
 export const selectCurrentTab = (state: RootState) => state.builder.currentTab;

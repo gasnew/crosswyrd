@@ -1,25 +1,18 @@
 import _ from 'lodash';
 import {
   Box,
-  Button,
   CircularProgress,
-  Input,
-  InputAdornment,
   List,
   ListItem,
   ListItemButton,
   ListItemText,
 } from '@mui/material';
-import CancelIcon from '@mui/icons-material/Cancel';
-import CreateIcon from '@mui/icons-material/Create';
-import DoneIcon from '@mui/icons-material/Done';
-import React, { useLayoutEffect, useMemo, useRef } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import React, { useMemo } from 'react';
 import { FixedSizeList } from 'react-window';
 
 import { LetterType, TileType } from './builderSlice';
-import { ALL_LETTERS, LETTER_WEIGHTS } from './constants';
-import { DictionaryType, inDictionary } from './useDictionary';
+import { LETTER_WEIGHTS } from './constants';
+import { DictionaryType } from './useDictionary';
 import {
   findWordOptions,
   findWordOptionsFromDictionary,
@@ -33,6 +26,32 @@ function Processing() {
       </span>
       <span style={{ fontStyle: 'italic' }}>Processing...</span>
     </span>
+  );
+}
+
+function WordEntry({
+  data: { possibleWords, processingLastChange, mkHandleClickWord },
+  index,
+  style,
+}: {
+  data: {
+    possibleWords: string[];
+    processingLastChange: boolean;
+    mkHandleClickWord: (index: number) => () => void;
+  };
+  index: number;
+  style: any;
+}) {
+  return (
+    <ListItem key={index} disablePadding style={style} component="div">
+      <ListItemButton
+        disabled={processingLastChange}
+        onClick={mkHandleClickWord(index)}
+        divider
+      >
+        <ListItemText primary={_.toUpper(possibleWords[index])} />
+      </ListItemButton>
+    </ListItem>
   );
 }
 
@@ -70,7 +89,7 @@ function WordSelector({
     [allPossibleWords, optionsSet, tiles]
   );
   const possibleWords = useMemo(() => {
-    const wordsExceptStagedWord = _.sortBy(
+    const wordsExceptSelectedWord = _.sortBy(
       _.without(
         wordsFilteredByTiles,
         _.join(
@@ -80,7 +99,7 @@ function WordSelector({
       ),
       (word) => -_.sumBy(word, (letter) => LETTER_WEIGHTS[letter])
     );
-    return wordsExceptStagedWord;
+    return wordsExceptSelectedWord;
   }, [wordsFilteredByTiles, tiles, optionsSet]);
 
   const mkHandleClickWord = (index: number) => () => {
@@ -102,20 +121,15 @@ function WordSelector({
           <FixedSizeList
             height={416}
             itemCount={possibleWords.length}
+            itemData={{
+              possibleWords,
+              processingLastChange,
+              mkHandleClickWord,
+            }}
             itemSize={46}
             overscanCount={5}
           >
-            {({ index, style }) => (
-              <ListItem disablePadding style={style} component="div">
-                <ListItemButton
-                  disabled={processingLastChange}
-                  onClick={mkHandleClickWord(index)}
-                  divider
-                >
-                  <ListItemText primary={_.toUpper(possibleWords[index])} />
-                </ListItemButton>
-              </ListItem>
-            )}
+            {WordEntry}
           </FixedSizeList>
         </List>
       </Box>

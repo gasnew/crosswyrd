@@ -22,7 +22,6 @@ import {
   selectCurrentTab,
   selectDraggedWord,
   selectPuzzle,
-  selectStagedWord,
   setDraggedWord,
   setPuzzleState,
   setPuzzleTilesToResolvedWaveElements,
@@ -84,7 +83,6 @@ const AlertSnackbar = React.memo(
 
 export default function CrosswordBuilder() {
   const puzzle = useSelector(selectPuzzle);
-  const stagedWord = useSelector(selectStagedWord);
   const draggedWord = useSelector(selectDraggedWord);
   const currentTab = useSelector(selectCurrentTab);
   const { dictionary, addWordToDictionary } = useDictionary();
@@ -223,7 +221,6 @@ export default function CrosswordBuilder() {
           if (wordLocationOptions)
             handleEnterWord(draggedWord, wordLocationOptions);
         } else {
-          //handleEnterWord(stagedWord);
           onClick(row, column);
         }
       }
@@ -336,7 +333,6 @@ export default function CrosswordBuilder() {
 
       pushStateHistory({ wave, puzzle });
       updateWaveWithTileUpdates(possiblyUpdatedDictionary, observations);
-      console.log('huh');
       dispatch(setPuzzleTileValues(observations));
     },
     [

@@ -39,9 +39,9 @@
   + button for "best next word" instead of "place 1"
   + sort words by increasing difficulty. Maybe use Scrabble weights here?
   + when word entered, go to next best automatically
-- better editing
-  - select individual tile
-  - remove input field
+/ better editing
+  + select individual tile
+  + remove input field
   - throttled wave updates
     - API now accepts whole puzzle, rather than changes ("observations")
     - if calculation active, stage the next one--overwrite stage if one present
