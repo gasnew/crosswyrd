@@ -38,6 +38,7 @@ import PuzzleBanner from './PuzzleBanner';
 import TileLetterOptions from './TileLetterOptions';
 import useDictionary, { inDictionary } from './useDictionary';
 import { GridType } from './useGrids';
+import useTileInput from './useTileInput';
 import useTileSelection from './useTileSelection';
 import useWaveAndPuzzleHistory from './useWaveAndPuzzleHistory';
 import useWaveFunctionCollapse, { WaveType } from './useWaveFunctionCollapse';
@@ -109,10 +110,12 @@ export default function CrosswordBuilder() {
   const {
     onClick,
     setSelectedTileLocations,
+    setNextPrimarySelectedTile,
     selectedTilesState,
     clearSelection,
     selectBestNext,
   } = useTileSelection(puzzle, wave, WFCBusy, running);
+  useTileInput(puzzle, selectedTilesState, setNextPrimarySelectedTile);
 
   // negative number means we've passed the last failed depth
   const stepsToLastFailure = useRef(-1);
@@ -220,7 +223,7 @@ export default function CrosswordBuilder() {
           if (wordLocationOptions)
             handleEnterWord(draggedWord, wordLocationOptions);
         } else {
-          handleEnterWord(stagedWord);
+          //handleEnterWord(stagedWord);
           onClick(row, column);
         }
       }
@@ -333,6 +336,7 @@ export default function CrosswordBuilder() {
 
       pushStateHistory({ wave, puzzle });
       updateWaveWithTileUpdates(possiblyUpdatedDictionary, observations);
+      console.log('huh');
       dispatch(setPuzzleTileValues(observations));
     },
     [
@@ -447,9 +451,7 @@ export default function CrosswordBuilder() {
                       location.column === columnIndex
                   );
                   const primarySelection =
-                    selectedTilesState?.primarySelectedTile?.row === rowIndex &&
-                    selectedTilesState?.primarySelectedTile?.column ===
-                      columnIndex;
+                    selectedTilesState?.primaryIndex === selectionIndex;
                   // The word bank word location options this tile intersects
                   const wordLocationOptions: LocationType[] | null =
                     wordLocationsGrid &&
@@ -463,12 +465,9 @@ export default function CrosswordBuilder() {
                   const tileValue =
                     draggedWord && draggedWordLetterIndex >= 0 // User is hovering with a dragged word
                       ? _.toUpper(draggedWord[draggedWordLetterIndex])
-                      : selectionIndex >= 0
-                      ? stagedWord[selectionIndex]
-                        ? _.toUpper(stagedWord[selectionIndex])
-                        : ''
-                      : !_.includes(['empty', 'black'], tile.value) &&
-                        _.toUpper(tile.value);
+                      : !_.includes(['empty', 'black'], tile.value)
+                      ? _.toUpper(tile.value)
+                      : '';
                   const element = wave && wave.elements[rowIndex][columnIndex];
                   const tileNumber = tileNumbers[rowIndex][columnIndex];
                   const showTileLetterOptions =
@@ -492,26 +491,12 @@ export default function CrosswordBuilder() {
                         (primarySelection ? ' tile--primary-selected' : '')
                       }
                       style={{
-                        ...(element &&
-                        selectionIndex >= 0 &&
-                        stagedWord[selectionIndex]
-                          ? // User is typing out a replacement word
-                            {
-                              backgroundColor:
-                                _.includes(
-                                  element.options,
-                                  stagedWord[selectionIndex]
-                                ) || stagedWord[selectionIndex] === '?'
-                                  ? colors.yellow[300]
-                                  : colors.red[300],
-                            }
-                          : draggedWordLetterIndex >= 0
+                        ...(draggedWordLetterIndex >= 0
                           ? { backgroundColor: colors.yellow[300] }
                           : tile.value !== 'black' && element
                           ? {
                               backgroundColor:
-                                (tile.value === 'empty' ||
-                                  selectionIndex >= 0) &&
+                                tile.value === 'empty' &&
                                 element.options.length >= 1
                                   ? `rgba(45, 114, 210, ${
                                       (3.3 - element.entropy) / 3.3

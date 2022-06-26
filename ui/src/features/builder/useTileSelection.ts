@@ -55,16 +55,18 @@ function getDownTileLocations(
 
 export interface SelectedTilesStateType {
   locations: LocationType[];
-  primarySelectedTile: LocationType | null;
+  primaryIndex: number;
 }
+export type SetNextPrimarySelectedTileType = (stepsForward: number) => void;
 
 interface ReturnType {
   onClick: (row: number, column: number) => void;
   setSelectedTileLocations: (
     locations: LocationType[],
-    primarySelectedTile?: LocationType
+    primaryIndex?: number
   ) => void;
   selectedTilesState: SelectedTilesStateType | null;
+  setNextPrimarySelectedTile: SetNextPrimarySelectedTileType;
   clearSelection: () => void;
   selectBestNext: (state?: WaveAndPuzzleType) => void;
 }
@@ -86,17 +88,35 @@ export default function useTileSelection(
   const currentTab = useSelector(selectCurrentTab);
 
   const setSelectedTileLocations = useCallback(
-    (locations: LocationType[], primarySelectedTile?: LocationType) =>
+    (locations: LocationType[], primaryIndex?: number) =>
       setSelectedTilesState(
         locations.length > 0
           ? {
               locations,
-              primarySelectedTile:
-                primarySelectedTile || _.head(locations) || null,
+              primaryIndex: primaryIndex || 0,
             }
           : null
       ),
     []
+  );
+  const setNextPrimarySelectedTile = useCallback(
+    (stepsForward: number) => {
+      if (!selectedTilesState || selectedTilesState.primaryIndex < 0) return;
+      const { locations, primaryIndex } = selectedTilesState;
+      let nextIndex = primaryIndex + stepsForward;
+      while (
+        stepsForward > 0 &&
+        nextIndex < locations.length - 1 &&
+        puzzle.tiles[locations[nextIndex].row][locations[nextIndex].column]
+          .value !== 'empty'
+      )
+        nextIndex += 1;
+      setSelectedTileLocations(
+        locations,
+        nextIndex < locations.length && nextIndex >= 0 ? nextIndex : undefined
+      );
+    },
+    [selectedTilesState, setSelectedTileLocations, puzzle]
   );
 
   const selectBestNext = useCallback(
@@ -166,9 +186,13 @@ export default function useTileSelection(
         return;
       }
       // Toggle acrossMode if we're clicking on the primary selected tile
+      const primaryIndex = selectedTilesState?.primaryIndex || -1;
+      const primaryTile =
+        primaryIndex >= 0
+          ? selectedTilesState?.locations?.[primaryIndex]
+          : null;
       const newAcrossMode =
-        selectedTilesState?.primarySelectedTile?.row === row &&
-        selectedTilesState?.primarySelectedTile?.column === column
+        primaryTile?.row === row && primaryTile?.column === column
           ? !acrossMode
           : acrossMode;
       setAcrossMode(newAcrossMode);
@@ -176,7 +200,13 @@ export default function useTileSelection(
       const newSelections = newAcrossMode
         ? getAcrossTileLocations(puzzle, row, column)
         : getDownTileLocations(puzzle, row, column);
-      setSelectedTileLocations(newSelections, { row, column });
+      setSelectedTileLocations(
+        newSelections,
+        _.findIndex(
+          newSelections,
+          (location) => location.row === row && location.column === column
+        )
+      );
     },
     [puzzle, acrossMode, selectedTilesState, setSelectedTileLocations]
   );
@@ -188,6 +218,7 @@ export default function useTileSelection(
   return {
     onClick,
     setSelectedTileLocations,
+    setNextPrimarySelectedTile,
     selectedTilesState,
     clearSelection,
     selectBestNext,

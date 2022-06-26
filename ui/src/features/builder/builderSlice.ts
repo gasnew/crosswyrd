@@ -3,7 +3,7 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
 import { RootState } from '../../app/store';
 import { ALL_LETTERS, PUZZLE_SIZE } from './constants';
-import { WaveType } from './useWaveFunctionCollapse';
+import { TileUpdateType, WaveType } from './useWaveFunctionCollapse';
 
 export type LetterType = typeof ALL_LETTERS[number];
 
@@ -93,12 +93,7 @@ export const builderSlice = createSlice({
         });
       });
     },
-    setPuzzleTileValues: (
-      state,
-      action: PayloadAction<
-        { row: number; column: number; value: TileValueType }[]
-      >
-    ) => {
+    setPuzzleTileValues: (state, action: PayloadAction<TileUpdateType[]>) => {
       _.forEach(action.payload, ({ row, column, value }) => {
         const tile = state.puzzle.tiles[row][column];
         tile.value = value;
