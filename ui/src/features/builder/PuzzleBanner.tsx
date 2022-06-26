@@ -14,6 +14,7 @@ import { FixedSizeList } from 'react-window';
 
 import { PUZZLE_SIZE } from './constants';
 import useGrids, { GridType } from './useGrids';
+import { devMode } from '../../app/util';
 
 const BLANK_GRID: GridType = {
   tiles: _.times(PUZZLE_SIZE, (index) =>
@@ -256,10 +257,11 @@ export default function PuzzleBanner({
   setPuzzleToGrid,
   clearLetters,
 }: Props) {
+  // Default this dialog to open unless in development mode
   const [dialogState, setDialogState] = useState<{
     open: boolean;
     canClose?: boolean;
-  }>({ open: true, canClose: false });
+  }>({ open: !devMode(), canClose: false });
 
   const { grids } = useGrids();
 

@@ -12,18 +12,14 @@ import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import StopIcon from '@mui/icons-material/Stop';
 import UndoIcon from '@mui/icons-material/Undo';
-import React, {
-  useCallback,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
 import { useInterval } from '../../app/util';
 import {
   getSymmetricTile,
   LetterType,
+  selectCurrentTab,
   selectDraggedWord,
   selectPuzzle,
   selectStagedWord,
@@ -89,6 +85,7 @@ export default function CrosswordBuilder() {
   const puzzle = useSelector(selectPuzzle);
   const stagedWord = useSelector(selectStagedWord);
   const draggedWord = useSelector(selectDraggedWord);
+  const currentTab = useSelector(selectCurrentTab);
   const { dictionary, addWordToDictionary } = useDictionary();
   const { tileNumbers } = useClueData(puzzle);
   const {
@@ -112,7 +109,7 @@ export default function CrosswordBuilder() {
   const {
     onClick,
     setSelectedTileLocations,
-    selectedTileLocations,
+    selectedTilesState,
     clearSelection,
     selectBestNext,
   } = useTileSelection(puzzle, wave, WFCBusy, running);
@@ -266,7 +263,8 @@ export default function CrosswordBuilder() {
   };
   const handleClickBack = () => {
     const previousState = stepBack();
-    if (selectedTileLocations.length > 0) selectBestNext(previousState);
+    if (selectedTilesState && selectedTilesState.locations.length > 0)
+      selectBestNext(previousState);
   };
   const handleClickRun = () => {
     // Reset these to their default values for the run
@@ -282,7 +280,8 @@ export default function CrosswordBuilder() {
   };
   const handleEnterWord = useCallback(
     (rawWord: string, customTileLocations?: LocationType[]) => {
-      const tileLocations = customTileLocations || selectedTileLocations;
+      const tileLocations =
+        customTileLocations || selectedTilesState?.locations || [];
 
       // At least clear the selection
       clearSelection();
@@ -344,7 +343,7 @@ export default function CrosswordBuilder() {
       wave,
       dictionary,
       addWordToDictionary,
-      selectedTileLocations,
+      selectedTilesState,
       updateWaveWithTileUpdates,
       clearSelection,
     ]
@@ -396,19 +395,19 @@ export default function CrosswordBuilder() {
     () =>
       wave
         ? _.map(
-            selectedTileLocations,
+            selectedTilesState?.locations || [],
             ({ row, column }) => wave.elements[row][column].options
           )
-        : _.map(selectedTileLocations, ({ row, column }) => []),
-    [selectedTileLocations, wave]
+        : _.map(selectedTilesState?.locations || [], ({ row, column }) => []),
+    [selectedTilesState, wave]
   );
   const selectedTiles = useMemo(
     () =>
       _.map(
-        selectedTileLocations,
+        selectedTilesState?.locations || [],
         ({ row, column }) => puzzle.tiles[row][column]
       ),
-    [selectedTileLocations, puzzle]
+    [selectedTilesState, puzzle]
   );
   const hoveredTiles: LocationType[] = useMemo(
     () =>
@@ -420,9 +419,10 @@ export default function CrosswordBuilder() {
       [],
     [draggedWord, hoveredTile, wordLocationsGrid]
   );
-  const tilesSelected = useMemo(() => selectedTileLocations.length > 0, [
-    selectedTileLocations,
-  ]);
+  const tilesSelected = useMemo(
+    () => (selectedTilesState?.locations?.length || 0) > 0,
+    [selectedTilesState]
+  );
 
   return (
     <div className="content-container">
@@ -441,11 +441,15 @@ export default function CrosswordBuilder() {
               <div key={rowIndex} className="puzzle-row">
                 {_.map(row, (tile, columnIndex) => {
                   const selectionIndex = _.findIndex(
-                    selectedTileLocations,
+                    selectedTilesState?.locations || [],
                     (location) =>
                       location.row === rowIndex &&
                       location.column === columnIndex
                   );
+                  const primarySelection =
+                    selectedTilesState?.primarySelectedTile?.row === rowIndex &&
+                    selectedTilesState?.primarySelectedTile?.column ===
+                      columnIndex;
                   // The word bank word location options this tile intersects
                   const wordLocationOptions: LocationType[] | null =
                     wordLocationsGrid &&
@@ -472,6 +476,10 @@ export default function CrosswordBuilder() {
                     selectionIndex >= 0 &&
                     element &&
                     element.options.length <= 9;
+                  const hovered =
+                    hoveredTile &&
+                    hoveredTile.row === rowIndex &&
+                    hoveredTile.column === columnIndex;
 
                   return (
                     <div
@@ -480,7 +488,8 @@ export default function CrosswordBuilder() {
                         'tile' +
                         (tile.value === 'black' ? ' tile--black' : '') +
                         (selectionIndex >= 0 ? ' tile--selected' : '') +
-                        (wordLocationOptions ? ' tile--option' : '')
+                        (wordLocationOptions ? ' tile--option' : '') +
+                        (primarySelection ? ' tile--primary-selected' : '')
                       }
                       style={{
                         ...(element &&
@@ -517,6 +526,12 @@ export default function CrosswordBuilder() {
                       onMouseOver={mkHandleMouseoverTile(rowIndex, columnIndex)}
                       onClick={mkHandleClickTile(rowIndex, columnIndex)}
                     >
+                      {hovered && (
+                        <div
+                          className="tile-highlight"
+                          style={{ backgroundColor: colors.yellow[300] }}
+                        />
+                      )}
                       <div className="tile-contents">
                         {showTileLetterOptions && element ? (
                           <TileLetterOptions options={element.options} />
@@ -564,6 +579,7 @@ export default function CrosswordBuilder() {
             <>
               <Divider style={{ margin: 10 }} />
               <BuilderTabs
+                currentTab={currentTab}
                 tilesSelected={tilesSelected}
                 clearSelection={clearSelection}
                 wordSelector={
@@ -589,7 +605,7 @@ export default function CrosswordBuilder() {
                     puzzle={puzzle}
                     tileNumbers={tileNumbers}
                     setSelectedTileLocations={setSelectedTileLocations}
-                    selectedTileLocations={selectedTileLocations}
+                    selectedTilesState={selectedTilesState}
                   />
                 }
               />

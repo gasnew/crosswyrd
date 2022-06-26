@@ -3,9 +3,9 @@ import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
 import Box from '@mui/material/Box';
 import React, { useLayoutEffect } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch } from 'react-redux';
 
-import { setCurrentTab, selectCurrentTab } from './builderSlice';
+import { setCurrentTab } from './builderSlice';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -44,6 +44,7 @@ function a11yProps(index: number) {
 }
 
 interface Props {
+  currentTab: number;
   tilesSelected: boolean;
   clearSelection: () => void;
   wordSelector: React.ReactNode;
@@ -51,15 +52,14 @@ interface Props {
   clueEntry: React.ReactNode;
 }
 
-export default function BuilderTabs({
+function BuilderTabs({
+  currentTab,
   tilesSelected,
   clearSelection,
   wordSelector,
   wordBank,
   clueEntry,
 }: Props) {
-  const currentTab = useSelector(selectCurrentTab);
-
   const dispatch = useDispatch();
 
   // Set tab to "Fill" when tiles are selected
@@ -101,3 +101,5 @@ export default function BuilderTabs({
     </Box>
   );
 }
+
+export default React.memo(BuilderTabs);

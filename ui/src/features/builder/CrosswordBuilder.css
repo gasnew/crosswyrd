@@ -64,12 +64,6 @@ body,
   background-color: white;
 }
 
-.tile:hover {
-  border-color: yellow !important;
-  border-width: 4px !important;
-  /*padding: -4px !important;*/
-}
-
 .tile--black {
   background-color: black;
 }
@@ -81,6 +75,12 @@ body,
 .tile--selected {
   border-width: 4px;
   border-color: rgb(45, 114, 210);
+}
+
+.tile--primary-selected {
+  border-color: #fff176 !important;
+  border-width: 4px !important;
+  /*padding: -4px !important;*/
 }
 
 .tile--option {
@@ -103,6 +103,13 @@ body,
   user-select: none;
   pointer-events: none;
   font-size: 10px;
+}
+
+.tile-highlight {
+  position: absolute;
+  height: 100%;
+  width: 100%;
+  pointer-events: none;
 }
 
 .sidebar-container {

@@ -4,6 +4,7 @@ import React, { useLayoutEffect, useMemo, useRef } from 'react';
 
 import { CrosswordPuzzleType, TileType } from './builderSlice';
 import { LocationType } from './CrosswordBuilder';
+import { SelectedTilesStateType } from './useTileSelection';
 
 function computeTileNumbers(puzzle: CrosswordPuzzleType): TileNumbersType {
   const solid = (tile: TileType | null): boolean =>
@@ -131,7 +132,9 @@ interface AnswerEntryType {
   answer: AnswerType;
 }
 
-export function getFlattenedAnswers(puzzle: CrosswordPuzzleType): AnswerEntryType[] {
+export function getFlattenedAnswers(
+  puzzle: CrosswordPuzzleType
+): AnswerEntryType[] {
   // Returns a list of answer entries, first across, then down
   const answerGrid = getAnswerGrid(puzzle);
   return _.sortBy(
@@ -221,13 +224,13 @@ interface Props {
   puzzle: CrosswordPuzzleType;
   tileNumbers: TileNumbersType;
   setSelectedTileLocations: (locations: LocationType[]) => void;
-  selectedTileLocations: LocationType[];
+  selectedTilesState: SelectedTilesStateType | null;
 }
 function ClueEntry({
   puzzle,
   tileNumbers,
   setSelectedTileLocations,
-  selectedTileLocations,
+  selectedTilesState,
 }: Props) {
   const flattenedAnswers: AnswerEntryType[] = useMemo(
     () => getFlattenedAnswers(puzzle),
@@ -260,9 +263,18 @@ function ClueEntry({
               <ListSubheader>{_.capitalize(currentDirection)}</ListSubheader>
               {_.map(
                 flattenedAnswers,
-                ({ row, column, answer, direction: answerDirection }, index) =>
-                  currentDirection === answerDirection &&
-                  tileNumbers[row][column] ? (
+                (
+                  { row, column, answer, direction: answerDirection },
+                  index
+                ) => {
+                  if (
+                    currentDirection !== answerDirection ||
+                    !tileNumbers[row][column]
+                  )
+                    return null;
+                  const selectedTileLocations =
+                    selectedTilesState?.locations || [];
+                  return (
                     <AnswerListItem
                       key={`answer-${row}-${column}`}
                       tileNumber={tileNumbers[row][column] || 999}
@@ -292,7 +304,8 @@ function ClueEntry({
                         selectAnswer(direction, row, column, answer);
                       }}
                     />
-                  ) : null
+                  );
+                }
               )}
             </div>
           ))}

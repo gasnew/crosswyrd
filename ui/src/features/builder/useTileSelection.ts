@@ -53,10 +53,18 @@ function getDownTileLocations(
   }));
 }
 
+export interface SelectedTilesStateType {
+  locations: LocationType[];
+  primarySelectedTile: LocationType | null;
+}
+
 interface ReturnType {
   onClick: (row: number, column: number) => void;
-  setSelectedTileLocations: (locations: LocationType[]) => void;
-  selectedTileLocations: LocationType[];
+  setSelectedTileLocations: (
+    locations: LocationType[],
+    primarySelectedTile?: LocationType
+  ) => void;
+  selectedTilesState: SelectedTilesStateType | null;
   clearSelection: () => void;
   selectBestNext: (state?: WaveAndPuzzleType) => void;
 }
@@ -67,14 +75,29 @@ export default function useTileSelection(
   processingLastChange: boolean,
   running: boolean
 ): ReturnType {
-  const [selectedTileLocations, setSelectedTileLocations] = useState<
-    LocationType[]
-  >([]);
+  const [
+    selectedTilesState,
+    setSelectedTilesState,
+  ] = useState<SelectedTilesStateType | null>(null);
   // Default to selecting across, not down (this can be toggled by clicking a
   // selected tile)
   const [acrossMode, setAcrossMode] = useState(true);
 
   const currentTab = useSelector(selectCurrentTab);
+
+  const setSelectedTileLocations = useCallback(
+    (locations: LocationType[], primarySelectedTile?: LocationType) =>
+      setSelectedTilesState(
+        locations.length > 0
+          ? {
+              locations,
+              primarySelectedTile:
+                primarySelectedTile || _.head(locations) || null,
+            }
+          : null
+      ),
+    []
+  );
 
   const selectBestNext = useCallback(
     (state?: WaveAndPuzzleType) => {
@@ -105,13 +128,18 @@ export default function useTileSelection(
           }))
         );
     },
-    [puzzle, wave]
+    [puzzle, wave, setSelectedTileLocations]
   );
 
   // Automatically select best next word
   const prevProcessingLastChange = useRef(processingLastChange);
   useEffect(() => {
-    if (currentTab !== 0 || running || selectedTileLocations.length > 0) return;
+    if (
+      currentTab !== 0 ||
+      running ||
+      (selectedTilesState?.locations?.length || 0) > 0
+    )
+      return;
 
     // Only proceed if we are not processing a change now, but we were last
     // time this was run (i.e., the user probably wants to move on to the next
@@ -127,7 +155,7 @@ export default function useTileSelection(
     currentTab,
     running,
     processingLastChange,
-    selectedTileLocations,
+    selectedTilesState,
     selectBestNext,
   ]);
 
@@ -137,32 +165,30 @@ export default function useTileSelection(
         setSelectedTileLocations([]);
         return;
       }
-      // Toggle acrossMode if we're clicking on a selected tile
-      const newAcrossMode = _.some(
-        selectedTileLocations,
-        (location) => location.row === row && location.column === column
-      )
-        ? !acrossMode
-        : acrossMode;
+      // Toggle acrossMode if we're clicking on the primary selected tile
+      const newAcrossMode =
+        selectedTilesState?.primarySelectedTile?.row === row &&
+        selectedTilesState?.primarySelectedTile?.column === column
+          ? !acrossMode
+          : acrossMode;
       setAcrossMode(newAcrossMode);
 
-      if (newAcrossMode) {
-        setSelectedTileLocations(getAcrossTileLocations(puzzle, row, column));
-      } else {
-        setSelectedTileLocations(getDownTileLocations(puzzle, row, column));
-      }
+      const newSelections = newAcrossMode
+        ? getAcrossTileLocations(puzzle, row, column)
+        : getDownTileLocations(puzzle, row, column);
+      setSelectedTileLocations(newSelections, { row, column });
     },
-    [puzzle, acrossMode, selectedTileLocations]
+    [puzzle, acrossMode, selectedTilesState, setSelectedTileLocations]
   );
 
   const clearSelection = useCallback(() => {
     setSelectedTileLocations([]);
-  }, []);
+  }, [setSelectedTileLocations]);
 
   return {
     onClick,
     setSelectedTileLocations,
-    selectedTileLocations,
+    selectedTilesState,
     clearSelection,
     selectBestNext,
   };

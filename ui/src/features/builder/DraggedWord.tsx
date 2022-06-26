@@ -19,8 +19,9 @@ export default function DraggedWord() {
   const dispatch = useDispatch();
 
   const onMouseMove = useCallback(
-    (event) => setPosition({ x: event.clientX, y: event.clientY }),
-    []
+    (event) =>
+      draggedWord && setPosition({ x: event.clientX, y: event.clientY }),
+    [draggedWord]
   );
   const onMouseLeave = useCallback(() => setHidden(true), []);
   const onMouseEnter = useCallback(() => setHidden(false), []);

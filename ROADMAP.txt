@@ -39,6 +39,14 @@
   + button for "best next word" instead of "place 1"
   + sort words by increasing difficulty. Maybe use Scrabble weights here?
   + when word entered, go to next best automatically
+- better editing
+  - select individual tile
+  - remove input field
+  - throttled wave updates
+    - API now accepts whole puzzle, rather than changes ("observations")
+    - if calculation active, stage the next one--overwrite stage if one present
+    - useWaveFunctionCollapse determines observations from puzzle diff
+  - arrow key navigation
 - add words to dictionary when formed by changing black tiles
   - may need to do binary search in dictionary to check all words?
 - QoL
@@ -48,7 +56,7 @@
   + auto-enter word when leave selection + remove selection when entered word
     x remove filled-in tile when leave selection if it was red? (try not doing this and see what happens)
   + auto-fill search with highlighted letters (replacing spaces with ?s?)
-  - height 100%, overflow-y: hidden, center on board
+  + height 100%, overflow-y: hidden, center on board
   - "click to select down/across" tooltip/hint
   - blue border and outline + higher z-index + different color than entropy
   - indicate ?s can be used as wildcards for searches
@@ -63,6 +71,7 @@
   - auto-fill by word?
   - traverse by tile--fill input box is removed
   - optimize word list, too
+  - in-focus vs out-of-focus coloration
 - turn off solver
   - can place words and blocks rapidly when solver is off
   - automatically turns on after 70+ words?
