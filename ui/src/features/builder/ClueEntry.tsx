@@ -86,7 +86,7 @@ function getAnswerGrid(puzzle: CrosswordPuzzleType): AnswerGridCellType[][] {
             ),
             (index) =>
               puzzle.tiles[rowIndex][columnIndex + index].value === 'empty'
-                ? '?'
+                ? '-'
                 : puzzle.tiles[rowIndex][columnIndex + index].value
           ),
           ''
@@ -101,7 +101,7 @@ function getAnswerGrid(puzzle: CrosswordPuzzleType): AnswerGridCellType[][] {
             ),
             (index) =>
               puzzle.tiles[rowIndex + index][columnIndex].value === 'empty'
-                ? '?'
+                ? '-'
                 : puzzle.tiles[rowIndex + index][columnIndex].value
           ),
           ''
@@ -111,13 +111,13 @@ function getAnswerGrid(puzzle: CrosswordPuzzleType): AnswerGridCellType[][] {
         across: acrossWord
           ? {
               word: acrossWord,
-              complete: !_.includes(acrossWord, '?'),
+              complete: !_.includes(acrossWord, '-'),
             }
           : null,
         down: downWord
           ? {
               word: downWord,
-              complete: !_.includes(downWord, '?'),
+              complete: !_.includes(downWord, '-'),
             }
           : null,
       };

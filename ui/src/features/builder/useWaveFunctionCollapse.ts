@@ -64,7 +64,7 @@ function computeEntropy(options: LetterType[]): number {
   return entropy;
 }
 
-function waveFromPuzzle(puzzle: CrosswordPuzzleType): WaveType {
+export function waveFromPuzzle(puzzle: CrosswordPuzzleType): WaveType {
   // Returns a wave given the pattern of the puzzle. The puzzle values are NOT
   // transferred, only whether the value is solid or not is taken into account.
   // I.e., each non-solid tile has all letters as options.
@@ -89,7 +89,8 @@ interface ReturnType {
     dictionary: DictionaryType,
     tileUpdates: TileUpdateType[]
   ) => Promise<WaveType | null>;
-  setWaveState: (wave: WaveType | null) => void;
+  updateWave: (dictionary: DictionaryType) => Promise<WaveType | null>;
+  setWaveState: (wave: WaveType ) => void;
   busy: boolean;
 }
 
@@ -110,6 +111,7 @@ export default function useWaveFunctionCollapse(
     if (wave) return;
     // TODO: Request this from WFCWorker?
     setWave(waveFromPuzzle(puzzle));
+    previousPuzzle.current = puzzle;
   }, [puzzle, wave]);
 
   // Instantiate WFCWorker
@@ -142,13 +144,47 @@ export default function useWaveFunctionCollapse(
     [puzzle, wave]
   );
 
-  const setWaveState = useCallback((wave: WaveType | null) => {
+  const previousPuzzle = useRef<CrosswordPuzzleType | null>(null);
+  const updateWave = useCallback(
+    async (dictionary: DictionaryType): Promise<WaveType | null> => {
+      if (computingWave.current || !wave || !WFCWorkerRef.current) return null;
+      const previous = previousPuzzle.current;
+      if (!previous)
+        // previousPuzzle should be instantiated when this hook is first
+        // called--we don't want to be in the business of inferring the initial
+        // puzzle
+        return null;
+
+      const tileUpdates = _.flatMap(puzzle.tiles, (row, rowIndex) =>
+        _.filter(
+          _.map(row, (tile, columnIndex) => ({
+            row: rowIndex,
+            column: columnIndex,
+            value: tile.value,
+          })),
+          ({ row, column, value }) =>
+            value !== previous.tiles[row][column].value
+        )
+      );
+      console.log(tileUpdates);
+      if (tileUpdates.length === 0)
+        // Do nothing because the puzzle hasn't changed
+        return null;
+      previousPuzzle.current = puzzle;
+
+      return await updateWaveWithTileUpdates(dictionary, tileUpdates);
+    },
+    [wave, puzzle, updateWaveWithTileUpdates]
+  );
+
+  const setWaveState = useCallback((wave: WaveType ) => {
     setWave(wave);
   }, []);
 
   return {
     wave,
     updateWaveWithTileUpdates,
+    updateWave,
     setWaveState,
     busy,
   };

@@ -186,7 +186,7 @@ export default function useTileSelection(
         return;
       }
       // Toggle acrossMode if we're clicking on the primary selected tile
-      const primaryIndex = selectedTilesState?.primaryIndex || -1;
+      const primaryIndex = selectedTilesState?.primaryIndex ?? -1;
       const primaryTile =
         primaryIndex >= 0
           ? selectedTilesState?.locations?.[primaryIndex]

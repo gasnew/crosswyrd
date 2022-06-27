@@ -30,13 +30,12 @@ function Processing() {
 }
 
 function WordEntry({
-  data: { possibleWords, processingLastChange, mkHandleClickWord },
+  data: { possibleWords, mkHandleClickWord },
   index,
   style,
 }: {
   data: {
     possibleWords: string[];
-    processingLastChange: boolean;
     mkHandleClickWord: (index: number) => () => void;
   };
   index: number;
@@ -44,11 +43,7 @@ function WordEntry({
 }) {
   return (
     <ListItem key={index} disablePadding style={style} component="div">
-      <ListItemButton
-        disabled={processingLastChange}
-        onClick={mkHandleClickWord(index)}
-        divider
-      >
+      <ListItemButton onClick={mkHandleClickWord(index)} divider>
         <ListItemText primary={_.toUpper(possibleWords[index])} />
       </ListItemButton>
     </ListItem>
@@ -123,7 +118,6 @@ function WordSelector({
             itemCount={possibleWords.length}
             itemData={{
               possibleWords,
-              processingLastChange,
               mkHandleClickWord,
             }}
             itemSize={46}
