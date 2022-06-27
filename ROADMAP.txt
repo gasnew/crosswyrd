@@ -42,10 +42,14 @@
 / better editing
   + select individual tile
   + remove input field
-  - throttled wave updates
-    - API now accepts whole puzzle, rather than changes ("observations")
-    - if calculation active, stage the next one--overwrite stage if one present
-    - useWaveFunctionCollapse determines observations from puzzle diff
+  / debounced wave updates
+    + API now accepts whole puzzle, rather than changes ("observations")
+    + if calculation active, stage the next one--overwrite stage if one present
+    + useWaveFunctionCollapse determines observations from puzzle diff
+    - reinstate adding words to dictionary
+    - mirror black tiles again
+    - fix backtracking algorithm
+    - make sure selection is always updated, even when redoing
   - arrow key navigation
 - add words to dictionary when formed by changing black tiles
   - may need to do binary search in dictionary to check all words?

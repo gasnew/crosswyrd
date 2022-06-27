@@ -2,11 +2,13 @@ import _ from 'lodash';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { CrosswordPuzzleType } from './builderSlice';
+import { SelectedTilesStateType } from './useTileSelection';
 import { WaveType } from './useWaveFunctionCollapse';
 
 export interface WaveAndPuzzleType {
   wave: WaveType;
   puzzle: CrosswordPuzzleType;
+  selectedTilesState?: SelectedTilesStateType | null;
 }
 interface ReturnType {
   pushStateHistory: (waveAndPuzzle: WaveAndPuzzleType) => void;
@@ -60,7 +62,7 @@ export default function useWaveAndPuzzleHistory(
 
     // Go to the last checkpoint
     return stateHistory[0];
-  }, [atLastCheckpoint, stateHistory, puzzle, wave]);
+  }, [atLastCheckpoint, stateHistory]);
 
   const checkHistoryEmpty = useCallback(() => stateHistory.length <= 1, [
     stateHistory,

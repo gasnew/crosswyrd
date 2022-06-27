@@ -153,9 +153,16 @@ export default function CrosswordBuilder() {
     if (result)
       result.then((newWave) => {
         if (!newWave) return;
-        pushStateHistory({ wave: newWave, puzzle });
+        pushStateHistory({ wave: newWave, puzzle, selectedTilesState });
       });
-  }, [atLastCheckpoint, puzzle, dictionary, updateWave, pushStateHistory]);
+  }, [
+    atLastCheckpoint,
+    puzzle,
+    dictionary,
+    updateWave,
+    pushStateHistory,
+    selectedTilesState,
+  ]);
 
   const puzzleError = useMemo(() => {
     if (running || !wave) return '';
@@ -208,8 +215,10 @@ export default function CrosswordBuilder() {
     if (!previousState) return;
     setWaveState(previousState.wave);
     dispatch(setPuzzleState(previousState.puzzle));
+    if (previousState.selectedTilesState)
+      setSelectedTileLocations(previousState.selectedTilesState.locations);
     return previousState;
-  }, [dispatch, setWaveState, popStateHistory]);
+  }, [dispatch, setWaveState, popStateHistory, setSelectedTileLocations]);
 
   const mkHandleClickTile = (row, column) => {
     return (event) => {
@@ -365,6 +374,9 @@ export default function CrosswordBuilder() {
       //pushStateHistory({ wave, puzzle });
       //updateWaveWithTileUpdates(possiblyUpdatedDictionary, observations);
       dispatch(setPuzzleTileValues(observations));
+      // A bit hacky, but force the wave to be updated immediately after our
+      // hook has had a chance to call the wave-update endpoint
+      setTimeout(() => debouncedUpdateWave.flush(), 10);
     },
     [
       dispatch,

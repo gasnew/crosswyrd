@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 
 import { CrosswordPuzzleType, selectCurrentTab } from './builderSlice';
+import { PUZZLE_SIZE } from './constants';
 import { LocationType } from './CrosswordBuilder';
 import { WaveAndPuzzleType } from './useWaveAndPuzzleHistory';
 import { WaveType } from './useWaveFunctionCollapse';
@@ -88,35 +89,60 @@ export default function useTileSelection(
   const currentTab = useSelector(selectCurrentTab);
 
   const setSelectedTileLocations = useCallback(
-    (locations: LocationType[], primaryIndex?: number) =>
+    (locations: LocationType[], primaryIndex?: number) => {
+      const newPrimaryIndex =
+        primaryIndex ??
+        _.findIndex(
+          locations,
+          ({ row, column }) => puzzle.tiles[row][column].value === 'empty'
+        ) ??
+        0;
       setSelectedTilesState(
         locations.length > 0
           ? {
               locations,
-              primaryIndex: primaryIndex || 0,
+              primaryIndex: newPrimaryIndex >= 0 ? newPrimaryIndex : 0,
             }
           : null
-      ),
-    []
+      );
+    },
+    [puzzle]
   );
+
+  const clearSelection = useCallback(() => {
+    setSelectedTileLocations([]);
+  }, [setSelectedTileLocations]);
+
   const setNextPrimarySelectedTile = useCallback(
     (stepsForward: number) => {
       if (!selectedTilesState || selectedTilesState.primaryIndex < 0) return;
       const { locations, primaryIndex } = selectedTilesState;
+
       let nextIndex = primaryIndex + stepsForward;
+      if (
+        primaryIndex === locations.length - 1 &&
+        nextIndex === locations.length - 1
+      ) {
+        // Clear selection because we have reached the end of the word
+        clearSelection();
+        return;
+      }
+
       while (
         stepsForward > 0 &&
-        nextIndex < locations.length - 1 &&
+        nextIndex < locations.length &&
         puzzle.tiles[locations[nextIndex].row][locations[nextIndex].column]
           .value !== 'empty'
       )
         nextIndex += 1;
       setSelectedTileLocations(
         locations,
-        nextIndex < locations.length && nextIndex >= 0 ? nextIndex : undefined
+        nextIndex < locations.length && nextIndex >= 0
+          ? nextIndex
+          : primaryIndex + stepsForward
       );
     },
-    [selectedTilesState, setSelectedTileLocations, puzzle]
+    [selectedTilesState, setSelectedTileLocations, puzzle, clearSelection]
   );
 
   const selectBestNext = useCallback(
@@ -168,6 +194,22 @@ export default function useTileSelection(
       prevProcessingLastChange.current = processingLastChange;
       return;
     }
+    if (
+      wave &&
+      _.some(
+        _.flatMap(puzzle.tiles, (row, rowIndex) =>
+          _.map(
+            row,
+            (tile, columnIndex) =>
+              tile.value !== 'black' &&
+              wave.elements[rowIndex][columnIndex].options.length === 0
+          )
+        )
+      )
+    )
+      // There is at least one problem in the board--do not automatically
+      // select anything.
+      return;
     prevProcessingLastChange.current = processingLastChange;
 
     selectBestNext();
@@ -177,6 +219,8 @@ export default function useTileSelection(
     processingLastChange,
     selectedTilesState,
     selectBestNext,
+    puzzle,
+    wave,
   ]);
 
   const onClick = useCallback(
@@ -210,10 +254,6 @@ export default function useTileSelection(
     },
     [puzzle, acrossMode, selectedTilesState, setSelectedTileLocations]
   );
-
-  const clearSelection = useCallback(() => {
-    setSelectedTileLocations([]);
-  }, [setSelectedTileLocations]);
 
   return {
     onClick,
