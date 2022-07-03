@@ -47,9 +47,9 @@
     + if calculation active, stage the next one--overwrite stage if one present
     + useWaveFunctionCollapse determines observations from puzzle diff
     + reinstate adding words to dictionary
-    - mirror black tiles again
+    + mirror black tiles again
+    + make sure selection is always updated, even when redoing
     - fix backtracking algorithm
-    - make sure selection is always updated, even when redoing
   - arrow key navigation
 - add words to dictionary when formed by changing black tiles
   - may need to do binary search in dictionary to check all words?
@@ -77,6 +77,7 @@
   - optimize word list, too
   - in-focus vs out-of-focus coloration
   - redo
+  - move controls to above the grid, and move grid stuff to "new"
 - turn off solver
   - can place words and blocks rapidly when solver is off
   - automatically turns on after 70+ words?

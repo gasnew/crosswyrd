@@ -1,8 +1,9 @@
 import _ from 'lodash';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 
 import { CrosswordPuzzleType, selectCurrentTab } from './builderSlice';
+import { PUZZLE_SIZE } from './constants';
 import { LocationType } from './CrosswordBuilder';
 import { WaveAndPuzzleType } from './useWaveAndPuzzleHistory';
 import { WaveType } from './useWaveFunctionCollapse';
@@ -53,20 +54,24 @@ function getDownTileLocations(
   }));
 }
 
+export type DirectionType = 'across' | 'down';
 export interface SelectedTilesStateType {
   locations: LocationType[];
-  primaryIndex: number;
+  primaryLocation: LocationType;
+  direction: DirectionType;
 }
-export type SetNextPrimarySelectedTileType = (stepsForward: number) => void;
+export type UpdateSelectionWithPuzzleType = (
+  puzzle: CrosswordPuzzleType
+) => void;
 
 interface ReturnType {
   onClick: (row: number, column: number) => void;
-  setSelectedTileLocations: (
-    locations: LocationType[],
-    primaryIndex?: number
+  updateSelection: (
+    primaryLocation: LocationType,
+    direction?: DirectionType
   ) => void;
   selectedTilesState: SelectedTilesStateType | null;
-  setNextPrimarySelectedTile: SetNextPrimarySelectedTileType;
+  updateSelectionWithPuzzle: UpdateSelectionWithPuzzleType;
   clearSelection: () => void;
   selectBestNext: (state?: WaveAndPuzzleType) => void;
 }
@@ -77,51 +82,59 @@ export default function useTileSelection(
   processingLastChange: boolean,
   running: boolean
 ): ReturnType {
-  const [
-    selectedTilesState,
-    setSelectedTilesState,
-  ] = useState<SelectedTilesStateType | null>(null);
+  const [primaryLocation, setPrimaryLocation] = useState<LocationType | null>(
+    null
+  );
+  const [direction, setDirection] = useState<DirectionType>('across');
 
   const currentTab = useSelector(selectCurrentTab);
 
-  const setSelectedTileLocations = useCallback(
-    (locations: LocationType[], primaryIndex?: number) => {
-      const newPrimaryIndex =
-        primaryIndex ??
-        _.findIndex(
-          locations,
-          ({ row, column }) => puzzle.tiles[row][column].value === 'empty'
-        ) ??
-        0;
-      setSelectedTilesState(
-        locations.length > 0
-          ? {
-              locations,
-              primaryIndex: newPrimaryIndex >= 0 ? newPrimaryIndex : 0,
-            }
-          : null
-      );
+  const dir = useMemo(() => (direction === 'across' ? [0, 1] : [1, 0]), [
+    direction,
+  ]);
+  const locations: LocationType[] = useMemo(() => {
+    if (!primaryLocation) return [];
+    const { row, column } = primaryLocation;
+    if (puzzle.tiles[row][column].value === 'black') return [primaryLocation];
+    const tilesBehind =
+      _.takeWhile(
+        _.range(PUZZLE_SIZE),
+        (index) =>
+          (puzzle.tiles?.[row - index * dir[0]]?.[column - index * dir[1]]
+            ?.value || 'black') !== 'black'
+      ).length - 1;
+    const tilesInFront =
+      _.takeWhile(
+        _.range(PUZZLE_SIZE),
+        (index) =>
+          (puzzle.tiles?.[row + index * dir[0]]?.[column + index * dir[1]]
+            ?.value || 'black') !== 'black'
+      ).length - 1;
+    return _.map(_.range(-tilesBehind, tilesInFront + 1), (index) => ({
+      row: row + index * dir[0],
+      column: column + index * dir[1],
+    }));
+  }, [dir, primaryLocation, puzzle]);
+
+  const updateSelection = useCallback(
+    (newPrimaryLocation: LocationType, newDirection?: DirectionType) => {
+      setPrimaryLocation(newPrimaryLocation);
+      setDirection(newDirection || direction);
     },
-    [puzzle]
+    [direction]
   );
 
   const clearSelection = useCallback(() => {
-    setSelectedTileLocations([]);
-  }, [setSelectedTileLocations]);
+    setPrimaryLocation(null);
+  }, []);
 
-  const setNextPrimarySelectedTile = useCallback(
-    (stepsForward: number) => {
-      if (!selectedTilesState || selectedTilesState.primaryIndex < 0) return;
-      const { locations, primaryIndex } = selectedTilesState;
+  const updateSelectionWithPuzzle = useCallback(
+    (newPuzzle: CrosswordPuzzleType) => {
+      if (!primaryLocation || locations.length < 1) return;
 
-      let nextIndex = primaryIndex + stepsForward;
+      const lastLocation = locations[locations.length - 1];
       if (
-        primaryIndex === locations.length - 1 &&
-        nextIndex === locations.length - 1 &&
-        // The last tile must be empty since we're presumably filling it
-        _.flow(
-          ({ row, column }) => puzzle.tiles[row][column].value === 'empty'
-        )(_.last(selectedTilesState.locations))
+        newPuzzle.tiles[lastLocation.row][lastLocation.column].value !== 'empty'
       ) {
         // Clear selection because we have reached the end of the word, and the
         // word is completely filled
@@ -129,21 +142,42 @@ export default function useTileSelection(
         return;
       }
 
-      while (
-        stepsForward > 0 &&
-        nextIndex < locations.length &&
-        puzzle.tiles[locations[nextIndex].row][locations[nextIndex].column]
-          .value !== 'empty'
-      )
-        nextIndex += 1;
-      setSelectedTileLocations(
-        locations,
-        nextIndex < locations.length && nextIndex >= 0
-          ? nextIndex
-          : primaryIndex + stepsForward
-      );
+      let newPrimaryLocation = primaryLocation;
+      if (
+        newPuzzle.tiles[newPrimaryLocation.row][newPrimaryLocation.column]
+          .value === 'empty'
+      ) {
+        while (
+          newPuzzle.tiles[newPrimaryLocation.row - dir[0]]?.[
+            newPrimaryLocation.column - dir[1]
+          ]?.value === 'empty'
+        ) {
+          newPrimaryLocation = {
+            row: newPrimaryLocation.row - dir[0],
+            column: newPrimaryLocation.column - dir[1],
+          };
+        }
+      } else {
+        while (
+          newPuzzle.tiles[newPrimaryLocation.row + dir[0]]?.[
+            newPrimaryLocation.column + dir[1]
+          ]?.value !== 'empty'
+        ) {
+          newPrimaryLocation = {
+            row: newPrimaryLocation.row + dir[0],
+            column: newPrimaryLocation.column + dir[1],
+          };
+        }
+        // Move it one more into the empty spot
+        newPrimaryLocation = {
+          row: newPrimaryLocation.row + dir[0],
+          column: newPrimaryLocation.column + dir[1],
+        };
+      }
+
+      setPrimaryLocation(newPrimaryLocation);
     },
-    [selectedTilesState, setSelectedTileLocations, puzzle, clearSelection]
+    [primaryLocation, locations, clearSelection, dir]
   );
 
   const selectBestNext = useCallback(
@@ -167,26 +201,30 @@ export default function useTileSelection(
           (elements) => -elements.length,
         ]
       );
-      if (prioritizedElementSets.length > 0)
-        setSelectedTileLocations(
-          _.map(prioritizedElementSets[0], ({ row, column }) => ({
-            row,
-            column,
-          }))
+      if (prioritizedElementSets.length > 0) {
+        const bestElements = prioritizedElementSets[0];
+        const newDirection =
+          bestElements.length > 1
+            ? bestElements[1].row > bestElements[0].row
+              ? 'down'
+              : 'across'
+            : direction;
+        setPrimaryLocation(
+          _.find(
+            bestElements,
+            ({ row, column }) => thisPuzzle.tiles[row][column].value === 'empty'
+          ) || { row: bestElements[0].row, column: bestElements[0].column }
         );
+        if (newDirection !== direction) setDirection(newDirection);
+      }
     },
-    [puzzle, wave, setSelectedTileLocations]
+    [puzzle, wave, direction]
   );
 
   // Automatically select best next word
   const prevProcessingLastChange = useRef(processingLastChange);
   useEffect(() => {
-    if (
-      currentTab !== 0 ||
-      running ||
-      (selectedTilesState?.locations?.length || 0) > 0
-    )
-      return;
+    if (currentTab !== 0 || running || primaryLocation) return;
 
     // Only proceed if we are not processing a change now, but we were last
     // time this was run (i.e., the user probably wants to move on to the next
@@ -218,7 +256,7 @@ export default function useTileSelection(
     currentTab,
     running,
     processingLastChange,
-    selectedTilesState,
+    primaryLocation,
     selectBestNext,
     puzzle,
     wave,
@@ -226,45 +264,36 @@ export default function useTileSelection(
 
   const onClick = useCallback(
     (row, column) => {
-      if (puzzle.tiles[row][column].value === 'black') {
-        setSelectedTileLocations([]);
-        return;
-      }
       // Toggle whether selection is across or down if we're clicking on the
       // primary selected tile
-      const isAcross = selectedTilesState
-        ? selectedTilesState.locations.length > 1 &&
-          selectedTilesState.locations[1].column >
-            selectedTilesState.locations[0].column
-        : true;
-      const primaryIndex = selectedTilesState?.primaryIndex ?? -1;
-      const primaryTile =
-        primaryIndex >= 0
-          ? selectedTilesState?.locations?.[primaryIndex]
-          : null;
-      const shouldBeAcross =
-        primaryTile?.row === row && primaryTile?.column === column
-          ? !isAcross
-          : isAcross;
+      const newDirection =
+        primaryLocation &&
+        primaryLocation.row === row &&
+        primaryLocation.column === column
+          ? direction === 'across'
+            ? 'down'
+            : 'across'
+          : direction;
 
-      const newSelections = shouldBeAcross
-        ? getAcrossTileLocations(puzzle, row, column)
-        : getDownTileLocations(puzzle, row, column);
-      setSelectedTileLocations(
-        newSelections,
-        _.findIndex(
-          newSelections,
-          (location) => location.row === row && location.column === column
-        )
-      );
+      setPrimaryLocation({ row, column });
+      if (newDirection !== direction) setDirection(newDirection);
     },
-    [puzzle, selectedTilesState, setSelectedTileLocations]
+    [direction, primaryLocation]
   );
+
+  const selectedTilesState = useMemo(() => {
+    if (!primaryLocation) return null;
+    return {
+      primaryLocation,
+      locations,
+      direction,
+    };
+  }, [primaryLocation, locations, direction]);
 
   return {
     onClick,
-    setSelectedTileLocations,
-    setNextPrimarySelectedTile,
+    updateSelectionWithPuzzle,
+    updateSelection,
     selectedTilesState,
     clearSelection,
     selectBestNext,

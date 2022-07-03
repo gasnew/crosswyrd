@@ -125,13 +125,13 @@ export default function CrosswordBuilder() {
 
   const {
     onClick,
-    setSelectedTileLocations,
-    setNextPrimarySelectedTile,
+    updateSelection,
+    updateSelectionWithPuzzle,
     selectedTilesState,
     clearSelection,
     selectBestNext,
   } = useTileSelection(puzzle, wave, WFCBusy, running);
-  useTileInput(puzzle, selectedTilesState, setNextPrimarySelectedTile);
+  useTileInput(puzzle, selectedTilesState, updateSelectionWithPuzzle);
 
   // negative number means we've passed the last failed depth
   const stepsToLastFailure = useRef(-1);
@@ -229,9 +229,12 @@ export default function CrosswordBuilder() {
     setWaveState(previousState.wave, previousState.puzzle);
     dispatch(setPuzzleState(previousState.puzzle));
     if (previousState.selectedTilesState)
-      setSelectedTileLocations(previousState.selectedTilesState.locations);
+      updateSelection(
+        previousState.selectedTilesState.primaryLocation,
+        previousState.selectedTilesState.direction
+      );
     return previousState;
-  }, [dispatch, setWaveState, popStateHistory, setSelectedTileLocations]);
+  }, [dispatch, setWaveState, popStateHistory, updateSelection]);
 
   const mkHandleClickTile = (row, column) => {
     return (event) => {
@@ -490,7 +493,8 @@ export default function CrosswordBuilder() {
                       location.column === columnIndex
                   );
                   const primarySelection =
-                    selectedTilesState?.primaryIndex === selectionIndex;
+                    selectedTilesState?.primaryLocation?.row === rowIndex &&
+                    selectedTilesState?.primaryLocation?.column === columnIndex;
                   // The word bank word location options this tile intersects
                   const wordLocationOptions: LocationType[] | null =
                     wordLocationsGrid &&
@@ -630,7 +634,7 @@ export default function CrosswordBuilder() {
                   <ClueEntry
                     puzzle={puzzle}
                     tileNumbers={tileNumbers}
-                    setSelectedTileLocations={setSelectedTileLocations}
+                    updateSelection={updateSelection}
                     selectedTilesState={selectedTilesState}
                   />
                 }

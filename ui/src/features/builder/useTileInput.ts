@@ -4,20 +4,36 @@ import { useDispatch } from 'react-redux';
 
 import {
   CrosswordPuzzleType,
+  getSymmetricTile,
   LetterType,
   setPuzzleTileValues,
+  TileValueType,
 } from './builderSlice';
-import { ALL_LETTERS } from './constants';
+import { ALL_LETTERS, PUZZLE_SIZE } from './constants';
 import {
   SelectedTilesStateType,
-  SetNextPrimarySelectedTileType,
+  UpdateSelectionWithPuzzleType,
 } from './useTileSelection';
 import { TileUpdateType } from './useWaveFunctionCollapse';
+
+function withPuzzleTileUpdates(
+  puzzle: CrosswordPuzzleType,
+  tileUpdates: TileUpdateType[]
+): CrosswordPuzzleType {
+  const newPuzzle = {
+    ...puzzle,
+    tiles: _.map(puzzle.tiles, (row) => _.map(row, (tile) => ({ ...tile }))),
+  };
+  _.forEach(tileUpdates, ({ row, column, value }) => {
+    newPuzzle.tiles[row][column].value = value;
+  });
+  return newPuzzle;
+}
 
 export default function useTileInput(
   puzzle: CrosswordPuzzleType,
   selectedTilesState: SelectedTilesStateType | null,
-  setNextPrimarySelectedTile: SetNextPrimarySelectedTileType
+  updateSelectionWithPuzzle: UpdateSelectionWithPuzzleType
 ) {
   const dispatch = useDispatch();
   // A map of key states, used to prevent rapid-fire keypresses by olding keys
@@ -57,47 +73,95 @@ export default function useTileInput(
       return;
     }
 
-    let primaryIndex = selectedTilesState.primaryIndex;
-    const tileUpdates = _.compact(
-      _.map(cachedInputQueue.current, (key) => {
+    let newPrimaryLocation = selectedTilesState.primaryLocation;
+    const dir = selectedTilesState.direction === 'across' ? [0, 1] : [1, 0];
+    const shift = ({ row, column }, step: number) => ({
+      row: row + step * dir[0],
+      column: column + step * dir[1],
+    });
+    const tileUpdates: TileUpdateType[] = _.flatMap(
+      cachedInputQueue.current,
+      (key) => {
         if (key === 'Backspace') {
-          const primaryTile = selectedTilesState.locations[primaryIndex];
+          const previousLocation = shift(newPrimaryLocation, -1);
           const erasePrevious =
-            puzzle.tiles[primaryTile.row][primaryTile.column].value ===
-              'empty' && primaryIndex > 0;
+            puzzle.tiles[newPrimaryLocation.row][newPrimaryLocation.column]
+              .value === 'empty' &&
+            previousLocation.row >= 0 &&
+            previousLocation.column >= 0;
           const tileUpdate: TileUpdateType = {
-            ...selectedTilesState.locations[
-              erasePrevious ? primaryIndex - 1 : primaryIndex
-            ],
+            ...(erasePrevious ? previousLocation : newPrimaryLocation),
             value: 'empty',
           };
-          if (primaryIndex > 0 && erasePrevious) primaryIndex -= 1;
-          return tileUpdate;
+          const symmetricTileInfo =
+            puzzle.tiles[tileUpdate.row][tileUpdate.column].value === 'black'
+              ? getSymmetricTile(puzzle, tileUpdate.row, tileUpdate.column)
+              : null;
+
+          if (erasePrevious) newPrimaryLocation = shift(newPrimaryLocation, -1);
+          return [
+            tileUpdate,
+            // Erase symmetric black tile if applicable
+            ...(symmetricTileInfo
+              ? [
+                  {
+                    value: 'empty' as TileValueType,
+                    row: symmetricTileInfo.row,
+                    column: symmetricTileInfo.column,
+                  },
+                ]
+              : []),
+          ];
         } else if (key === 'Tab') {
-          if (primaryIndex < selectedTilesState.locations.length - 1)
-            primaryIndex += 1;
+          //if (primaryIndex < selectedTilesState.locations.length - 1)
+          //primaryIndex += 1;
+          return [];
         } else if (key === 'ShiftTab') {
-          if (primaryIndex > 0) primaryIndex -= 1;
+          //if (primaryIndex > 0) primaryIndex -= 1;
+          return [];
         } else {
           const tileUpdate: TileUpdateType = {
-            ...selectedTilesState.locations[primaryIndex],
+            ...newPrimaryLocation,
             value: key === '.' ? 'black' : (key as LetterType),
           };
-          if (primaryIndex < selectedTilesState.locations.length - 1)
-            primaryIndex += 1;
-          return tileUpdate;
+          const symmetricTileInfo =
+            tileUpdate.value === 'black'
+              ? getSymmetricTile(
+                  puzzle,
+                  newPrimaryLocation.row,
+                  newPrimaryLocation.column
+                )
+              : null;
+          if (
+            newPrimaryLocation.row <= PUZZLE_SIZE - 1 &&
+            newPrimaryLocation.column <= PUZZLE_SIZE
+          )
+            newPrimaryLocation = shift(newPrimaryLocation, 1);
+          return [
+            tileUpdate,
+            // Add symmetric black tile if applicable
+            ...(symmetricTileInfo
+              ? [
+                  {
+                    value: 'black' as TileValueType,
+                    row: symmetricTileInfo.row,
+                    column: symmetricTileInfo.column,
+                  },
+                ]
+              : []),
+          ];
         }
-      })
+      }
     );
     cachedInputQueue.current = [];
     setInputQueue(cachedInputQueue.current);
 
     dispatch(setPuzzleTileValues(tileUpdates));
-    setNextPrimarySelectedTile(primaryIndex - selectedTilesState.primaryIndex);
+    updateSelectionWithPuzzle(withPuzzleTileUpdates(puzzle, tileUpdates));
   }, [
     dispatch,
     selectedTilesState,
-    setNextPrimarySelectedTile,
+    updateSelectionWithPuzzle,
     setInputQueue,
     inputQueue,
     puzzle,

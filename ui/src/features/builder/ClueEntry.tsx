@@ -4,7 +4,7 @@ import React, { useLayoutEffect, useMemo, useRef } from 'react';
 
 import { CrosswordPuzzleType, TileType } from './builderSlice';
 import { LocationType } from './CrosswordBuilder';
-import { SelectedTilesStateType } from './useTileSelection';
+import { DirectionType, SelectedTilesStateType } from './useTileSelection';
 
 function computeTileNumbers(puzzle: CrosswordPuzzleType): TileNumbersType {
   const solid = (tile: TileType | null): boolean =>
@@ -223,13 +223,16 @@ function AnswerListItem({
 interface Props {
   puzzle: CrosswordPuzzleType;
   tileNumbers: TileNumbersType;
-  setSelectedTileLocations: (locations: LocationType[]) => void;
+  updateSelection: (
+    primaryLocation: LocationType,
+    direction?: DirectionType
+  ) => void;
   selectedTilesState: SelectedTilesStateType | null;
 }
 function ClueEntry({
   puzzle,
   tileNumbers,
-  setSelectedTileLocations,
+  updateSelection,
   selectedTilesState,
 }: Props) {
   const flattenedAnswers: AnswerEntryType[] = useMemo(
@@ -238,12 +241,7 @@ function ClueEntry({
   );
 
   const selectAnswer = (direction, row, column, answer) =>
-    setSelectedTileLocations(
-      _.map(_.range(answer.word.length), (index) => ({
-        row: row + (direction === 'down' ? index : 0),
-        column: column + (direction === 'across' ? index : 0),
-      }))
-    );
+    updateSelection({ row, column }, direction);
 
   // replace onclick with onfocus?? also focus when clicked? also focus on tile selection change
   return (
