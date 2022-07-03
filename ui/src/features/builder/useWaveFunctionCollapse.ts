@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { CrosswordPuzzleType, LetterType, TileValueType } from './builderSlice';
 import { ALL_LETTERS } from './constants';
 import { DictionaryType } from './useDictionary';
+import { SelectedTilesStateType } from './useTileSelection';
 
 import WFCWorker, { WFCWorkerAPIType } from './WFCWorker.worker';
 
@@ -18,6 +19,7 @@ export interface ElementType {
 }
 export interface WaveType {
   elements: ElementType[][];
+  puzzleVersion: string;
 }
 export interface TileUpdateType {
   row: number;
@@ -80,17 +82,26 @@ export function waveFromPuzzle(puzzle: CrosswordPuzzleType): WaveType {
         solid: solid(tile),
       }))
     ),
+    puzzleVersion: puzzle.version,
   };
 }
 
+type UpdateWaveReturnType = {
+  wave: WaveType;
+  puzzle: CrosswordPuzzleType;
+  selectedTilesState: SelectedTilesStateType | null;
+} | null;
 interface ReturnType {
   wave: WaveType | null;
   updateWaveWithTileUpdates: (
     dictionary: DictionaryType,
     tileUpdates: TileUpdateType[]
   ) => Promise<WaveType | null>;
-  updateWave: (dictionary: DictionaryType) => Promise<WaveType | null>;
-  setWaveState: (wave: WaveType ) => void;
+  updateWave: (
+    dictionary: DictionaryType,
+    selectedTilesState: SelectedTilesStateType | null
+  ) => Promise<UpdateWaveReturnType>;
+  setWaveState: (wave: WaveType, puzzle: CrosswordPuzzleType) => void;
   busy: boolean;
 }
 
@@ -146,7 +157,10 @@ export default function useWaveFunctionCollapse(
 
   const previousPuzzle = useRef<CrosswordPuzzleType | null>(null);
   const updateWave = useCallback(
-    async (dictionary: DictionaryType): Promise<WaveType | null> => {
+    async (
+      dictionary: DictionaryType,
+      selectedTilesState: SelectedTilesStateType | null
+    ): Promise<UpdateWaveReturnType> => {
       if (computingWave.current || !wave || !WFCWorkerRef.current) return null;
       const previous = previousPuzzle.current;
       if (!previous)
@@ -166,20 +180,30 @@ export default function useWaveFunctionCollapse(
             value !== previous.tiles[row][column].value
         )
       );
-      console.log(tileUpdates);
       if (tileUpdates.length === 0)
         // Do nothing because the puzzle hasn't changed
         return null;
       previousPuzzle.current = puzzle;
 
-      return await updateWaveWithTileUpdates(dictionary, tileUpdates);
+      const newWave = await updateWaveWithTileUpdates(dictionary, tileUpdates);
+      return (
+        newWave && {
+          puzzle,
+          wave: newWave,
+          selectedTilesState,
+        }
+      );
     },
     [wave, puzzle, updateWaveWithTileUpdates]
   );
 
-  const setWaveState = useCallback((wave: WaveType ) => {
-    setWave(wave);
-  }, []);
+  const setWaveState = useCallback(
+    (wave: WaveType, puzzle: CrosswordPuzzleType) => {
+      setWave(wave);
+      previousPuzzle.current = puzzle;
+    },
+    []
+  );
 
   return {
     wave,

@@ -3,7 +3,6 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 
 import { CrosswordPuzzleType, selectCurrentTab } from './builderSlice';
-import { PUZZLE_SIZE } from './constants';
 import { LocationType } from './CrosswordBuilder';
 import { WaveAndPuzzleType } from './useWaveAndPuzzleHistory';
 import { WaveType } from './useWaveFunctionCollapse';
@@ -82,9 +81,6 @@ export default function useTileSelection(
     selectedTilesState,
     setSelectedTilesState,
   ] = useState<SelectedTilesStateType | null>(null);
-  // Default to selecting across, not down (this can be toggled by clicking a
-  // selected tile)
-  const [acrossMode, setAcrossMode] = useState(true);
 
   const currentTab = useSelector(selectCurrentTab);
 
@@ -229,19 +225,24 @@ export default function useTileSelection(
         setSelectedTileLocations([]);
         return;
       }
-      // Toggle acrossMode if we're clicking on the primary selected tile
+      // Toggle whether selection is across or down if we're clicking on the
+      // primary selected tile
+      const isAcross = selectedTilesState
+        ? selectedTilesState.locations.length > 1 &&
+          selectedTilesState.locations[1].column >
+            selectedTilesState.locations[0].column
+        : true;
       const primaryIndex = selectedTilesState?.primaryIndex ?? -1;
       const primaryTile =
         primaryIndex >= 0
           ? selectedTilesState?.locations?.[primaryIndex]
           : null;
-      const newAcrossMode =
+      const shouldBeAcross =
         primaryTile?.row === row && primaryTile?.column === column
-          ? !acrossMode
-          : acrossMode;
-      setAcrossMode(newAcrossMode);
+          ? !isAcross
+          : isAcross;
 
-      const newSelections = newAcrossMode
+      const newSelections = shouldBeAcross
         ? getAcrossTileLocations(puzzle, row, column)
         : getDownTileLocations(puzzle, row, column);
       setSelectedTileLocations(
@@ -252,7 +253,7 @@ export default function useTileSelection(
         )
       );
     },
-    [puzzle, acrossMode, selectedTilesState, setSelectedTileLocations]
+    [puzzle, selectedTilesState, setSelectedTileLocations]
   );
 
   return {

@@ -53,6 +53,7 @@ import useWaveFunctionCollapse, {
 } from './useWaveFunctionCollapse';
 import WordBank, { WordLocationsGridType } from './WordBank';
 import WordSelector from './WordSelector';
+import { randomId } from '../../app/util';
 
 import './CrosswordBuilder.css';
 
@@ -75,12 +76,9 @@ function pickWeightedRandomLetter(
   ) as LetterType | undefined;
 }
 
-const WAVE_DEBOUNCE_MS = 1000;
+const WAVE_DEBOUNCE_MS = 500;
 const debouncedUpdateWave = _.debounce(
-  (
-    updateWave: (dictionary: DictionaryType) => Promise<WaveType | null>,
-    dictionary: DictionaryType
-  ): Promise<WaveType | null> => updateWave(dictionary),
+  (func: () => void) => func(),
   WAVE_DEBOUNCE_MS
 );
 
@@ -117,7 +115,7 @@ export default function CrosswordBuilder() {
     popStateHistory,
     pushStateHistory,
     checkHistoryEmpty,
-    atLastCheckpoint,
+    atLastSnapshot,
   } = useWaveAndPuzzleHistory(wave, puzzle);
   const [hoveredTile, setHoveredTile] = useState<LocationType | null>(null);
   const [running, setRunning] = useState(false);
@@ -148,20 +146,29 @@ export default function CrosswordBuilder() {
 
   // Update the wave with changes to the puzzle
   useEffect(() => {
-    if (!dictionary || atLastCheckpoint) return;
-    const result = debouncedUpdateWave(updateWave, dictionary);
-    if (result)
-      result.then((newWave) => {
-        if (!newWave) return;
-        pushStateHistory({ wave: newWave, puzzle, selectedTilesState });
+    // Only try to update if the wave is outdated
+    if (!dictionary || wave?.puzzleVersion === puzzle.version) return;
+    debouncedUpdateWave(() => {
+      updateWave(dictionary, selectedTilesState).then((result) => {
+        if (!result) return;
+        // This may get called a lot due to the nature of `debounce`, but this
+        // is OK--this function has lots of safeguards against this.
+        // TODO think about how to make selected tile state work better...?
+        pushStateHistory({
+          wave: result.wave,
+          puzzle: result.puzzle,
+          selectedTilesState: result.selectedTilesState,
+        });
       });
+    });
   }, [
-    atLastCheckpoint,
     puzzle,
+    wave,
     dictionary,
     updateWave,
     pushStateHistory,
     selectedTilesState,
+    atLastSnapshot,
   ]);
 
   const puzzleError = useMemo(() => {
@@ -188,32 +195,35 @@ export default function CrosswordBuilder() {
         tiles: _.map(grid.tiles, (row) =>
           _.map(row, (tile) => ({ value: tile ? 'black' : 'empty' }))
         ),
+        version: randomId(),
       };
       const newWave: WaveType = waveFromPuzzle(newPuzzle);
       pushStateHistory({ wave: newWave, puzzle: newPuzzle });
       dispatch(setPuzzleState(newPuzzle));
-      setWaveState(newWave);
+      setWaveState(newWave, newPuzzle);
     },
     [dispatch, setWaveState, clearSelection, pushStateHistory]
   );
   const clearLetters = useCallback(() => {
     if (!wave) return;
-    pushStateHistory({ wave, puzzle });
     const newPuzzle: CrosswordPuzzleType = {
       tiles: _.map(puzzle.tiles, (row) =>
         _.map(row, (tile) => ({
           value: tile.value === 'black' ? 'black' : 'empty',
         }))
       ),
+      version: randomId(),
     };
-    setWaveState(waveFromPuzzle(newPuzzle));
+    const newWave = waveFromPuzzle(newPuzzle);
+    pushStateHistory({ wave: newWave, puzzle: newPuzzle });
+    setWaveState(newWave, newPuzzle);
     dispatch(setPuzzleState(newPuzzle));
   }, [dispatch, setWaveState, puzzle, pushStateHistory, wave]);
 
   const stepBack = useCallback(() => {
     const previousState = popStateHistory();
     if (!previousState) return;
-    setWaveState(previousState.wave);
+    setWaveState(previousState.wave, previousState.puzzle);
     dispatch(setPuzzleState(previousState.puzzle));
     if (previousState.selectedTilesState)
       setSelectedTileLocations(previousState.selectedTilesState.locations);

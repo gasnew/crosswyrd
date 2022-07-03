@@ -4,6 +4,7 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { RootState } from '../../app/store';
 import { ALL_LETTERS, PUZZLE_SIZE } from './constants';
 import { TileUpdateType, WaveType } from './useWaveFunctionCollapse';
+import { randomId } from '../../app/util';
 
 export type LetterType = typeof ALL_LETTERS[number];
 
@@ -13,6 +14,7 @@ export interface TileType {
 }
 export interface CrosswordPuzzleType {
   tiles: TileType[][];
+  version: string;
 }
 interface BuilderState {
   puzzle: CrosswordPuzzleType;
@@ -32,6 +34,7 @@ const initialState: BuilderState = {
     //}))
     //),
     tiles: DEFAULT_TILES,
+    version: randomId(),
   },
   draggedWord: null,
   currentTab: 0,
@@ -70,6 +73,7 @@ export const builderSlice = createSlice({
 
       tile.value = newValue;
       symmetricTile.value = newValue;
+      state.puzzle.version = randomId();
     },
     setPuzzleTilesToResolvedWaveElements: (
       state,
@@ -90,12 +94,14 @@ export const builderSlice = createSlice({
           }
         });
       });
+      state.puzzle.version = randomId();
     },
     setPuzzleTileValues: (state, action: PayloadAction<TileUpdateType[]>) => {
       _.forEach(action.payload, ({ row, column, value }) => {
         const tile = state.puzzle.tiles[row][column];
         tile.value = value;
       });
+      state.puzzle.version = randomId();
     },
     setPuzzleState: (state, action: PayloadAction<CrosswordPuzzleType>) => {
       state.puzzle = action.payload;

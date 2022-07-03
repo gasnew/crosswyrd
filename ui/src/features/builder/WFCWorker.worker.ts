@@ -60,6 +60,7 @@ function waveFromPuzzle(puzzle: CrosswordPuzzleType): WaveType {
         solid: solid(tile),
       }))
     ),
+    puzzleVersion: puzzle.version,
   };
 }
 
@@ -370,7 +371,15 @@ const WFCWorkerAPI: WFCWorkerAPIType = {
 
     if (properObservations.length === tileUpdates.length) {
       // All observations are proper! This is the fast path.
-      return withNewObservations(dictionary, wave, properObservations);
+      return withNewObservations(
+        dictionary,
+        {
+          ...wave,
+          // We need to return a new wave that matches the puzzle version
+          puzzleVersion: puzzle.version,
+        },
+        properObservations
+      );
     }
 
     // At least one observation is redefining constraints, e.g., we are

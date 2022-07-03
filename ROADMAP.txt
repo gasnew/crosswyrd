@@ -76,6 +76,7 @@
   - traverse by tile--fill input box is removed
   - optimize word list, too
   - in-focus vs out-of-focus coloration
+  - redo
 - turn off solver
   - can place words and blocks rapidly when solver is off
   - automatically turns on after 70+ words?

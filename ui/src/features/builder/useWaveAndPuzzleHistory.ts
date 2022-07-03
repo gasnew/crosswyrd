@@ -14,7 +14,7 @@ interface ReturnType {
   pushStateHistory: (waveAndPuzzle: WaveAndPuzzleType) => void;
   popStateHistory: () => WaveAndPuzzleType | null;
   checkHistoryEmpty: () => boolean;
-  atLastCheckpoint: boolean;
+  atLastSnapshot: boolean;
 }
 
 export default function useWaveAndPuzzleHistory(
@@ -22,56 +22,73 @@ export default function useWaveAndPuzzleHistory(
   puzzle: CrosswordPuzzleType
 ): ReturnType {
   const [stateHistory, setStateHistory] = useState<WaveAndPuzzleType[]>([]);
+  const seenVersions = useRef<string[]>([]);
 
   const pushStateHistory = useCallback(
     (waveAndPuzzle) => {
-      if (!waveAndPuzzle) return;
       if (
         !waveAndPuzzle ||
-        // Wave must have changed to be added to history
+        // Wave must have changed in order to be pushed to history
         (stateHistory.length > 0 &&
-          _.isEqual(waveAndPuzzle.wave, stateHistory[0].wave))
+          waveAndPuzzle.wave.puzzleVersion ===
+            stateHistory[0].wave.puzzleVersion) ||
+        // The new puzzle version must not have been seen before
+        _.includes(seenVersions.current, waveAndPuzzle.puzzle.version)
       )
         return;
 
+      seenVersions.current.push(waveAndPuzzle.puzzle.version);
       setStateHistory([waveAndPuzzle, ...stateHistory]);
     },
     [stateHistory]
   );
 
+  // Seed history with the initial puzzle
   useEffect(() => {
     if (!wave || stateHistory.length !== 0) return;
     pushStateHistory({ wave, puzzle });
   }, [stateHistory, pushStateHistory, wave, puzzle]);
 
-  const atLastCheckpoint = useMemo(() => {
-    const state = stateHistory[0];
-    if (!state) {
-      return false;
-    }
-    return _.isEqual(puzzle, state.puzzle) && _.isEqual(wave, state.wave);
-  }, [puzzle, wave, stateHistory]);
+  const atLastSnapshot = useMemo(
+    () =>
+      stateHistory.length > 0 &&
+      stateHistory[0].puzzle.version === puzzle.version,
+    [stateHistory, puzzle]
+  );
 
   const popStateHistory = useCallback(() => {
     if (stateHistory.length === 0) return null;
-    if (atLastCheckpoint) {
-      // Go back past the last checkpoint if we are at the last checkpoint now
+    if (atLastSnapshot) {
+      // Go back past the last snapshot if we are at that snapshot now
       setStateHistory(_.drop(stateHistory));
       return stateHistory[1];
     }
 
     // Go to the last checkpoint
     return stateHistory[0];
-  }, [atLastCheckpoint, stateHistory]);
+  }, [atLastSnapshot, stateHistory]);
 
   const checkHistoryEmpty = useCallback(() => stateHistory.length <= 1, [
     stateHistory,
   ]);
 
+  // Log state history
+  //useEffect(() => {
+    //const short = (id) => _.join(_.take(id, 4), '');
+    //console.log(
+      //'state history',
+      //_.map(
+        //stateHistory,
+        //({ wave, puzzle }) =>
+          //`w${short(wave.puzzleVersion)} p${short(puzzle.version)}`
+      //)
+    //);
+  //}, [stateHistory]);
+
   return {
     pushStateHistory,
     popStateHistory,
     checkHistoryEmpty,
-    atLastCheckpoint,
+    atLastSnapshot,
   };
 }
