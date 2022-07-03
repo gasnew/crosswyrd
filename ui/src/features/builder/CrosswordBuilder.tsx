@@ -42,7 +42,7 @@ import { ALL_LETTERS, LETTER_WEIGHTS } from './constants';
 import DraggedWord from './DraggedWord';
 import PuzzleBanner from './PuzzleBanner';
 import TileLetterOptions from './TileLetterOptions';
-import useDictionary, { DictionaryType, inDictionary } from './useDictionary';
+import useDictionary from './useDictionary';
 import { GridType } from './useGrids';
 import useTileInput from './useTileInput';
 import useTileSelection from './useTileSelection';
@@ -102,7 +102,7 @@ export default function CrosswordBuilder() {
   const puzzle = useSelector(selectPuzzle);
   const draggedWord = useSelector(selectDraggedWord);
   const currentTab = useSelector(selectCurrentTab);
-  const { dictionary, addWordToDictionary } = useDictionary();
+  const { dictionary, addWordsToDictionary } = useDictionary();
   const { tileNumbers } = useClueData(puzzle);
   const {
     wave,
@@ -115,7 +115,6 @@ export default function CrosswordBuilder() {
     popStateHistory,
     pushStateHistory,
     checkHistoryEmpty,
-    atLastSnapshot,
   } = useWaveAndPuzzleHistory(wave, puzzle);
   const [hoveredTile, setHoveredTile] = useState<LocationType | null>(null);
   const [running, setRunning] = useState(false);
@@ -146,29 +145,33 @@ export default function CrosswordBuilder() {
 
   // Update the wave with changes to the puzzle
   useEffect(() => {
-    // Only try to update if the wave is outdated
-    if (!dictionary || wave?.puzzleVersion === puzzle.version) return;
+    // Only try to update if the wave is outdated, and we are not auto-filling
+    if (!dictionary || wave?.puzzleVersion === puzzle.version || running)
+      return;
     debouncedUpdateWave(() => {
-      updateWave(dictionary, selectedTilesState).then((result) => {
-        if (!result) return;
-        // This may get called a lot due to the nature of `debounce`, but this
-        // is OK--this function has lots of safeguards against this.
-        // TODO think about how to make selected tile state work better...?
-        pushStateHistory({
-          wave: result.wave,
-          puzzle: result.puzzle,
-          selectedTilesState: result.selectedTilesState,
-        });
-      });
+      updateWave(dictionary, addWordsToDictionary, selectedTilesState).then(
+        (result) => {
+          if (!result) return;
+          // This may get called a lot due to the nature of `debounce`, but this
+          // is OK--this function has lots of safeguards against this.
+          // TODO think about how to make selected tile state work better...?
+          pushStateHistory({
+            wave: result.wave,
+            puzzle: result.puzzle,
+            selectedTilesState: result.selectedTilesState,
+          });
+        }
+      );
     });
   }, [
     puzzle,
     wave,
     dictionary,
+    addWordsToDictionary,
     updateWave,
     pushStateHistory,
     selectedTilesState,
-    atLastSnapshot,
+    running,
   ]);
 
   const puzzleError = useMemo(() => {
@@ -371,18 +374,6 @@ export default function CrosswordBuilder() {
       )
         return;
 
-      // TODO incorporate dictionary-adding elsewhere
-      // Update the dictionary before making wave observations if the word
-      // hasn't been seen before and the word is full-length (i.e., it's not a
-      // word fragment, which we wouldn't want in the dictionary)
-      //const possiblyUpdatedDictionary =
-      //(!_.includes(word, ' ') &&
-      //!inDictionary(dictionary, word) &&
-      //addWordToDictionary(word)) ||
-      //dictionary;
-
-      //pushStateHistory({ wave, puzzle });
-      //updateWaveWithTileUpdates(possiblyUpdatedDictionary, observations);
       dispatch(setPuzzleTileValues(observations));
       // A bit hacky, but force the wave to be updated immediately after our
       // hook has had a chance to call the wave-update endpoint
@@ -395,7 +386,6 @@ export default function CrosswordBuilder() {
       puzzle,
       wave,
       dictionary,
-      //addWordToDictionary,
       selectedTilesState,
       //updateWaveWithTileUpdates,
       clearSelection,

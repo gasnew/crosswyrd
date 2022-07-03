@@ -3,10 +3,10 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { CrosswordPuzzleType, LetterType, TileValueType } from './builderSlice';
 import { ALL_LETTERS } from './constants';
-import { DictionaryType } from './useDictionary';
+import { DictionaryType, inDictionary } from './useDictionary';
 import { SelectedTilesStateType } from './useTileSelection';
-
 import WFCWorker, { WFCWorkerAPIType } from './WFCWorker.worker';
+import { getAllElementSets } from './WordBank';
 
 import { Remote, wrap } from 'comlink';
 
@@ -47,6 +47,23 @@ export function findWordOptionsFromDictionary(
   optionsSet: (LetterType | '.')[][]
 ): string[] {
   return findWordOptions(dictionary[optionsSet.length] || [], optionsSet);
+}
+
+function wordsNotInDictionary(
+  puzzle: CrosswordPuzzleType,
+  wave: WaveType,
+  dictionary: DictionaryType
+): string[] {
+  const allTileValueSets = _.map(getAllElementSets(puzzle, wave), (elements) =>
+    _.map(elements, ({ row, column }) => puzzle.tiles[row][column].value)
+  );
+  const allFilledValueSets = _.reject(allTileValueSets, (values) =>
+    _.some(values, (value) => value === 'black' || value === 'empty')
+  );
+  const allEnteredWords = _.map(allFilledValueSets, (values) =>
+    _.join(values, '')
+  );
+  return _.reject(allEnteredWords, (word) => inDictionary(dictionary, word));
 }
 
 function computeEntropy(options: LetterType[]): number {
@@ -99,6 +116,7 @@ interface ReturnType {
   ) => Promise<WaveType | null>;
   updateWave: (
     dictionary: DictionaryType,
+    addWordsToDictionary: (words: string[]) => DictionaryType | null,
     selectedTilesState: SelectedTilesStateType | null
   ) => Promise<UpdateWaveReturnType>;
   setWaveState: (wave: WaveType, puzzle: CrosswordPuzzleType) => void;
@@ -159,6 +177,7 @@ export default function useWaveFunctionCollapse(
   const updateWave = useCallback(
     async (
       dictionary: DictionaryType,
+      addWordsToDictionary: (words: string[]) => DictionaryType | null,
       selectedTilesState: SelectedTilesStateType | null
     ): Promise<UpdateWaveReturnType> => {
       if (computingWave.current || !wave || !WFCWorkerRef.current) return null;
@@ -185,7 +204,19 @@ export default function useWaveFunctionCollapse(
         return null;
       previousPuzzle.current = puzzle;
 
-      const newWave = await updateWaveWithTileUpdates(dictionary, tileUpdates);
+      // Update the dictionary before making wave observations if the word
+      // hasn't been seen before and the word is full-length (i.e., it's not a
+      // word fragment, which we wouldn't want in the dictionary)
+      const newWords = wordsNotInDictionary(puzzle, wave, dictionary);
+      if (newWords.length > 0)
+        console.log('Add new words to dictionary:', newWords);
+      const possiblyUpdatedDictionary =
+        (newWords.length > 0 && addWordsToDictionary(newWords)) || dictionary;
+
+      const newWave = await updateWaveWithTileUpdates(
+        possiblyUpdatedDictionary,
+        tileUpdates
+      );
       return (
         newWave && {
           puzzle,

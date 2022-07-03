@@ -8,7 +8,7 @@ export interface DictionaryType {
 
 export default function useDictionary(): {
   dictionary: DictionaryType | null;
-  addWordToDictionary: (word: string) => DictionaryType | null;
+  addWordsToDictionary: (words: string[]) => DictionaryType | null;
 } {
   const [dictionary, setDictionary] = useState<DictionaryType | null>(null);
 
@@ -23,11 +23,15 @@ export default function useDictionary(): {
     fetchDictionary();
   }, []);
 
-  const addWordToDictionary = useCallback(
-    (word: string) => {
+  const addWordsToDictionary = useCallback(
+    (newWords: string[]) => {
       if (!dictionary) return null;
-      const newDictionary = _.mapValues(dictionary, (words) =>
-        word.length === words[0].length ? _.sortBy([...words, word]) : words
+      const newDictionary = _.mapValues(dictionary, (existingWords) =>
+        _.flow((newWordsOfLength) =>
+          newWordsOfLength.length > 0
+            ? _.sortBy([...existingWords, ...newWordsOfLength])
+            : existingWords
+        )(_.filter(newWords, ['length', existingWords[0].length]))
       );
       setDictionary(newDictionary);
       return newDictionary;
@@ -35,12 +39,12 @@ export default function useDictionary(): {
     [dictionary]
   );
 
-  return { dictionary, addWordToDictionary };
+  return { dictionary, addWordsToDictionary };
 }
 export function inDictionary(
   dictionary: DictionaryType,
   word: string
 ): boolean {
-  // TODO binary search?
-  return _.includes(dictionary[word.length] || [], word);
+  // Find the index of the word using binary search
+  return _.sortedIndexOf(dictionary[word.length], word) >= 0;
 }

@@ -117,9 +117,14 @@ export default function useTileSelection(
       let nextIndex = primaryIndex + stepsForward;
       if (
         primaryIndex === locations.length - 1 &&
-        nextIndex === locations.length - 1
+        nextIndex === locations.length - 1 &&
+        // The last tile must be empty since we're presumably filling it
+        _.flow(
+          ({ row, column }) => puzzle.tiles[row][column].value === 'empty'
+        )(_.last(selectedTilesState.locations))
       ) {
-        // Clear selection because we have reached the end of the word
+        // Clear selection because we have reached the end of the word, and the
+        // word is completely filled
         clearSelection();
         return;
       }
