@@ -132,9 +132,11 @@ export default function useTileSelection(
     (newPuzzle: CrosswordPuzzleType) => {
       if (!primaryLocation || locations.length < 1) return;
 
-      const lastLocation = locations[locations.length - 1];
       if (
-        newPuzzle.tiles[lastLocation.row][lastLocation.column].value !== 'empty'
+        _.every(
+          locations,
+          ({ row, column }) => newPuzzle.tiles[row][column].value !== 'empty'
+        )
       ) {
         // Clear selection because we have reached the end of the word, and the
         // word is completely filled
@@ -147,6 +149,7 @@ export default function useTileSelection(
         newPuzzle.tiles[newPrimaryLocation.row][newPrimaryLocation.column]
           .value === 'empty'
       ) {
+        // Move backward to first non-empty tile
         while (
           newPuzzle.tiles[newPrimaryLocation.row - dir[0]]?.[
             newPrimaryLocation.column - dir[1]
@@ -158,7 +161,14 @@ export default function useTileSelection(
           };
         }
       } else {
+        // Move forward to first empty tile
+        const next = ({ row, column }) => ({
+          row: row + dir[0],
+          column: column + dir[1],
+        });
         while (
+          next(newPrimaryLocation).row < PUZZLE_SIZE &&
+          next(newPrimaryLocation).column < PUZZLE_SIZE &&
           newPuzzle.tiles[newPrimaryLocation.row + dir[0]]?.[
             newPrimaryLocation.column + dir[1]
           ]?.value !== 'empty'
@@ -168,11 +178,16 @@ export default function useTileSelection(
             column: newPrimaryLocation.column + dir[1],
           };
         }
-        // Move it one more into the empty spot
-        newPrimaryLocation = {
-          row: newPrimaryLocation.row + dir[0],
-          column: newPrimaryLocation.column + dir[1],
-        };
+        if (
+          newPrimaryLocation.row + dir[0] < PUZZLE_SIZE &&
+          newPrimaryLocation.column + dir[1] < PUZZLE_SIZE
+        )
+          // Move it one more into the empty spot
+          newPrimaryLocation = {
+            row: newPrimaryLocation.row + dir[0],
+            column: newPrimaryLocation.column + dir[1],
+          };
+        else newPrimaryLocation = primaryLocation;
       }
 
       setPrimaryLocation(newPrimaryLocation);

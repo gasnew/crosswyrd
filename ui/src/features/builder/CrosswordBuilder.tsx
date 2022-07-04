@@ -522,6 +522,14 @@ export default function CrosswordBuilder() {
                     hoveredTile &&
                     hoveredTile.row === rowIndex &&
                     hoveredTile.column === columnIndex;
+                  const secondaryHighlight =
+                    selectionIndex === -1 &&
+                    selectedTilesState &&
+                    ((selectedTilesState.direction === 'across' &&
+                      selectedTilesState.primaryLocation.row === rowIndex) ||
+                      (selectedTilesState.direction === 'down' &&
+                        selectedTilesState.primaryLocation.column ===
+                          columnIndex));
 
                   return (
                     <div
@@ -541,7 +549,7 @@ export default function CrosswordBuilder() {
                               backgroundColor:
                                 tile.value === 'empty' &&
                                 element.options.length >= 1
-                                  ? `rgba(45, 114, 210, ${
+                                  ? `rgba(25, 118, 210, ${
                                       (3.3 - element.entropy) / 3.3
                                     })`
                                   : element.options.length === 0 ||
@@ -556,6 +564,11 @@ export default function CrosswordBuilder() {
                       onMouseOver={mkHandleMouseoverTile(rowIndex, columnIndex)}
                       onClick={mkHandleClickTile(rowIndex, columnIndex)}
                     >
+                      {secondaryHighlight && (
+                        <div
+                          className="tile-highlight tile-highlight--secondary"
+                        />
+                      )}
                       {hovered && (
                         <div
                           className="tile-highlight"
