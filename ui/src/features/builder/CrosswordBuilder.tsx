@@ -42,6 +42,7 @@ import { ALL_LETTERS, LETTER_WEIGHTS } from './constants';
 import DraggedWord from './DraggedWord';
 import PuzzleBanner from './PuzzleBanner';
 import TileLetterOptions from './TileLetterOptions';
+import useAutoFill from './useAutoFill';
 import useDictionary from './useDictionary';
 import { GridType } from './useGrids';
 import useTileInput from './useTileInput';
@@ -117,11 +118,11 @@ export default function CrosswordBuilder() {
     checkHistoryEmpty,
   } = useWaveAndPuzzleHistory(wave, puzzle);
   const [hoveredTile, setHoveredTile] = useState<LocationType | null>(null);
-  const [running, setRunning] = useState(false);
   const [
     wordLocationsGrid,
     setWordLocationsGrid,
   ] = useState<WordLocationsGridType | null>(null);
+  const [autoFillRunning, setAutoFillRunning] = useState(false);
 
   const {
     onClick,
@@ -130,23 +131,43 @@ export default function CrosswordBuilder() {
     selectedTilesState,
     clearSelection,
     selectBestNext,
-  } = useTileSelection(puzzle, wave, WFCBusy, running);
+  } = useTileSelection(puzzle, wave, WFCBusy, autoFillRunning);
   useTileInput(puzzle, selectedTilesState, updateSelectionWithPuzzle);
 
-  // negative number means we've passed the last failed depth
-  const stepsToLastFailure = useRef(-1);
-  // the number of steps to backtrack next time we reach a failure
-  const stepsToBacktrack = useRef(1);
-  // the number of steps into the run we are from where we started (guards
-  // against undoing something a user inputted)
-  const stepsFromRunStart = useRef(0);
-
   const dispatch = useDispatch();
+  const stepBack = useCallback(() => {
+    const previousState = popStateHistory();
+    if (!previousState) return;
+    setWaveState(previousState.wave, previousState.puzzle);
+    dispatch(setPuzzleState(previousState.puzzle));
+    if (previousState.selectedTilesState)
+      updateSelection(
+        previousState.selectedTilesState.primaryLocation,
+        previousState.selectedTilesState.direction
+      );
+    return previousState;
+  }, [dispatch, setWaveState, popStateHistory, updateSelection]);
+  const { runAutoFill, stopAutoFill } = useAutoFill(
+    dictionary,
+    puzzle,
+    wave,
+    autoFillRunning,
+    setAutoFillRunning,
+    pushStateHistory,
+    updateWaveWithTileUpdates,
+    WFCBusy,
+    stepBack
+  );
 
   // Update the wave with changes to the puzzle
   useEffect(() => {
     // Only try to update if the wave is outdated, and we are not auto-filling
-    if (!dictionary || wave?.puzzleVersion === puzzle.version || running)
+    if (
+      !dictionary ||
+      !wave ||
+      wave.puzzleVersion === puzzle.version ||
+      autoFillRunning
+    )
       return;
     debouncedUpdateWave(() => {
       updateWave(dictionary, addWordsToDictionary, selectedTilesState).then(
@@ -171,11 +192,11 @@ export default function CrosswordBuilder() {
     updateWave,
     pushStateHistory,
     selectedTilesState,
-    running,
+    autoFillRunning,
   ]);
 
   const puzzleError = useMemo(() => {
-    if (running || !wave) return '';
+    if (autoFillRunning || !wave) return '';
     if (
       _.some(puzzle.tiles, (row, rowIndex) =>
         _.some(
@@ -188,7 +209,7 @@ export default function CrosswordBuilder() {
     )
       return 'The puzzle cannot be filled from here! Try undoing recent changes, clearing up space around any red tiles, or adjusting the grid pattern.';
     return '';
-  }, [running, puzzle, wave]);
+  }, [autoFillRunning, puzzle, wave]);
   const showPuzzleError = useMemo(() => !!puzzleError, [puzzleError]);
 
   const setPuzzleToGrid = useCallback(
@@ -222,19 +243,6 @@ export default function CrosswordBuilder() {
     setWaveState(newWave, newPuzzle);
     dispatch(setPuzzleState(newPuzzle));
   }, [dispatch, setWaveState, puzzle, pushStateHistory, wave]);
-
-  const stepBack = useCallback(() => {
-    const previousState = popStateHistory();
-    if (!previousState) return;
-    setWaveState(previousState.wave, previousState.puzzle);
-    dispatch(setPuzzleState(previousState.puzzle));
-    if (previousState.selectedTilesState)
-      updateSelection(
-        previousState.selectedTilesState.primaryLocation,
-        previousState.selectedTilesState.direction
-      );
-    return previousState;
-  }, [dispatch, setWaveState, popStateHistory, updateSelection]);
 
   const mkHandleClickTile = (row, column) => {
     return (event) => {
@@ -281,38 +289,6 @@ export default function CrosswordBuilder() {
       }
     };
   };
-  const placeOneTile = useCallback(async () => {
-    if (!wave || !dictionary) return;
-    // Element is either a random element (if this is the first tile placed) or
-    // the element with lowest entropy
-    const lowestEntropyElement = _.every(
-      _.flatten(puzzle.tiles),
-      (tile) => tile.value === 'black' || tile.value === 'empty'
-    )
-      ? _.sample(_.reject(_.flatten(wave.elements), 'solid'))
-      : _.minBy(_.reject(_.flatten(wave.elements), ['entropy', 0]), 'entropy');
-    if (!lowestEntropyElement) return;
-    const { row, column } = lowestEntropyElement;
-    const newValue = pickWeightedRandomLetter(wave, row, column);
-    if (!newValue) return;
-
-    const newWave = await updateWaveWithTileUpdates(dictionary, [
-      { row, column, value: newValue },
-    ]);
-    if (newWave) {
-      pushStateHistory({ wave, puzzle });
-      // The observation succeeded, so set tile values for all tiles that are
-      // now collapsed to one state in the new wave.
-      dispatch(setPuzzleTilesToResolvedWaveElements(newWave));
-    }
-  }, [
-    dispatch,
-    pushStateHistory,
-    dictionary,
-    updateWaveWithTileUpdates,
-    puzzle,
-    wave,
-  ]);
   const handleClickBestNext = () => {
     selectBestNext();
   };
@@ -322,13 +298,11 @@ export default function CrosswordBuilder() {
       selectBestNext(previousState);
   };
   const handleClickRun = () => {
-    // Reset these to their default values for the run
-    stepsToLastFailure.current = -1;
-    stepsToBacktrack.current = 1;
-    stepsFromRunStart.current = 0;
-    // Start running
-    setRunning(!running);
     clearSelection();
+    runAutoFill();
+  };
+  const handleClickStop = () => {
+    stopAutoFill();
   };
   const mkHandleMouseoverTile = (row, column) => {
     return () => setHoveredTile({ row, column });
@@ -395,48 +369,6 @@ export default function CrosswordBuilder() {
     ]
   );
 
-  // Run auto-fill
-  useInterval(() => {
-    if (!wave || !running || WFCBusy) return;
-    if (!_.some(_.flatten(puzzle.tiles), ['value', 'empty'])) {
-      // The puzzle is finished!
-      setRunning(false);
-      return;
-    }
-
-    if (
-      _.some(
-        _.flatten(wave.elements),
-        (element) => !element.solid && element.options.length === 0
-      )
-    ) {
-      // We are about to move stepsToBacktrack.current steps toward run start
-      stepsFromRunStart.current -= stepsToBacktrack.current;
-      if (stepsFromRunStart.current < 0) {
-        // Stop running so that we don't overwrite something the user did
-        setRunning(false);
-        return;
-      }
-
-      // Backstep N times!
-      _.times(stepsToBacktrack.current, stepBack);
-      // We are now N steps removed from this backtrack
-      stepsToLastFailure.current = stepsToBacktrack.current;
-      // Next time we backtrack at this level, backtrack one more step
-      stepsToBacktrack.current += 1;
-    } else {
-      if (stepsToLastFailure.current <= 0) {
-        // We've passed the barrier! Reset backtrack step count
-        stepsToBacktrack.current = 1;
-      }
-      placeOneTile();
-      // We're one step closer to last backtrack
-      stepsToLastFailure.current -= 1;
-      // We have moved one step further from run start
-      stepsFromRunStart.current += 1;
-    }
-  }, 100);
-
   const selectedOptionsSet = useMemo(
     () =>
       wave
@@ -475,7 +407,7 @@ export default function CrosswordBuilder() {
       <div className="puzzle-builder-container">
         <div className="puzzle-container sheet">
           <PuzzleBanner
-            disabled={WFCBusy || running}
+            disabled={WFCBusy || autoFillRunning}
             setPuzzleToGrid={setPuzzleToGrid}
             clearLetters={clearLetters}
           />
@@ -565,9 +497,7 @@ export default function CrosswordBuilder() {
                       onClick={mkHandleClickTile(rowIndex, columnIndex)}
                     >
                       {secondaryHighlight && (
-                        <div
-                          className="tile-highlight tile-highlight--secondary"
-                        />
+                        <div className="tile-highlight tile-highlight--secondary" />
                       )}
                       {hovered && (
                         <div
@@ -595,27 +525,27 @@ export default function CrosswordBuilder() {
         <div className="sidebar-container sheet">
           <ButtonGroup>
             <Button
-              disabled={WFCBusy || running || checkHistoryEmpty()}
+              disabled={WFCBusy || autoFillRunning || checkHistoryEmpty()}
               onClick={handleClickBack}
               startIcon={<UndoIcon />}
             >
               Undo
             </Button>
             <Button
-              disabled={WFCBusy || running}
+              disabled={WFCBusy || autoFillRunning}
               onClick={handleClickBestNext}
               endIcon={<NavigateNextIcon />}
             >
               Next
             </Button>
             <Button
-              onClick={handleClickRun}
-              color={running ? 'error' : 'primary'}
+              onClick={!autoFillRunning ? handleClickRun : handleClickStop}
+              color={autoFillRunning ? 'error' : 'primary'}
               variant="contained"
-              disabled={WFCBusy && !running}
-              endIcon={running ? <StopIcon /> : <PlayArrowIcon />}
+              disabled={WFCBusy && !autoFillRunning}
+              endIcon={autoFillRunning ? <StopIcon /> : <PlayArrowIcon />}
             >
-              {running ? 'Stop' : 'Auto-Fill'}
+              {autoFillRunning ? 'Stop' : 'Auto-Fill'}
             </Button>
           </ButtonGroup>
           {dictionary && (
@@ -629,7 +559,7 @@ export default function CrosswordBuilder() {
                   <WordSelector
                     dictionary={dictionary}
                     optionsSet={selectedOptionsSet}
-                    tiles={selectedTiles}
+                    selectedTiles={selectedTiles}
                     processingLastChange={WFCBusy}
                     onEnter={handleEnterWord}
                     clearSelection={clearSelection}

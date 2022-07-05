@@ -50,10 +50,17 @@ function WordEntry({
   );
 }
 
+export function sortByWordScore(words: string[]): string[] {
+  return _.sortBy(
+    words,
+    (word) => -_.sumBy(word, (letter) => LETTER_WEIGHTS[letter])
+  );
+}
+
 interface Props {
   dictionary: DictionaryType;
   optionsSet: LetterType[][];
-  tiles: TileType[];
+  selectedTiles: TileType[];
   processingLastChange: boolean;
   onEnter: (word: string) => void;
   clearSelection: () => void;
@@ -62,7 +69,7 @@ interface Props {
 function WordSelector({
   dictionary,
   optionsSet,
-  tiles,
+  selectedTiles,
   processingLastChange,
   onEnter,
   clearSelection,
@@ -73,29 +80,29 @@ function WordSelector({
   );
   const wordsFilteredByTiles = useMemo(
     () =>
+      // Filter even before wave updates come in
       findWordOptions(
         allPossibleWords,
         _.map(_.range(optionsSet.length), (index) => {
-          const tileValue = tiles[index].value;
+          const tileValue = selectedTiles[index].value;
           if (tileValue === 'empty' || tileValue === 'black') return ['.'];
           return [tileValue];
         })
       ),
-    [allPossibleWords, optionsSet, tiles]
+    [allPossibleWords, optionsSet, selectedTiles]
   );
   const possibleWords = useMemo(() => {
-    const wordsExceptSelectedWord = _.sortBy(
+    const sortedWordsExceptSelectedWord = sortByWordScore(
       _.without(
         wordsFilteredByTiles,
         _.join(
-          _.times(optionsSet.length, (index) => tiles[index].value),
+          _.times(optionsSet.length, (index) => selectedTiles[index].value),
           ''
         )
-      ),
-      (word) => -_.sumBy(word, (letter) => LETTER_WEIGHTS[letter])
+      )
     );
-    return wordsExceptSelectedWord;
-  }, [wordsFilteredByTiles, tiles, optionsSet]);
+    return sortedWordsExceptSelectedWord;
+  }, [wordsFilteredByTiles, selectedTiles, optionsSet]);
 
   const mkHandleClickWord = (index: number) => () => {
     onEnter(possibleWords[index]);

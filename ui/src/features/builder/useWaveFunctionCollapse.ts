@@ -153,6 +153,7 @@ export default function useWaveFunctionCollapse(
       dictionary: DictionaryType,
       tileUpdates: TileUpdateType[]
     ): Promise<WaveType | null> => {
+      // Invoke the WFC worker, and set the wave state as a result
       if (computingWave.current || !wave || !WFCWorkerRef.current) return null;
       computingWave.current = true;
       setBusy(true);
@@ -180,6 +181,8 @@ export default function useWaveFunctionCollapse(
       addWordsToDictionary: (words: string[]) => DictionaryType | null,
       selectedTilesState: SelectedTilesStateType | null
     ): Promise<UpdateWaveReturnType> => {
+      // Wrap updateWaveWithTileUpdates with a nice reactive-friendly API for
+      // running an updated puzzle through WFC
       if (computingWave.current || !wave || !WFCWorkerRef.current) return null;
       const previous = previousPuzzle.current;
       if (!previous)

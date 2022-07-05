@@ -6,53 +6,8 @@ import { CrosswordPuzzleType, selectCurrentTab } from './builderSlice';
 import { PUZZLE_SIZE } from './constants';
 import { LocationType } from './CrosswordBuilder';
 import { WaveAndPuzzleType } from './useWaveAndPuzzleHistory';
-import { WaveType } from './useWaveFunctionCollapse';
+import { ElementType, WaveType } from './useWaveFunctionCollapse';
 import { getAllElementSets } from './WordBank';
-
-function getAcrossTileLocations(
-  puzzle: CrosswordPuzzleType,
-  row: number,
-  column: number
-): LocationType[] {
-  let startColumn = column;
-  while (
-    startColumn > 0 &&
-    puzzle.tiles[row][startColumn - 1].value !== 'black'
-  )
-    startColumn--;
-  let stopColumn = column;
-  while (
-    stopColumn < puzzle.tiles.length - 1 &&
-    puzzle.tiles[row][stopColumn + 1].value !== 'black'
-  )
-    stopColumn++;
-
-  return _.map(_.range(startColumn, stopColumn + 1), (selectedColumn) => ({
-    row,
-    column: selectedColumn,
-  }));
-}
-
-function getDownTileLocations(
-  puzzle: CrosswordPuzzleType,
-  row: number,
-  column: number
-): LocationType[] {
-  let startRow = row;
-  while (startRow > 0 && puzzle.tiles[startRow - 1][column].value !== 'black')
-    startRow--;
-  let stopRow = row;
-  while (
-    stopRow < puzzle.tiles.length - 1 &&
-    puzzle.tiles[stopRow + 1][column].value !== 'black'
-  )
-    stopRow++;
-
-  return _.map(_.range(startRow, stopRow + 1), (selectedRow) => ({
-    row: selectedRow,
-    column,
-  }));
-}
 
 export type DirectionType = 'across' | 'down';
 export interface SelectedTilesStateType {
@@ -63,6 +18,31 @@ export interface SelectedTilesStateType {
 export type UpdateSelectionWithPuzzleType = (
   puzzle: CrosswordPuzzleType
 ) => void;
+
+export function getBestNextElementSet(
+  puzzle: CrosswordPuzzleType,
+  wave: WaveType | null
+): ElementType[] | null {
+  // Returns the element set with the lowest average entropy then the longest
+  // length
+  const prioritizedElementSets = _.sortBy(
+    _.filter(getAllElementSets(puzzle, wave), (elements) =>
+      // Some tile in this set is empty
+      _.some(
+        elements,
+        ({ row, column }) => puzzle.tiles[row][column].value === 'empty'
+      )
+    ),
+    [
+      // Sort by average entropy
+      (elements) => -_.sumBy(elements, (element) => 3.3 - element.entropy),
+      // Sort by length
+      (elements) => -elements.length,
+    ]
+  );
+
+  return prioritizedElementSets.length > 0 ? prioritizedElementSets[0] : null;
+}
 
 interface ReturnType {
   onClick: (row: number, column: number) => void;
@@ -200,35 +180,19 @@ export default function useTileSelection(
       const thisPuzzle = state?.puzzle || puzzle;
       const thisWave = state?.wave || wave;
 
-      // Select the element set with the lowest average entropy
-      const prioritizedElementSets = _.sortBy(
-        _.filter(getAllElementSets(thisPuzzle, thisWave), (elements) =>
-          // Some tile in this set is empty
-          _.some(
-            elements,
-            ({ row, column }) => thisPuzzle.tiles[row][column].value === 'empty'
-          )
-        ),
-        [
-          // Sort by average entropy
-          (elements) => -_.sumBy(elements, (element) => 3.3 - element.entropy),
-          // Sort by length
-          (elements) => -elements.length,
-        ]
-      );
-      if (prioritizedElementSets.length > 0) {
-        const bestElements = prioritizedElementSets[0];
+      const bestElementSet = getBestNextElementSet(thisPuzzle, thisWave);
+      if (bestElementSet) {
         const newDirection =
-          bestElements.length > 1
-            ? bestElements[1].row > bestElements[0].row
+          bestElementSet.length > 1
+            ? bestElementSet[1].row > bestElementSet[0].row
               ? 'down'
               : 'across'
             : direction;
         setPrimaryLocation(
           _.find(
-            bestElements,
+            bestElementSet,
             ({ row, column }) => thisPuzzle.tiles[row][column].value === 'empty'
-          ) || { row: bestElements[0].row, column: bestElements[0].column }
+          ) || { row: bestElementSet[0].row, column: bestElementSet[0].column }
         );
         if (newDirection !== direction) setDirection(newDirection);
       }

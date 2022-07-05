@@ -87,6 +87,9 @@
   - spinner on solver
   - possibly filter out grids that have too few words
 - add license
+- Ko-Fi for donations
+  - input code to unlock feature (color themes)!
+  - when code input, donation button says "Thank you!" and has stars
 - Share link to play
 - Mobile version (player only, not builder?)
 
