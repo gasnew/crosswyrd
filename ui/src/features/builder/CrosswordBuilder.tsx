@@ -135,8 +135,8 @@ export default function CrosswordBuilder() {
   useTileInput(puzzle, selectedTilesState, updateSelectionWithPuzzle);
 
   const dispatch = useDispatch();
-  const stepBack = useCallback(() => {
-    const previousState = popStateHistory();
+  const stepBack = useCallback((times: number = 1) => {
+    const previousState = popStateHistory(times);
     if (!previousState) return;
     setWaveState(previousState.wave, previousState.puzzle);
     dispatch(setPuzzleState(previousState.puzzle));

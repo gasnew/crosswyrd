@@ -1,63 +1,22 @@
 import _ from 'lodash';
-import {
-  Alert,
-  Button,
-  ButtonGroup,
-  colors,
-  Divider,
-  Slide,
-  Snackbar,
-} from '@mui/material';
-import NavigateNextIcon from '@mui/icons-material/NavigateNext';
-import PlayArrowIcon from '@mui/icons-material/PlayArrow';
-import StopIcon from '@mui/icons-material/Stop';
-import UndoIcon from '@mui/icons-material/Undo';
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import { useCallback, useRef } from 'react';
+import { useDispatch } from 'react-redux';
 
 import { useInterval } from '../../app/util';
 import {
   CrosswordPuzzleType,
-  getSymmetricTile,
   LetterType,
-  selectCurrentTab,
-  selectDraggedWord,
-  selectPuzzle,
-  setDraggedWord,
-  setPuzzleState,
   setPuzzleTilesToResolvedWaveElements,
-  setPuzzleTileValues,
-  TileValueType,
-  toggleTileBlack,
 } from './builderSlice';
-import BuilderTabs from './BuilderTabs';
-import ClueEntry, { useClueData } from './ClueEntry';
-import { ALL_LETTERS, LETTER_WEIGHTS } from './constants';
-import DraggedWord from './DraggedWord';
-import PuzzleBanner from './PuzzleBanner';
-import TileLetterOptions from './TileLetterOptions';
-import useDictionary, { DictionaryType } from './useDictionary';
-import { GridType } from './useGrids';
-import useTileInput from './useTileInput';
+import { DictionaryType } from './useDictionary';
 import { getBestNextElementSet } from './useTileSelection';
-import useWaveAndPuzzleHistory, {
-  WaveAndPuzzleType,
-} from './useWaveAndPuzzleHistory';
-import useWaveFunctionCollapse, {
+import { WaveAndPuzzleType } from './useWaveAndPuzzleHistory';
+import {
   findWordOptionsFromDictionary,
   TileUpdateType,
-  waveFromPuzzle,
   WaveType,
 } from './useWaveFunctionCollapse';
-import WordBank, { WordLocationsGridType } from './WordBank';
-import WordSelector, { sortByWordScore } from './WordSelector';
-import { randomId } from '../../app/util';
+import { sortByWordScore } from './WordSelector';
 
 interface ReturnType {
   runAutoFill: () => void;
@@ -76,8 +35,8 @@ export default function useAutoFill(
     tileUpdates: TileUpdateType[]
   ) => Promise<WaveType | null>,
   WFCBusy: boolean,
-  stepBack: () => any
-) {
+  stepBack: (times: number) => any
+): ReturnType {
   // negative number means we've passed the last failed depth
   const stepsToLastFailure = useRef(-1);
   // the number of steps to backtrack next time we reach a failure
@@ -95,6 +54,7 @@ export default function useAutoFill(
 
   const pickNextWord = useCallback(
     (sortedWordOptions: string[]): string | null => {
+      // TODO: Introduce some randomness here
       const word = _.find(
         sortedWordOptions,
         (word) =>
@@ -169,6 +129,7 @@ export default function useAutoFill(
     ) {
       // We are about to move stepsToBacktrack.current steps toward run start
       stepsFromRunStart.current -= stepsToBacktrack.current;
+      // TODO: Should this be more inclusive? We went to blank grid once
       if (stepsFromRunStart.current < 0) {
         // Stop running so that we don't overwrite something the user did
         setAutoFillRunning(false);
@@ -176,7 +137,7 @@ export default function useAutoFill(
       }
 
       // Backstep N times!
-      _.times(stepsToBacktrack.current, stepBack);
+      stepBack(stepsToBacktrack.current);
       // We are now N steps removed from this backtrack
       stepsToLastFailure.current = stepsToBacktrack.current;
       // Next time we backtrack at this level, backtrack one more step

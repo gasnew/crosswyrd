@@ -12,7 +12,7 @@ export interface WaveAndPuzzleType {
 }
 interface ReturnType {
   pushStateHistory: (waveAndPuzzle: WaveAndPuzzleType) => void;
-  popStateHistory: () => WaveAndPuzzleType | null;
+  popStateHistory: (depth?: number) => WaveAndPuzzleType | null;
   checkHistoryEmpty: () => boolean;
   atLastSnapshot: boolean;
 }
@@ -56,17 +56,20 @@ export default function useWaveAndPuzzleHistory(
     [stateHistory, puzzle]
   );
 
-  const popStateHistory = useCallback(() => {
-    if (stateHistory.length === 0) return null;
-    if (atLastSnapshot) {
-      // Go back past the last snapshot if we are at that snapshot now
-      setStateHistory(_.drop(stateHistory));
-      return stateHistory[1];
-    }
+  const popStateHistory = useCallback(
+    (depth: number = 1) => {
+      if (stateHistory.length < depth) return null;
+      if (atLastSnapshot || depth > 1) {
+        // Go back past the last snapshot if we are at that snapshot now
+        setStateHistory(_.drop(stateHistory, depth));
+        return stateHistory[depth];
+      }
 
-    // Go to the last checkpoint
-    return stateHistory[0];
-  }, [atLastSnapshot, stateHistory]);
+      // Go to the last checkpoint
+      return stateHistory[0];
+    },
+    [atLastSnapshot, stateHistory]
+  );
 
   const checkHistoryEmpty = useCallback(() => stateHistory.length <= 1, [
     stateHistory,
@@ -74,15 +77,15 @@ export default function useWaveAndPuzzleHistory(
 
   // Log state history
   //useEffect(() => {
-    //const short = (id) => _.join(_.take(id, 4), '');
-    //console.log(
-      //'state history',
-      //_.map(
-        //stateHistory,
-        //({ wave, puzzle }) =>
-          //`w${short(wave.puzzleVersion)} p${short(puzzle.version)}`
-      //)
-    //);
+  //const short = (id) => _.join(_.take(id, 4), '');
+  //console.log(
+  //'state history',
+  //_.map(
+  //stateHistory,
+  //({ wave, puzzle }) =>
+  //`w${short(wave.puzzleVersion)} p${short(puzzle.version)}`
+  //)
+  //);
   //}, [stateHistory]);
 
   return {
