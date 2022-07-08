@@ -12,33 +12,24 @@ import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import StopIcon from '@mui/icons-material/Stop';
 import UndoIcon from '@mui/icons-material/Undo';
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
-import { useInterval } from '../../app/util';
 import {
   CrosswordPuzzleType,
   getSymmetricTile,
-  LetterType,
   selectCurrentTab,
   selectDraggedWord,
   selectPuzzle,
   setDraggedWord,
   setPuzzleState,
-  setPuzzleTilesToResolvedWaveElements,
   setPuzzleTileValues,
   TileValueType,
   toggleTileBlack,
 } from './builderSlice';
 import BuilderTabs from './BuilderTabs';
 import ClueEntry, { useClueData } from './ClueEntry';
-import { ALL_LETTERS, LETTER_WEIGHTS } from './constants';
+import { ALL_LETTERS } from './constants';
 import DraggedWord from './DraggedWord';
 import PuzzleBanner from './PuzzleBanner';
 import TileLetterOptions from './TileLetterOptions';
@@ -61,20 +52,6 @@ import './CrosswordBuilder.css';
 export interface LocationType {
   row: number;
   column: number;
-}
-
-function pickWeightedRandomLetter(
-  wave: WaveType,
-  row: number,
-  column: number
-): LetterType | undefined {
-  return _.sample(
-    _.flatMap(LETTER_WEIGHTS, (weight, letter) =>
-      _.includes(wave.elements[row][column].options, letter)
-        ? _.times(weight, () => letter)
-        : []
-    )
-  ) as LetterType | undefined;
 }
 
 const WAVE_DEBOUNCE_MS = 500;
@@ -135,18 +112,21 @@ export default function CrosswordBuilder() {
   useTileInput(puzzle, selectedTilesState, updateSelectionWithPuzzle);
 
   const dispatch = useDispatch();
-  const stepBack = useCallback((times: number = 1) => {
-    const previousState = popStateHistory(times);
-    if (!previousState) return;
-    setWaveState(previousState.wave, previousState.puzzle);
-    dispatch(setPuzzleState(previousState.puzzle));
-    if (previousState.selectedTilesState)
-      updateSelection(
-        previousState.selectedTilesState.primaryLocation,
-        previousState.selectedTilesState.direction
-      );
-    return previousState;
-  }, [dispatch, setWaveState, popStateHistory, updateSelection]);
+  const stepBack = useCallback(
+    (times: number = 1) => {
+      const previousState = popStateHistory(times);
+      if (!previousState) return;
+      setWaveState(previousState.wave, previousState.puzzle);
+      dispatch(setPuzzleState(previousState.puzzle));
+      if (previousState.selectedTilesState)
+        updateSelection(
+          previousState.selectedTilesState.primaryLocation,
+          previousState.selectedTilesState.direction
+        );
+      return previousState;
+    },
+    [dispatch, setWaveState, popStateHistory, updateSelection]
+  );
   const { runAutoFill, stopAutoFill } = useAutoFill(
     dictionary,
     puzzle,
