@@ -82,16 +82,17 @@ export const builderSlice = createSlice({
       _.forEach(action.payload.elements, (row, rowIndex) => {
         _.forEach(row, (element, columnIndex) => {
           const tile = state.puzzle.tiles[rowIndex][columnIndex];
+          // If tile is a letter... (old way)
+          //if (_.includes(ALL_LETTERS, tile.value)) {
+            //// If there are zero options, set to empty
+            //if (element.options.length === 0) tile.value = 'empty';
+            //// If there are multiple values, set to empty (i.e., we
+            //// backtracked)
+            //else if (element.options.length > 1) tile.value = 'empty';
+          //}
           // If there is one option, set the value
-          if (element.options.length === 1) tile.value = element.options[0];
-          // If tile is a letter...
-          if (_.includes(ALL_LETTERS, tile.value)) {
-            // If there are zero options, set to empty
-            if (element.options.length === 0) tile.value = 'empty';
-            // If there are multiple values, set to empty (i.e., we
-            // backtracked)
-            else if (element.options.length > 1) tile.value = 'empty';
-          }
+          if (tile.value === 'empty' && element.options.length === 1)
+            tile.value = element.options[0];
         });
       });
       state.puzzle.version = randomId();

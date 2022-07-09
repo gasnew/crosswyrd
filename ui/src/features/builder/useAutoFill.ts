@@ -6,6 +6,7 @@ import { useInterval } from '../../app/util';
 import {
   CrosswordPuzzleType,
   LetterType,
+  setPuzzleTileValues,
   setPuzzleTilesToResolvedWaveElements,
 } from './builderSlice';
 import { DictionaryType } from './useDictionary';
@@ -94,21 +95,20 @@ export default function useAutoFill(
       !someTileIsRed &&
       pickWord(dictionary, puzzle, attemptedWords, bestElementSet);
     if (newWord) {
-      updateWaveWithTileUpdates(
-        dictionary,
-        _.map(bestElementSet, ({ row, column }, index) => ({
-          row,
-          column,
-          value: newWord[index] as LetterType,
-        }))
-      ).then((newWave) => {
+      const tileUpdates = _.map(bestElementSet, ({ row, column }, index) => ({
+        row,
+        column,
+        value: newWord[index] as LetterType,
+      }));
+      updateWaveWithTileUpdates(dictionary, tileUpdates).then((newWave) => {
         // This gets run before the next iteration of the auto-fill algorithm,
         // because WFCBusy is just about to be set to false (but not yet)
         if (newWave) {
           pushStateHistory({ wave, puzzle });
           // The observation succeeded, so set tile values for all tiles that are
           // now collapsed to one state in the new wave.
-          dispatch(setPuzzleTilesToResolvedWaveElements(newWave));
+          //dispatch(setPuzzleTilesToResolvedWaveElements(newWave));
+          dispatch(setPuzzleTileValues(tileUpdates));
         }
         // We have moved one step further from run start
         stepsFromRunStart.current += 1;

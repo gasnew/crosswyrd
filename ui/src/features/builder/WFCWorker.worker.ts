@@ -104,9 +104,14 @@ function intersection<T>(setA: Array<T>, setB: Array<T>): Array<T> {
   return _.filter(setA, (element) => setB.includes(element));
 }
 
-function wordsToLettersSets(words: string[]): LetterType[][] {
-  if (words.length === 0) return [];
-  const lettersSets = _.times(words[0].length, () => new Array<LetterType>());
+function wordsToLettersSets(
+  words: string[],
+  wordLength: number
+): LetterType[][] {
+  if (words.length === 0)
+    // No words => no letter options for each location
+    return _.times(wordLength, (index) => []);
+  const lettersSets = _.times(wordLength, () => new Array<LetterType>());
   _.forEach(words, (word) => {
     _.forEach(word, (letter, letterIndex) => {
       lettersSets[letterIndex].push(letter as LetterType);
@@ -139,7 +144,8 @@ function computeDownElementUpdates(
           _.range(startRow, stopRow + 1),
           (newUpdateRow) => wave.elements[newUpdateRow][column].options
         )
-      )
+      ),
+      stopRow - startRow + 1
     ),
     (letters, index) => ({
       options: _.uniq(letters),
@@ -175,7 +181,8 @@ function computeAcrossElementUpdates(
           _.range(startColumn, stopColumn + 1),
           (newUpdateColumn) => wave.elements[row][newUpdateColumn].options
         )
-      )
+      ),
+      stopColumn - startColumn + 1
     ),
     (letters, index) => ({
       options: _.uniq(letters),
@@ -271,6 +278,19 @@ function withNewObservations(
   );
 }
 
+function recoverTiles(newWave: WaveType, oldWave: WaveType) {
+  // Preserve tiles that are already resolved to one option--this prevents a
+  // contradiction from making the whol board red.
+  _.forEach(newWave.elements, (row, rowIndex) =>
+    _.forEach(row, (newElement, columnIndex) => {
+      const oldElement = oldWave.elements[rowIndex][columnIndex];
+      if (newElement.options.length === 0 && oldElement.options.length <= 1) {
+        newElement.options = oldElement.options;
+      }
+    })
+  );
+}
+
 function newWaveFromPuzzle(
   dictionary: DictionaryType,
   puzzle: CrosswordPuzzleType,
@@ -301,47 +321,43 @@ function newWaveFromPuzzle(
 
   // Commit observations on the filled-in tiles touching at least one empty
   // tile, and just set the collapsed state for the other filled-in tiles.
-  return withNewObservations(
-    dictionary,
-    newWave,
-    _.compact(
-      _.flatMap(puzzle.tiles, (row, rowIndex) =>
-        _.map(row, (tile, columnIndex) => {
-          if (tile.value === 'empty' || tile.value === 'black') return;
-          // Tile was updated, or some surrounding tile is empty or was updated
-          if (
-            // Tile was updated
-            _.some(
-              tileUpdates,
-              (update) =>
-                update.row === rowIndex && update.column === columnIndex
-            ) ||
-            // Some surrounding tile is empty or was updated
-            _.some(
-              surroundingTiles(rowIndex, columnIndex),
-              (tile) =>
-                _.some(
-                  tileUpdates,
-                  (update) =>
-                    update.row === tile.row && update.column === tile.column
-                ) || tile?.value === 'empty'
-            )
+  const observations = _.compact(
+    _.flatMap(puzzle.tiles, (row, rowIndex) =>
+      _.map(row, (tile, columnIndex) => {
+        if (tile.value === 'empty' || tile.value === 'black') return null;
+        // Tile was updated, or some surrounding tile is empty or was updated
+        if (
+          // Tile was updated
+          _.some(
+            tileUpdates,
+            (update) => update.row === rowIndex && update.column === columnIndex
+          ) ||
+          // Some surrounding tile is empty or was updated
+          _.some(
+            surroundingTiles(rowIndex, columnIndex),
+            (tile) =>
+              _.some(
+                tileUpdates,
+                (update) =>
+                  update.row === tile.row && update.column === tile.column
+              ) || tile?.value === 'empty'
           )
-            return {
-              row: rowIndex,
-              column: columnIndex,
-              value: tile.value,
-            };
-          // Write options and entropy directly for elements that have no empty
-          // adjacent tiles (these are already collapsed)
-          newWave.elements[rowIndex][columnIndex].options = [tile.value];
-          newWave.elements[rowIndex][columnIndex].entropy = 0;
+        )
+          return {
+            row: rowIndex,
+            column: columnIndex,
+            value: tile.value,
+          };
+        // Write options and entropy directly for elements that have no empty
+        // adjacent tiles (these are already collapsed)
+        newWave.elements[rowIndex][columnIndex].options = [tile.value];
+        newWave.elements[rowIndex][columnIndex].entropy = 0;
 
-          return null;
-        })
-      )
+        return null;
+      })
     )
   );
+  return withNewObservations(dictionary, newWave, observations);
 }
 
 const WFCWorkerAPI: WFCWorkerAPIType = {
@@ -371,7 +387,7 @@ const WFCWorkerAPI: WFCWorkerAPIType = {
 
     if (properObservations.length === tileUpdates.length) {
       // All observations are proper! This is the fast path.
-      return withNewObservations(
+      const updatedWave = withNewObservations(
         dictionary,
         {
           ...wave,
@@ -380,6 +396,8 @@ const WFCWorkerAPI: WFCWorkerAPIType = {
         },
         properObservations
       );
+      recoverTiles(updatedWave, wave);
+      return updatedWave;
     }
 
     // At least one observation is redefining constraints, e.g., we are
@@ -392,7 +410,9 @@ const WFCWorkerAPI: WFCWorkerAPIType = {
     _.forEach(tileUpdates, ({ row, column, value }) => {
       puzzleCopy.tiles[row][column].value = value;
     });
-    return newWaveFromPuzzle(dictionary, puzzleCopy, tileUpdates);
+    const updatedWave = newWaveFromPuzzle(dictionary, puzzleCopy, tileUpdates);
+    recoverTiles(updatedWave, wave);
+    return updatedWave;
   },
 };
 

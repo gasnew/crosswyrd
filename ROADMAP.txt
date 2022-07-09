@@ -49,7 +49,7 @@
     + reinstate adding words to dictionary
     + mirror black tiles again
     + make sure selection is always updated, even when redoing
-    - fix backtracking algorithm
+    + fix backtracking algorithm
     - fix removing black tiles where options seems to be empty
   - arrow key navigation
 - add words to dictionary when formed by changing black tiles

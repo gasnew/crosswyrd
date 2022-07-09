@@ -211,8 +211,6 @@ export default function useWaveFunctionCollapse(
       // hasn't been seen before and the word is full-length (i.e., it's not a
       // word fragment, which we wouldn't want in the dictionary)
       const newWords = wordsNotInDictionary(puzzle, wave, dictionary);
-      if (newWords.length > 0)
-        console.log('Add new words to dictionary:', newWords);
       const possiblyUpdatedDictionary =
         (newWords.length > 0 && addWordsToDictionary(newWords)) || dictionary;
 
