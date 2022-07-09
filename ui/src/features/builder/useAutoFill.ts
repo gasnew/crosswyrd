@@ -7,7 +7,6 @@ import {
   CrosswordPuzzleType,
   LetterType,
   setPuzzleTileValues,
-  setPuzzleTilesToResolvedWaveElements,
 } from './builderSlice';
 import { DictionaryType } from './useDictionary';
 import { getBestNextElementSet } from './useTileSelection';
@@ -105,9 +104,8 @@ export default function useAutoFill(
         // because WFCBusy is just about to be set to false (but not yet)
         if (newWave) {
           pushStateHistory({ wave, puzzle });
-          // The observation succeeded, so set tile values for all tiles that are
-          // now collapsed to one state in the new wave.
-          //dispatch(setPuzzleTilesToResolvedWaveElements(newWave));
+          // The observation succeeded, so set tile values for all tiles that
+          // have just been updated
           dispatch(setPuzzleTileValues(tileUpdates));
         }
         // We have moved one step further from run start

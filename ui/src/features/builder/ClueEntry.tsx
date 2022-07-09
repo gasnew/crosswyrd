@@ -23,7 +23,7 @@ function computeTileNumbers(puzzle: CrosswordPuzzleType): TileNumbersType {
   );
 }
 
-type TileNumbersType = (number | null)[][];
+export type TileNumbersType = (number | null)[][];
 interface ClueDataType {
   tileNumbers: TileNumbersType;
 }

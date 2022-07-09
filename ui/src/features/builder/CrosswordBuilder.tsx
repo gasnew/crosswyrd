@@ -3,7 +3,6 @@ import {
   Alert,
   Button,
   ButtonGroup,
-  colors,
   Divider,
   Slide,
   Snackbar,
@@ -17,7 +16,6 @@ import { useDispatch, useSelector } from 'react-redux';
 
 import {
   CrosswordPuzzleType,
-  getSymmetricTile,
   selectCurrentTab,
   selectDraggedWord,
   selectPuzzle,
@@ -25,14 +23,13 @@ import {
   setPuzzleState,
   setPuzzleTileValues,
   TileValueType,
-  toggleTileBlack,
 } from './builderSlice';
 import BuilderTabs from './BuilderTabs';
 import ClueEntry, { useClueData } from './ClueEntry';
 import { ALL_LETTERS } from './constants';
 import DraggedWord from './DraggedWord';
 import PuzzleBanner from './PuzzleBanner';
-import TileLetterOptions from './TileLetterOptions';
+import Tiles from './Tiles';
 import useAutoFill from './useAutoFill';
 import useDictionary from './useDictionary';
 import { GridType } from './useGrids';
@@ -224,51 +221,6 @@ export default function CrosswordBuilder() {
     dispatch(setPuzzleState(newPuzzle));
   }, [dispatch, setWaveState, puzzle, pushStateHistory, wave]);
 
-  const mkHandleClickTile = (row, column) => {
-    return (event) => {
-      if (event.ctrlKey && dictionary) {
-        if (WFCBusy || !wave) return;
-        const newValue =
-          puzzle.tiles[row][column].value === 'black' ? 'empty' : 'black';
-        const symmetricTileInfo = getSymmetricTile(puzzle, row, column);
-
-        pushStateHistory({ wave, puzzle });
-        updateWaveWithTileUpdates(dictionary, [
-          {
-            row,
-            column,
-            value: newValue,
-          },
-          {
-            row: symmetricTileInfo.row,
-            column: symmetricTileInfo.column,
-            value: newValue,
-          },
-        ]);
-        clearSelection();
-        dispatch(
-          toggleTileBlack({
-            row,
-            column,
-          })
-        );
-      } else {
-        if (draggedWord) {
-          dispatch(setDraggedWord(null));
-
-          const wordLocationOptions: LocationType[] | null =
-            hoveredTile &&
-            wordLocationsGrid &&
-            (wordLocationsGrid[hoveredTile.row][hoveredTile.column].across ||
-              wordLocationsGrid[hoveredTile.row][hoveredTile.column].down);
-          if (wordLocationOptions)
-            handleEnterWord(draggedWord, wordLocationOptions);
-        } else {
-          onClick(row, column);
-        }
-      }
-    };
-  };
   const handleClickBestNext = () => {
     selectBestNext();
   };
@@ -284,9 +236,9 @@ export default function CrosswordBuilder() {
   const handleClickStop = () => {
     stopAutoFill();
   };
-  const mkHandleMouseoverTile = (row, column) => {
+  const mkHandleMouseoverTile = useCallback((row, column) => {
     return () => setHoveredTile({ row, column });
-  };
+  }, []);
   const handleEnterWord = useCallback(
     (rawWord: string, customTileLocations?: LocationType[]) => {
       const tileLocations =
@@ -367,19 +319,37 @@ export default function CrosswordBuilder() {
       ),
     [selectedTilesState, puzzle]
   );
-  const hoveredTiles: LocationType[] = useMemo(
-    () =>
-      (draggedWord &&
-        hoveredTile &&
-        wordLocationsGrid &&
-        (wordLocationsGrid[hoveredTile.row][hoveredTile.column].across ||
-          wordLocationsGrid[hoveredTile.row][hoveredTile.column].down)) ||
-      [],
-    [draggedWord, hoveredTile, wordLocationsGrid]
-  );
   const tilesSelected = useMemo(
     () => (selectedTilesState?.locations?.length || 0) > 0,
     [selectedTilesState]
+  );
+  const onTilesMouseOut = useCallback(() => setHoveredTile(null), []);
+  const mkHandleClickTile = useCallback(
+    (row, column) => {
+      return (event) => {
+        if (draggedWord) {
+          dispatch(setDraggedWord(null));
+
+          const wordLocationOptions: LocationType[] | null =
+            hoveredTile &&
+            wordLocationsGrid &&
+            (wordLocationsGrid[hoveredTile.row][hoveredTile.column].across ||
+              wordLocationsGrid[hoveredTile.row][hoveredTile.column].down);
+          if (wordLocationOptions)
+            handleEnterWord(draggedWord, wordLocationOptions);
+        } else {
+          onClick(row, column);
+        }
+      };
+    },
+    [
+      hoveredTile,
+      onClick,
+      wordLocationsGrid,
+      handleEnterWord,
+      dispatch,
+      draggedWord,
+    ]
   );
 
   return (
@@ -391,116 +361,18 @@ export default function CrosswordBuilder() {
             setPuzzleToGrid={setPuzzleToGrid}
             clearLetters={clearLetters}
           />
-          <div
-            className="tiles-container"
-            onMouseOut={() => setHoveredTile(null)}
-          >
-            {_.map(puzzle.tiles, (row, rowIndex) => (
-              <div key={rowIndex} className="puzzle-row">
-                {_.map(row, (tile, columnIndex) => {
-                  const selectionIndex = _.findIndex(
-                    selectedTilesState?.locations || [],
-                    (location) =>
-                      location.row === rowIndex &&
-                      location.column === columnIndex
-                  );
-                  const primarySelection =
-                    selectedTilesState?.primaryLocation?.row === rowIndex &&
-                    selectedTilesState?.primaryLocation?.column === columnIndex;
-                  // The word bank word location options this tile intersects
-                  const wordLocationOptions: LocationType[] | null =
-                    wordLocationsGrid &&
-                    (wordLocationsGrid[rowIndex][columnIndex].across ||
-                      wordLocationsGrid[rowIndex][columnIndex].down);
-                  const draggedWordLetterIndex = _.findIndex(
-                    hoveredTiles,
-                    (tile) =>
-                      tile.row === rowIndex && tile.column === columnIndex
-                  );
-                  const tileValue =
-                    draggedWord && draggedWordLetterIndex >= 0 // User is hovering with a dragged word
-                      ? _.toUpper(draggedWord[draggedWordLetterIndex])
-                      : !_.includes(['empty', 'black'], tile.value)
-                      ? _.toUpper(tile.value)
-                      : '';
-                  const element = wave && wave.elements[rowIndex][columnIndex];
-                  const tileNumber = tileNumbers[rowIndex][columnIndex];
-                  const showTileLetterOptions =
-                    tile.value === 'empty' &&
-                    selectionIndex >= 0 &&
-                    element &&
-                    element.options.length <= 9;
-                  const hovered =
-                    hoveredTile &&
-                    hoveredTile.row === rowIndex &&
-                    hoveredTile.column === columnIndex;
-                  const secondaryHighlight =
-                    selectionIndex === -1 &&
-                    selectedTilesState &&
-                    ((selectedTilesState.direction === 'across' &&
-                      selectedTilesState.primaryLocation.row === rowIndex) ||
-                      (selectedTilesState.direction === 'down' &&
-                        selectedTilesState.primaryLocation.column ===
-                          columnIndex));
-
-                  return (
-                    <div
-                      key={columnIndex}
-                      className={
-                        'tile' +
-                        (tile.value === 'black' ? ' tile--black' : '') +
-                        (selectionIndex >= 0 ? ' tile--selected' : '') +
-                        (wordLocationOptions ? ' tile--option' : '') +
-                        (primarySelection ? ' tile--primary-selected' : '')
-                      }
-                      style={{
-                        ...(draggedWordLetterIndex >= 0
-                          ? { backgroundColor: colors.yellow[300] }
-                          : tile.value !== 'black' && element
-                          ? {
-                              backgroundColor:
-                                tile.value === 'empty' &&
-                                element.options.length >= 1
-                                  ? `rgba(25, 118, 210, ${
-                                      (3.3 - element.entropy) / 3.3
-                                    })`
-                                  : element.options.length === 0 ||
-                                    (tile.value !== 'empty' &&
-                                      !_.includes(element.options, tile.value))
-                                  ? colors.red[200]
-                                  : 'white',
-                            }
-                          : {}),
-                        cursor: wordLocationOptions ? 'pointer' : 'initial',
-                      }}
-                      onMouseOver={mkHandleMouseoverTile(rowIndex, columnIndex)}
-                      onClick={mkHandleClickTile(rowIndex, columnIndex)}
-                    >
-                      {secondaryHighlight && (
-                        <div className="tile-highlight tile-highlight--secondary" />
-                      )}
-                      {hovered && (
-                        <div
-                          className="tile-highlight"
-                          style={{ backgroundColor: colors.yellow[300] }}
-                        />
-                      )}
-                      <div className="tile-contents">
-                        {showTileLetterOptions && element ? (
-                          <TileLetterOptions options={element.options} />
-                        ) : (
-                          tileValue
-                        )}
-                      </div>
-                      {tileNumber && !showTileLetterOptions && (
-                        <div className="tile-number">{tileNumber}</div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            ))}
-          </div>
+          <Tiles
+            puzzle={puzzle}
+            wave={wave}
+            tileNumbers={tileNumbers}
+            selectedTilesState={selectedTilesState}
+            wordLocationsGrid={wordLocationsGrid}
+            hoveredTile={hoveredTile}
+            draggedWord={draggedWord}
+            mkHandleClickTile={mkHandleClickTile}
+            mkHandleMouseoverTile={mkHandleMouseoverTile}
+            onMouseOut={onTilesMouseOut}
+          />
         </div>
         <div className="sidebar-container sheet">
           <ButtonGroup>
