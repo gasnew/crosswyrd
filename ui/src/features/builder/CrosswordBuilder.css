@@ -38,6 +38,8 @@ body,
 .puzzle-banner-container {
   display: flex;
   flex-direction: row;
+  margin-bottom: 5px;
+  margin-top: -8px;
 }
 
 .tiles-container {

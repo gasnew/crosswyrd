@@ -22,22 +22,13 @@ import CrosswordBuilder from '../builder/CrosswordBuilder';
 
 const drawerWidth = 200;
 
-export default function CrossWyrd(props) {
-  const { window } = props;
-  const [mobileOpen, setMobileOpen] = React.useState(false);
-
-  const handleDrawerToggle = () => {
-    setMobileOpen(!mobileOpen);
-  };
-
-  const container =
-    window !== undefined ? () => window().document.body : undefined;
-  const drawer = (
+function DrawerControls({ handleDrawerToggle }) {
+  return (
     <div>
       <Toolbar>
         <IconButton
           color="inherit"
-          aria-label="open drawer"
+          aria-label="close drawer"
           edge="start"
           onClick={handleDrawerToggle}
           sx={{ mr: 2, display: { lg: 'none' } }}
@@ -45,11 +36,12 @@ export default function CrossWyrd(props) {
           <ArrowBackIcon />
         </IconButton>
       </Toolbar>
-      <Divider />
+      <Divider style={{height: 0}}/>
       <Box sx={{ overflow: 'auto' }}>
         <List>
           <ListItem disablePadding>
-            <ListItemButton>
+            <ListItemButton
+            >
               <ListItemIcon>
                 <AddIcon />
               </ListItemIcon>
@@ -76,6 +68,19 @@ export default function CrossWyrd(props) {
       </Box>
     </div>
   );
+}
+
+export default function CrossWyrd(props) {
+  const { window } = props;
+  const [mobileOpen, setMobileOpen] = React.useState(false);
+
+  const handleDrawerToggle = () => {
+    setMobileOpen(!mobileOpen);
+  };
+
+  const container =
+    window !== undefined ? () => window().document.body : undefined;
+
   return (
     <Box sx={{ display: 'flex', height: '100%' }}>
       <CssBaseline />
@@ -124,7 +129,7 @@ export default function CrossWyrd(props) {
             },
           }}
         >
-          {drawer}
+          <DrawerControls handleDrawerToggle={handleDrawerToggle} />
         </Drawer>
         <Drawer
           variant="permanent"
@@ -137,7 +142,7 @@ export default function CrossWyrd(props) {
           }}
           open
         >
-          {drawer}
+          <DrawerControls handleDrawerToggle={handleDrawerToggle} />
         </Drawer>
       </Box>
       <Box component="main" sx={{ flexGrow: 1 }}>

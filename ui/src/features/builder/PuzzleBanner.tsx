@@ -1,12 +1,23 @@
 import dayjs from 'dayjs';
 import _ from 'lodash';
 import CloseIcon from '@mui/icons-material/Close';
+import UndoIcon from '@mui/icons-material/Undo';
+import RedoIcon from '@mui/icons-material/Redo';
+import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import DoneIcon from '@mui/icons-material/Done';
+import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
+import ErrorIcon from '@mui/icons-material/Error';
+import FormGroup from '@mui/material/FormGroup';
+import FormControlLabel from '@mui/material/FormControlLabel';
+import Switch from '@mui/material/Switch';
 import {
   Button,
   Chip,
   CircularProgress,
   Dialog,
   DialogTitle,
+  Divider,
   IconButton,
 } from '@mui/material';
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -246,6 +257,24 @@ function GridsDialog({
   );
 }
 
+function FillAssistState() {
+  return (
+    <div
+      style={{
+        marginTop: 'auto',
+        marginBottom: 'auto',
+        marginLeft: -10,
+        display: 'flex',
+      }}
+    >
+      <DoneIcon
+        color="success"
+        style={{ margin: 'auto', fontSize: 24 }}
+      />
+    </div>
+  );
+}
+
 interface Props {
   disabled: boolean;
   setPuzzleToGrid: (grid: GridType) => void;
@@ -267,12 +296,33 @@ export default function PuzzleBanner({
 
   return (
     <div className="puzzle-banner-container">
-      <Button
-        disabled={disabled}
-        onClick={() => setDialogState({ open: true, canClose: true })}
+      <IconButton>
+        <UndoIcon />
+      </IconButton>
+      <IconButton>
+        <RedoIcon />
+      </IconButton>
+      <div style={{ marginTop: 'auto', marginBottom: 'auto' }}>
+        <Button disabled={disabled} onClick={clearLetters} size="small">
+          Clear
+        </Button>
+      </div>
+      <Divider orientation="vertical" variant="middle" flexItem />
+      <FormGroup
+        style={{ marginTop: 'auto', marginBottom: 'auto', marginLeft: 20 }}
       >
-        Choose Grid
-      </Button>
+        <FormControlLabel
+          control={<Switch defaultChecked size="small" />}
+          label="Fill Assist"
+          style={{userSelect: 'none'}}
+        />
+      </FormGroup>
+      <FillAssistState />
+      <div style={{ marginTop: 'auto', marginBottom: 'auto', marginLeft: 8 }}>
+        <Button variant="contained" size="small">
+          Auto-Fill
+        </Button>
+      </div>
       <GridsDialog
         open={dialogState.open}
         canClose={dialogState.canClose || false}
@@ -283,9 +333,6 @@ export default function PuzzleBanner({
           setDialogState({ open: false });
         }}
       />
-      <Button disabled={disabled} onClick={clearLetters}>
-        Clear Puzzle
-      </Button>
     </div>
   );
 }
