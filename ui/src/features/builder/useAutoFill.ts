@@ -122,7 +122,7 @@ export default function useAutoFill(
       // We just moved 1 step toward run start
       stepsFromRunStart.current -= 1;
     }
-  }, 100);
+  }, autoFillRunning ? 100 : null);
 
   const runAutoFill = useCallback(() => {
     if (autoFillRunning) return;

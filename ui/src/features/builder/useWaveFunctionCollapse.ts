@@ -136,7 +136,6 @@ export default function useWaveFunctionCollapse(
 
   // Ingest puzzle into wave
   useEffect(() => {
-    // TODO: Run this effect when the black tiles change?
     if (wave) return;
     // TODO: Request this from WFCWorker?
     setWave(waveFromPuzzle(puzzle));

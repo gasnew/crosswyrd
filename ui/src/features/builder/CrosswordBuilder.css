@@ -89,6 +89,11 @@ body,
   border-color: rgb(45, 114, 210);
 }
 
+.tile--gray {
+  --dark-line-color: #00000022;
+  --light-line-color: #00000011;
+}
+
 .tile-contents {
   position: relative;
   user-select: none;
@@ -110,20 +115,23 @@ body,
   height: 100%;
   width: 100%;
   pointer-events: none;
-}
-
-.tile-highlight--secondary {
   height: calc(100% + 4px);
   width: calc(100% + 4px);
   transform: translate(-2px, -2px);
-  background-color: #1976d233;
-  mix-blend-mode: normal;
+}
+
+.tile-highlight--secondary {
+  --dark-line-color: #1976d233;
+  --light-line-color: #1976d211;
+}
+
+.tile--diagonal-lines {
   background: repeating-linear-gradient(
     45deg,
-    #1976d233,
-    #1976d233 6.18718433538px,
-    #1976d211 6.18718433538px,
-    #1976d211 12.3743686708px
+    var(--dark-line-color),
+    var(--dark-line-color) 6.18718433538px,
+    var(--light-line-color) 6.18718433538px,
+    var(--light-line-color) 12.3743686708px
   );
 }
 

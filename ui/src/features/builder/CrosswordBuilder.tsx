@@ -152,7 +152,6 @@ export default function CrosswordBuilder() {
           if (!result) return;
           // This may get called a lot due to the nature of `debounce`, but this
           // is OK--this function has lots of safeguards against this.
-          // TODO think about how to make selected tile state work better...?
           pushStateHistory({
             wave: result.wave,
             puzzle: result.puzzle,
@@ -184,7 +183,7 @@ export default function CrosswordBuilder() {
         )
       )
     )
-      return 'The puzzle cannot be filled from here! Try undoing recent changes, clearing up space around any red tiles, or adjusting the grid pattern.';
+      return 'The puzzle cannot be filled from here! Try undoing recent changes, clearing up any red tiles, or adjusting the grid pattern.';
     return '';
   }, [autoFillRunning, puzzle, wave]);
   const showPuzzleError = useMemo(() => !!puzzleError, [puzzleError]);

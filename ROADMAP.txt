@@ -39,10 +39,10 @@
   + button for "best next word" instead of "place 1"
   + sort words by increasing difficulty. Maybe use Scrabble weights here?
   + when word entered, go to next best automatically
-/ better editing
++ better editing
   + select individual tile
   + remove input field
-  / debounced wave updates
+  + debounced wave updates
     + API now accepts whole puzzle, rather than changes ("observations")
     + if calculation active, stage the next one--overwrite stage if one present
     + useWaveFunctionCollapse determines observations from puzzle diff
@@ -50,10 +50,9 @@
     + mirror black tiles again
     + make sure selection is always updated, even when redoing
     + fix backtracking algorithm
-    - fix removing black tiles where options seems to be empty
-  - arrow key navigation
-- add words to dictionary when formed by changing black tiles
-  - may need to do binary search in dictionary to check all words?
+    + fix removing black tiles where options seems to be empty
++ add words to dictionary when formed by changing black tiles
+  + do binary search in dictionary to check all words
 - QoL
   + do not mark ?s red
   + optimization: sort dictionary by word size
@@ -62,30 +61,31 @@
     x remove filled-in tile when leave selection if it was red? (try not doing this and see what happens)
   + auto-fill search with highlighted letters (replacing spaces with ?s?)
   + height 100%, overflow-y: hidden, center on board
+  x place 1 and auto-fill disabled when done + they auto-place any decided wave elements
+  x focus on word input if type while a word is selected (same with backspace)
+  x undo to before auto-fill
+  + note for when red tile appears
+  + show all letters allowed on a tile (when selected?)
+  x convert things to underscore?
+  + auto-fill by word?
+  + traverse by tile--fill input box is removed
+  + optimize word list
   - "click to select down/across" tooltip/hint
   - blue border and outline + higher z-index + different color than entropy
-  - indicate ?s can be used as wildcards for searches
-  - place 1 and auto-fill disabled when done + they auto-place any decided wave elements
-  - focus on word input if type while a word is selected (same with backspace)
-  - undo to before auto-fill
+  - arrow key navigation
   - persist puzzle builder state in local storage
-  - note for when red tile appears
-  - show all letters allowed on a tile (when selected?)
-  - convert things to underscore?
-  - arrow key controls?
-  - auto-fill by word?
-  - traverse by tile--fill input box is removed
-  - optimize word list, too
   - in-focus vs out-of-focus coloration
   - redo
   - move controls to above the grid, and move grid stuff to "new"
+  - fix solver going a second time again at the end
+  - display total words and blocks
 - turn off solver
   - can place words and blocks rapidly when solver is off
   - automatically turns on after 70+ words?
   - notification for when solver is turned on
   - when solver off, still filters on existing words
   - spinner on solver
-  - possibly filter out grids that have too few words
+  + possibly filter out grids that have too few words
 - add license
 - Ko-Fi for donations
   - input code to unlock feature (color themes)!

@@ -23,6 +23,7 @@ interface Props {
   onMouseOut: () => void;
 }
 
+// TODO: memoize each tile
 export default function Tiles({
   puzzle,
   wave,
@@ -51,8 +52,11 @@ export default function Tiles({
       _.flatten(wave.elements),
       (element) =>
         !element.solid &&
-        element.options.length === 0 &&
-        puzzle.tiles[element.row][element.column].value !== 'empty'
+        puzzle.tiles[element.row][element.column].value !== 'empty' &&
+        !_.includes(
+          element.options,
+          puzzle.tiles[element.row][element.column].value
+        )
     );
   }, [wave, puzzle]);
 
@@ -130,7 +134,7 @@ export default function Tiles({
                             : wrongLetter
                             ? colors.red[200]
                             : someWrongLetter && element.options.length === 0
-                            ? colors.grey[300]
+                            ? 'white'
                             : element.options.length === 0
                             ? colors.red[200]
                             : 'white',
@@ -142,8 +146,14 @@ export default function Tiles({
                 onClick={mkHandleClickTile(rowIndex, columnIndex)}
               >
                 {secondaryHighlight && (
-                  <div className="tile-highlight tile-highlight--secondary" />
+                  <div className="tile-highlight tile-highlight--secondary tile--diagonal-lines" />
                 )}
+                {tile.value === 'empty' &&
+                  someWrongLetter &&
+                  element &&
+                  element.options.length === 0 && (
+                    <div className="tile-highlight tile--gray tile--diagonal-lines" />
+                  )}
                 {hovered && (
                   <div
                     className="tile-highlight"
