@@ -257,7 +257,8 @@ function GridsDialog({
   );
 }
 
-function FillAssistState() {
+type FillAssistStateType = 'running' | 'success' | 'error';
+function FillAssistState({ state }: { state: FillAssistStateType }) {
   return (
     <div
       style={{
@@ -265,12 +266,34 @@ function FillAssistState() {
         marginBottom: 'auto',
         marginLeft: -10,
         display: 'flex',
+        width: 24,
+        height: 24,
+        position: 'relative',
       }}
     >
       <DoneIcon
-        color="success"
-        style={{ margin: 'auto', fontSize: 24 }}
+        className={
+          'fill-state-icon ' +
+          (state === 'success' ? 'rotate-in' : 'rotate-out')
+        }
+        color="primary"
       />
+      <CloseIcon
+        className={
+          'fill-state-icon ' + (state === 'error' ? 'rotate-in' : 'rotate-out')
+        }
+        color="error"
+      />
+      <div
+        className={'fill-state-icon fill-state-progress'}
+        style={{
+          top: -3,
+          left: 2,
+          opacity: state === 'running' ? 1 : 0,
+        }}
+      >
+        <CircularProgress size={20} thickness={5} />
+      </div>
     </div>
   );
 }
@@ -291,6 +314,7 @@ export default function PuzzleBanner({
     open: boolean;
     canClose?: boolean;
   }>({ open: !devMode(), canClose: false });
+  const [state, setState] = useState<FillAssistStateType>('success');
 
   const { grids } = useGrids();
 
@@ -303,23 +327,39 @@ export default function PuzzleBanner({
         <RedoIcon />
       </IconButton>
       <div style={{ marginTop: 'auto', marginBottom: 'auto' }}>
-        <Button disabled={disabled} onClick={clearLetters} size="small">
+        <Button disabled={disabled} onClick={clearLetters}>
           Clear
         </Button>
       </div>
-      <Divider orientation="vertical" variant="middle" flexItem />
+      <div style={{ marginTop: 'auto', marginBottom: 'auto' }}>
+        <Button disabled={disabled} onClick={clearLetters}>
+          Next
+        </Button>
+      </div>
+      <Divider
+        orientation="vertical"
+        variant="middle"
+        flexItem
+        style={{ marginLeft: 8, marginRight: 8 }}
+      />
       <FormGroup
-        style={{ marginTop: 'auto', marginBottom: 'auto', marginLeft: 20 }}
+        style={{ marginTop: 'auto', marginBottom: 'auto', marginLeft: 12 }}
       >
         <FormControlLabel
           control={<Switch defaultChecked size="small" />}
           label="Fill Assist"
-          style={{userSelect: 'none'}}
+          style={{ userSelect: 'none' }}
         />
       </FormGroup>
-      <FillAssistState />
+      <FillAssistState state={state} />
       <div style={{ marginTop: 'auto', marginBottom: 'auto', marginLeft: 8 }}>
-        <Button variant="contained" size="small">
+        <Button
+          variant="contained"
+          size="small"
+          onClick={() => {
+            setState(state === 'running' ? 'error' : 'running');
+          }}
+        >
           Auto-Fill
         </Button>
       </div>

@@ -271,3 +271,42 @@ body,
   border-color: black;
   border-width: 1px;
 }
+
+.fill-state-icon {
+  position: absolute;
+  margin: auto;
+  font-size: 24px;
+}
+.fill-state-progress {
+  transition: opacity 200ms ease-out;
+}
+
+.rotate-in {
+  animation: rotate-in-animation 300ms cubic-bezier(0, 0.86, 0, 1);
+  animation-fill-mode: forwards;
+}
+.rotate-out {
+  animation: rotate-out-animation 150ms ease-out;
+  animation-fill-mode: forwards;
+}
+
+@keyframes rotate-in-animation {
+  0% {
+    transform: rotate(-90deg);
+    opacity: 0;
+  }
+  100% {
+    transform: rotate(0deg);
+    opacity: 1;
+  }
+}
+@keyframes rotate-out-animation {
+  0% {
+    transform: rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: rotate(90deg);
+    opacity: 0;
+  }
+}
