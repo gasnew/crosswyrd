@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React, { useState } from 'react';
 import AddIcon from '@mui/icons-material/Add';
 import AppBar from '@mui/material/AppBar';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
@@ -18,11 +18,14 @@ import MenuIcon from '@mui/icons-material/Menu';
 import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
 
+import { devMode, randomId } from '../../app/util';
 import CrosswordBuilder from '../builder/CrosswordBuilder';
+import GridsDialog, { BLANK_GRID } from './GridsDialog';
+import useGrids, { GridType } from './useGrids';
 
 const drawerWidth = 200;
 
-function DrawerControls({ handleDrawerToggle }) {
+function DrawerControls({ handleDrawerToggle, setGridDialogState }) {
   return (
     <div>
       <Toolbar>
@@ -36,11 +39,15 @@ function DrawerControls({ handleDrawerToggle }) {
           <ArrowBackIcon />
         </IconButton>
       </Toolbar>
-      <Divider style={{height: 0}}/>
+      <Divider style={{ height: 0 }} />
       <Box sx={{ overflow: 'auto' }}>
         <List>
           <ListItem disablePadding>
             <ListItemButton
+              onClick={() => {
+                handleDrawerToggle();
+                setGridDialogState({ open: true, canClose: true });
+              }}
             >
               <ListItemIcon>
                 <AddIcon />
@@ -70,16 +77,28 @@ function DrawerControls({ handleDrawerToggle }) {
   );
 }
 
-export default function CrossWyrd(props) {
-  const { window } = props;
+export interface GridWithVersionType extends GridType {
+  version: string;
+}
+
+export default function CrossWyrd() {
   const [mobileOpen, setMobileOpen] = React.useState(false);
+
+  // Default grid dialog to open unless in development mode
+  const [gridDialogState, setGridDialogState] = useState<{
+    open: boolean;
+    canClose?: boolean;
+  }>({ open: !devMode(), canClose: false });
+  const [grid, setGrid] = useState<GridWithVersionType>({
+    ...BLANK_GRID,
+    version: randomId(),
+  });
+
+  const { grids } = useGrids();
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
   };
-
-  const container =
-    window !== undefined ? () => window().document.body : undefined;
 
   return (
     <Box sx={{ display: 'flex', height: '100%' }}>
@@ -117,7 +136,6 @@ export default function CrossWyrd(props) {
         aria-label="mailbox folders"
       >
         <Drawer
-          container={container}
           variant="temporary"
           open={mobileOpen}
           onClose={handleDrawerToggle}
@@ -129,7 +147,10 @@ export default function CrossWyrd(props) {
             },
           }}
         >
-          <DrawerControls handleDrawerToggle={handleDrawerToggle} />
+          <DrawerControls
+            handleDrawerToggle={handleDrawerToggle}
+            setGridDialogState={setGridDialogState}
+          />
         </Drawer>
         <Drawer
           variant="permanent"
@@ -142,12 +163,25 @@ export default function CrossWyrd(props) {
           }}
           open
         >
-          <DrawerControls handleDrawerToggle={handleDrawerToggle} />
+          <DrawerControls
+            handleDrawerToggle={handleDrawerToggle}
+            setGridDialogState={setGridDialogState}
+          />
         </Drawer>
       </Box>
       <Box component="main" sx={{ flexGrow: 1 }}>
-        <CrosswordBuilder />
+        <CrosswordBuilder grid={grid} />
       </Box>
+      <GridsDialog
+        open={gridDialogState.open}
+        canClose={gridDialogState.canClose || false}
+        onClose={() => setGridDialogState({ open: false })}
+        grids={grids}
+        selectGrid={(grid: GridType) => {
+          setGrid({ ...grid, version: randomId() });
+          setGridDialogState({ open: false });
+        }}
+      />
     </Box>
   );
 }

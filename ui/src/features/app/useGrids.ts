@@ -2,7 +2,7 @@ import axios from 'axios';
 import _ from 'lodash';
 import { useEffect, useState } from 'react';
 
-import { PUZZLE_SIZE } from './constants';
+import { PUZZLE_SIZE } from '../builder/constants';
 
 export interface GridType {
   tiles: boolean[][];

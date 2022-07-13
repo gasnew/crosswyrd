@@ -1,19 +1,15 @@
 import _ from 'lodash';
-import {
-  Alert,
-  Button,
-  ButtonGroup,
-  Divider,
-  Slide,
-  Snackbar,
-} from '@mui/material';
-import NavigateNextIcon from '@mui/icons-material/NavigateNext';
-import PlayArrowIcon from '@mui/icons-material/PlayArrow';
-import StopIcon from '@mui/icons-material/Stop';
-import UndoIcon from '@mui/icons-material/Undo';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { Alert, Divider, Slide, Snackbar } from '@mui/material';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
+import { GridWithVersionType } from '../app/Crosswyrd';
 import {
   CrosswordPuzzleType,
   selectCurrentTab,
@@ -32,7 +28,6 @@ import PuzzleBanner from './PuzzleBanner';
 import Tiles from './Tiles';
 import useAutoFill from './useAutoFill';
 import useDictionary from './useDictionary';
-import { GridType } from './useGrids';
 import useTileInput from './useTileInput';
 import useTileSelection from './useTileSelection';
 import useWaveAndPuzzleHistory from './useWaveAndPuzzleHistory';
@@ -73,7 +68,10 @@ const AlertSnackbar = React.memo(
   }
 );
 
-export default function CrosswordBuilder() {
+interface Props {
+  grid: GridWithVersionType;
+}
+export default function CrosswordBuilder({ grid }: Props) {
   const puzzle = useSelector(selectPuzzle);
   const draggedWord = useSelector(selectDraggedWord);
   const currentTab = useSelector(selectCurrentTab);
@@ -188,22 +186,24 @@ export default function CrosswordBuilder() {
   }, [autoFillRunning, puzzle, wave]);
   const showPuzzleError = useMemo(() => !!puzzleError, [puzzleError]);
 
-  const setPuzzleToGrid = useCallback(
-    (grid: GridType) => {
-      clearSelection();
-      const newPuzzle: CrosswordPuzzleType = {
-        tiles: _.map(grid.tiles, (row) =>
-          _.map(row, (tile) => ({ value: tile ? 'black' : 'empty' }))
-        ),
-        version: randomId(),
-      };
-      const newWave: WaveType = waveFromPuzzle(newPuzzle);
-      pushStateHistory({ wave: newWave, puzzle: newPuzzle });
-      dispatch(setPuzzleState(newPuzzle));
-      setWaveState(newWave, newPuzzle);
-    },
-    [dispatch, setWaveState, clearSelection, pushStateHistory]
-  );
+  // Set puzzle to grid when the grid is updated
+  const currentGridVersion = useRef<string>(grid.version);
+  useEffect(() => {
+    if (grid.version === currentGridVersion.current) return;
+    currentGridVersion.current = grid.version;
+    clearSelection();
+    const newPuzzle: CrosswordPuzzleType = {
+      tiles: _.map(grid.tiles, (row) =>
+        _.map(row, (tile) => ({ value: tile ? 'black' : 'empty' }))
+      ),
+      version: randomId(),
+    };
+    const newWave: WaveType = waveFromPuzzle(newPuzzle);
+    pushStateHistory({ wave: newWave, puzzle: newPuzzle });
+    dispatch(setPuzzleState(newPuzzle));
+    setWaveState(newWave, newPuzzle);
+  }, [grid, dispatch, setWaveState, clearSelection, pushStateHistory]);
+
   const clearLetters = useCallback(() => {
     if (!wave) return;
     const newPuzzle: CrosswordPuzzleType = {
@@ -220,20 +220,10 @@ export default function CrosswordBuilder() {
     dispatch(setPuzzleState(newPuzzle));
   }, [dispatch, setWaveState, puzzle, pushStateHistory, wave]);
 
-  const handleClickBestNext = () => {
-    selectBestNext();
-  };
   const handleClickBack = () => {
     const previousState = stepBack();
     if (selectedTilesState && selectedTilesState.locations.length > 0)
       selectBestNext(previousState);
-  };
-  const handleClickRun = () => {
-    clearSelection();
-    runAutoFill();
-  };
-  const handleClickStop = () => {
-    stopAutoFill();
   };
   const mkHandleMouseoverTile = useCallback((row, column) => {
     return () => setHoveredTile({ row, column });
@@ -356,9 +346,17 @@ export default function CrosswordBuilder() {
       <div className="puzzle-builder-container">
         <div className="puzzle-container sheet">
           <PuzzleBanner
-            disabled={WFCBusy || autoFillRunning}
-            setPuzzleToGrid={setPuzzleToGrid}
+            WFCBusy={WFCBusy}
+            autoFillRunning={autoFillRunning}
+            autoFillErrored={!!puzzleError}
+            runAutoFill={runAutoFill}
+            stopAutoFill={stopAutoFill}
+            undo={handleClickBack}
+            undoDisabled={WFCBusy || autoFillRunning || checkHistoryEmpty()}
+            redo={() => null}
             clearLetters={clearLetters}
+            clearSelection={clearSelection}
+            selectBestNext={selectBestNext}
           />
           <Tiles
             puzzle={puzzle}
@@ -374,31 +372,6 @@ export default function CrosswordBuilder() {
           />
         </div>
         <div className="sidebar-container sheet">
-          <ButtonGroup>
-            <Button
-              disabled={WFCBusy || autoFillRunning || checkHistoryEmpty()}
-              onClick={handleClickBack}
-              startIcon={<UndoIcon />}
-            >
-              Undo
-            </Button>
-            <Button
-              disabled={WFCBusy || autoFillRunning}
-              onClick={handleClickBestNext}
-              endIcon={<NavigateNextIcon />}
-            >
-              Next
-            </Button>
-            <Button
-              onClick={!autoFillRunning ? handleClickRun : handleClickStop}
-              color={autoFillRunning ? 'error' : 'primary'}
-              variant="contained"
-              disabled={WFCBusy && !autoFillRunning}
-              endIcon={autoFillRunning ? <StopIcon /> : <PlayArrowIcon />}
-            >
-              {autoFillRunning ? 'Stop' : 'Auto-Fill'}
-            </Button>
-          </ButtonGroup>
           {dictionary && (
             <>
               <Divider style={{ margin: 10 }} />
@@ -411,7 +384,7 @@ export default function CrosswordBuilder() {
                     dictionary={dictionary}
                     optionsSet={selectedOptionsSet}
                     selectedTiles={selectedTiles}
-                    processingLastChange={WFCBusy}
+                    processingLastChange={false}
                     onEnter={handleEnterWord}
                     clearSelection={clearSelection}
                   />
@@ -420,7 +393,7 @@ export default function CrosswordBuilder() {
                   <WordBank
                     wave={wave}
                     puzzle={puzzle}
-                    processingLastChange={WFCBusy}
+                    processingLastChange={false}
                     setWordLocationsGrid={setWordLocationsGrid}
                   />
                 }
