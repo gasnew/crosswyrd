@@ -112,7 +112,8 @@ interface ReturnType {
   wave: WaveType | null;
   updateWaveWithTileUpdates: (
     dictionary: DictionaryType,
-    tileUpdates: TileUpdateType[]
+    tileUpdates: TileUpdateType[],
+    newPuzzleVersion?: string
   ) => Promise<WaveType | null>;
   updateWave: (
     dictionary: DictionaryType,
@@ -150,7 +151,8 @@ export default function useWaveFunctionCollapse(
   const updateWaveWithTileUpdates = useCallback(
     async (
       dictionary: DictionaryType,
-      tileUpdates: TileUpdateType[]
+      tileUpdates: TileUpdateType[],
+      newPuzzleVersion?: string
     ): Promise<WaveType | null> => {
       // Invoke the WFC worker, and set the wave state as a result
       if (computingWave.current || !wave || !WFCWorkerRef.current) return null;
@@ -163,12 +165,16 @@ export default function useWaveFunctionCollapse(
         puzzle,
         tileUpdates
       );
-      setWave(newWave);
+      const newWaveWithVersion = {
+        ...newWave,
+        puzzleVersion: newPuzzleVersion || newWave.puzzleVersion,
+      };
+      setWave(newWaveWithVersion);
 
       computingWave.current = false;
       setBusy(false);
 
-      return newWave;
+      return newWaveWithVersion;
     },
     [puzzle, wave]
   );

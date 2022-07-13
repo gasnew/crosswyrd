@@ -129,7 +129,13 @@ export default function PuzzleBanner({
         style={{ marginTop: 'auto', marginBottom: 'auto', marginLeft: 12 }}
       >
         <FormControlLabel
-          control={<Switch defaultChecked size="small" />}
+          control={
+            <Switch
+              disabled={WFCBusy || autoFillRunning}
+              defaultChecked
+              size="small"
+            />
+          }
           label="Fill Assist"
           style={{ userSelect: 'none' }}
         />

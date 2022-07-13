@@ -2,6 +2,7 @@ import _ from 'lodash';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useDispatch } from 'react-redux';
 
+import { randomId } from '../../app/util';
 import {
   CrosswordPuzzleType,
   getSymmetricTile,
@@ -16,13 +17,15 @@ import {
 } from './useTileSelection';
 import { TileUpdateType } from './useWaveFunctionCollapse';
 
-function withPuzzleTileUpdates(
+export function withPuzzleTileUpdates(
   puzzle: CrosswordPuzzleType,
-  tileUpdates: TileUpdateType[]
+  tileUpdates: TileUpdateType[],
+  version?: string
 ): CrosswordPuzzleType {
   const newPuzzle = {
     ...puzzle,
     tiles: _.map(puzzle.tiles, (row) => _.map(row, (tile) => ({ ...tile }))),
+    version: version || randomId(),
   };
   _.forEach(tileUpdates, ({ row, column, value }) => {
     newPuzzle.tiles[row][column].value = value;

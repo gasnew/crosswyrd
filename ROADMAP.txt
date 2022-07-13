@@ -53,7 +53,14 @@
     + fix removing black tiles where options seems to be empty
 + add words to dictionary when formed by changing black tiles
   + do binary search in dictionary to check all words
-- QoL
+- turn off solver
+  - can place words and blocks rapidly when solver is off
+  - automatically turns on after 70+ words?
+  - notification for when solver is turned on
+  - when solver off, still filters on existing words
+  - spinner on solver
+  + possibly filter out grids that have too few words
+/ QoL
   + do not mark ?s red
   + optimization: sort dictionary by word size
   + control selections and stuff when changing tabs + clicking on the board
@@ -70,6 +77,7 @@
   + auto-fill by word?
   + traverse by tile--fill input box is removed
   + optimize word list
+  + fix solver going a second time again at the end
   - "click to select down/across" tooltip/hint
   - blue border and outline + higher z-index + different color than entropy
   - arrow key navigation
@@ -77,15 +85,8 @@
   - in-focus vs out-of-focus coloration
   - redo
   - move controls to above the grid, and move grid stuff to "new"
-  - fix solver going a second time again at the end
   - display total words and blocks
-- turn off solver
-  - can place words and blocks rapidly when solver is off
-  - automatically turns on after 70+ words?
-  - notification for when solver is turned on
-  - when solver off, still filters on existing words
-  - spinner on solver
-  + possibly filter out grids that have too few words
+  - spacebar to advance one position
 - add license
 - Ko-Fi for donations
   - input code to unlock feature (color themes)!

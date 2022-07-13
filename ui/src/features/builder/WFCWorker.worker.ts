@@ -119,6 +119,17 @@ function wordsToLettersSets(
   });
 
   return lettersSets;
+  // TODO optimize to not push so many letters to the array (but maybe not
+  // because that might break entropy)
+  //const map = _.times(wordLength, () => ({}));
+  ////const lettersSets = _.times(wordLength, () => new Array<LetterType>());
+  //_.forEach(words, (word) => {
+    //_.forEach(word, (letter, letterIndex) => {
+      //map[letterIndex][letter] = true;
+    //});
+  //});
+
+  //return _.map(map, (letters) => _.keys(letters) as LetterType[]);
 }
 
 function computeDownElementUpdates(

@@ -25,7 +25,7 @@ export default function useWaveAndPuzzleHistory(
   const seenVersions = useRef<string[]>([]);
 
   const pushStateHistory = useCallback(
-    (waveAndPuzzle) => {
+    (waveAndPuzzle: WaveAndPuzzleType) => {
       if (
         !waveAndPuzzle ||
         // Wave must have changed in order to be pushed to history
