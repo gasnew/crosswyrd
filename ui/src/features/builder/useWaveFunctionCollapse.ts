@@ -1,7 +1,16 @@
 import _ from 'lodash';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 
-import { CrosswordPuzzleType, LetterType, TileValueType } from './builderSlice';
+import { randomId } from '../../app/util';
+import {
+  bumpPuzzleVersion,
+  DEFAULT_TILES,
+  CrosswordPuzzleType,
+  LetterType,
+  selectFillAssistActive,
+  TileValueType,
+} from './builderSlice';
 import { ALL_LETTERS } from './constants';
 import { DictionaryType, inDictionary } from './useDictionary';
 import { SelectedTilesStateType } from './useTileSelection';
@@ -102,6 +111,24 @@ export function waveFromPuzzle(puzzle: CrosswordPuzzleType): WaveType {
     puzzleVersion: puzzle.version,
   };
 }
+function waveFromPuzzleWithLettersCollapsed(
+  puzzle: CrosswordPuzzleType
+): WaveType {
+  // Return a new wave for the puzzle where all tiles with letters on them are
+  // fully collapsed
+  const newWave = waveFromPuzzle(puzzle);
+  _.forEach(puzzle.tiles, (row, rowIndex) =>
+    _.forEach(row, (tile, columnIndex) => {
+      if (tile.value !== 'black' && tile.value !== 'empty') {
+        const element = newWave.elements[rowIndex][columnIndex];
+        element.options = [tile.value];
+        element.entropy = 0;
+      }
+    })
+  );
+
+  return newWave;
+}
 
 type UpdateWaveReturnType = {
   wave: WaveType;
@@ -135,13 +162,34 @@ export default function useWaveFunctionCollapse(
   // The actual flag used for preventing simultaneous wave updates
   const computingWave = useRef(false);
 
+  const fillAssistActive = useSelector(selectFillAssistActive);
+  const dispatch = useDispatch();
+
   // Ingest puzzle into wave
   useEffect(() => {
     if (wave) return;
     // TODO: Request this from WFCWorker?
-    setWave(waveFromPuzzle(puzzle));
+    setWave(waveFromPuzzleWithLettersCollapsed(puzzle));
     previousPuzzle.current = puzzle;
   }, [puzzle, wave]);
+
+  // Activate and deactivate fill assist.
+  const prevFillAssistActive = useRef(fillAssistActive);
+  useEffect(() => {
+    if (prevFillAssistActive.current && !fillAssistActive)
+      // Reset the wave.
+      setWave(null);
+    if (!prevFillAssistActive.current && fillAssistActive) {
+      // Make ourselves think that the puzzle was just updated from a blank
+      // puzzle so that we run a wave computation afresh.
+      previousPuzzle.current = {
+        ...puzzle,
+        tiles: DEFAULT_TILES,
+      };
+      dispatch(bumpPuzzleVersion());
+    }
+    prevFillAssistActive.current = fillAssistActive;
+  }, [dispatch, fillAssistActive, puzzle]);
 
   // Instantiate WFCWorker
   useEffect(() => {
@@ -159,12 +207,16 @@ export default function useWaveFunctionCollapse(
       computingWave.current = true;
       setBusy(true);
 
-      const newWave = await WFCWorkerRef.current.withTileUpdates(
-        dictionary,
-        wave,
-        puzzle,
-        tileUpdates
-      );
+      // Either build a new wave from the puzzle if we're using fill assist, or
+      // set the wave to a basic collapsed state.
+      const newWave = fillAssistActive
+        ? await WFCWorkerRef.current.withTileUpdates(
+            dictionary,
+            wave,
+            puzzle,
+            tileUpdates
+          )
+        : waveFromPuzzleWithLettersCollapsed(puzzle);
       const newWaveWithVersion = {
         ...newWave,
         puzzleVersion: newPuzzleVersion || newWave.puzzleVersion,
@@ -176,7 +228,7 @@ export default function useWaveFunctionCollapse(
 
       return newWaveWithVersion;
     },
-    [puzzle, wave]
+    [puzzle, wave, fillAssistActive]
   );
 
   const previousPuzzle = useRef<CrosswordPuzzleType | null>(null);

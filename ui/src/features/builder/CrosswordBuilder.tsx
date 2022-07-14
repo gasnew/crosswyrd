@@ -135,19 +135,28 @@ export default function CrosswordBuilder({ grid }: Props) {
   );
 
   // Update the wave with changes to the puzzle
+  const prevPuzzleVersion = useRef(puzzle.version);
   useEffect(() => {
-    // Only try to update if the wave is outdated, and we are not auto-filling
+    // If the puzzle's version hasn't changed, skip.
+    if (prevPuzzleVersion.current === puzzle.version) return;
+    // If auto-fill is running, then we defer to that to update our puzzle
+    // version correctly--we should ignore any out-of-date waves for the time
+    // being.
+    if (autoFillRunning) prevPuzzleVersion.current = puzzle.version;
+    // Only try to update if the wave is outdated, and we are not auto-filling.
     if (
       !dictionary ||
       !wave ||
       wave.puzzleVersion === puzzle.version ||
-      autoFillRunning
+      autoFillRunning ||
+      WFCBusy
     )
       return;
     debouncedUpdateWave(() => {
       updateWave(dictionary, addWordsToDictionary, selectedTilesState).then(
         (result) => {
           if (!result) return;
+          prevPuzzleVersion.current = result.puzzle.version;
           // This may get called a lot due to the nature of `debounce`, but this
           // is OK--this function has lots of safeguards against this.
           pushStateHistory({
@@ -167,6 +176,7 @@ export default function CrosswordBuilder({ grid }: Props) {
     pushStateHistory,
     selectedTilesState,
     autoFillRunning,
+    WFCBusy,
   ]);
 
   const puzzleError = useMemo(() => {

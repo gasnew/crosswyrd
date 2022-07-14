@@ -9,6 +9,9 @@ import FormControlLabel from '@mui/material/FormControlLabel';
 import Switch from '@mui/material/Switch';
 import { Button, CircularProgress, Divider, IconButton } from '@mui/material';
 import { useEffect, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+
+import { selectFillAssistActive, setFillAssistActive } from './builderSlice';
 
 type FillAssistStateType = 'running' | 'success' | 'error';
 function FillAssistState({ state }: { state: FillAssistStateType }) {
@@ -93,6 +96,10 @@ export default function PuzzleBanner({
   clearSelection,
   selectBestNext,
 }: Props) {
+  const dispatch = useDispatch();
+
+  const fillAssistActive = useSelector(selectFillAssistActive);
+
   const handleClickRun = () => {
     clearSelection();
     runAutoFill();
@@ -132,8 +139,9 @@ export default function PuzzleBanner({
           control={
             <Switch
               disabled={WFCBusy || autoFillRunning}
-              defaultChecked
               size="small"
+              checked={fillAssistActive}
+              onChange={() => dispatch(setFillAssistActive(!fillAssistActive))}
             />
           }
           label="Fill Assist"

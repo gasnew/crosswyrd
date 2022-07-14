@@ -20,9 +20,10 @@ interface BuilderState {
   puzzle: CrosswordPuzzleType;
   draggedWord: string | null;
   currentTab: number;
+  fillAssistActive: boolean;
 }
 
-const DEFAULT_TILES: TileType[][] = Array.from(Array(PUZZLE_SIZE), () =>
+export const DEFAULT_TILES: TileType[][] = Array.from(Array(PUZZLE_SIZE), () =>
   new Array(PUZZLE_SIZE).fill({ value: 'empty' })
 );
 
@@ -38,6 +39,7 @@ const initialState: BuilderState = {
   },
   draggedWord: null,
   currentTab: 0,
+  fillAssistActive: false,
 };
 
 export function getSymmetricTile(
@@ -84,11 +86,11 @@ export const builderSlice = createSlice({
           const tile = state.puzzle.tiles[rowIndex][columnIndex];
           // If tile is a letter... (old way)
           //if (_.includes(ALL_LETTERS, tile.value)) {
-            //// If there are zero options, set to empty
-            //if (element.options.length === 0) tile.value = 'empty';
-            //// If there are multiple values, set to empty (i.e., we
-            //// backtracked)
-            //else if (element.options.length > 1) tile.value = 'empty';
+          //// If there are zero options, set to empty
+          //if (element.options.length === 0) tile.value = 'empty';
+          //// If there are multiple values, set to empty (i.e., we
+          //// backtracked)
+          //else if (element.options.length > 1) tile.value = 'empty';
           //}
           // If there is one option, set the value
           if (tile.value === 'empty' && element.options.length === 1)
@@ -104,6 +106,9 @@ export const builderSlice = createSlice({
       });
       state.puzzle.version = randomId();
     },
+    bumpPuzzleVersion: (state, action: PayloadAction<void>) => {
+      state.puzzle.version = randomId();
+    },
     setPuzzleState: (state, action: PayloadAction<CrosswordPuzzleType>) => {
       state.puzzle = action.payload;
     },
@@ -113,21 +118,28 @@ export const builderSlice = createSlice({
     setCurrentTab: (state, action: PayloadAction<number>) => {
       state.currentTab = action.payload;
     },
+    setFillAssistActive: (state, action: PayloadAction<boolean>) => {
+      state.fillAssistActive = action.payload;
+    },
   },
 });
 
 export const {
   setPuzzleTilesToResolvedWaveElements,
   setPuzzleTileValues,
+  bumpPuzzleVersion,
   toggleTileBlack,
   setPuzzleState,
   setDraggedWord,
   setCurrentTab,
+  setFillAssistActive,
 } = builderSlice.actions;
 
 export const selectPuzzle = (state: RootState) => state.builder.puzzle;
 export const selectDraggedWord = (state: RootState) =>
   state.builder.draggedWord;
 export const selectCurrentTab = (state: RootState) => state.builder.currentTab;
+export const selectFillAssistActive = (state: RootState) =>
+  state.builder.fillAssistActive;
 
 export default builderSlice.reducer;
