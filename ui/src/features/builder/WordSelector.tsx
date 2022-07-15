@@ -61,7 +61,6 @@ interface Props {
   dictionary: DictionaryType;
   optionsSet: LetterType[][];
   selectedTiles: TileType[];
-  processingLastChange: boolean;
   onEnter: (word: string) => void;
   clearSelection: () => void;
 }
@@ -70,7 +69,6 @@ function WordSelector({
   dictionary,
   optionsSet,
   selectedTiles,
-  processingLastChange,
   onEnter,
   clearSelection,
 }: Props) {
@@ -110,14 +108,17 @@ function WordSelector({
 
   return (
     <div className="word-selector-container">
-      {optionsSet.length === 0 &&
-        (processingLastChange ? (
-          <Processing />
-        ) : (
+      {optionsSet.length === 0 ? (
+        <span className="selector-comment">
+          Click a tile to enter a new word!
+        </span>
+      ) : (
+        possibleWords.length === 0 && (
           <span className="selector-comment">
-            Click a tile to enter a new word!
+            No words found to place here.
           </span>
-        ))}
+        )
+      )}
       <Box sx={{ width: '100%', maxWidth: 360, bgcolor: 'background.paper' }}>
         <List style={{ padding: 0 }}>
           <FixedSizeList

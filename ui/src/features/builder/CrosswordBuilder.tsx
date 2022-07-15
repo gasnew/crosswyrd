@@ -417,7 +417,6 @@ export default function CrosswordBuilder({ grid }: Props) {
                     dictionary={dictionary}
                     optionsSet={selectedOptionsSet}
                     selectedTiles={selectedTiles}
-                    processingLastChange={false}
                     onEnter={handleEnterWord}
                     clearSelection={clearSelection}
                   />
@@ -426,7 +425,6 @@ export default function CrosswordBuilder({ grid }: Props) {
                   <WordBank
                     wave={wave}
                     puzzle={puzzle}
-                    processingLastChange={false}
                     setWordLocationsGrid={setWordLocationsGrid}
                   />
                 }

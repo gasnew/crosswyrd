@@ -128,16 +128,10 @@ function buildWordLocationsGrid(
 interface Props {
   wave: WaveType | null;
   puzzle: CrosswordPuzzleType;
-  processingLastChange: boolean;
   setWordLocationsGrid: (grid: WordLocationsGridType | null) => void;
 }
 
-function WordBank({
-  wave,
-  puzzle,
-  processingLastChange,
-  setWordLocationsGrid,
-}: Props) {
+function WordBank({ wave, puzzle, setWordLocationsGrid }: Props) {
   const [currentWord, setCurrentWord] = useState('');
   const [words, setWords] = useState<string[]>([]);
 
@@ -240,7 +234,6 @@ function WordBank({
               >
                 <ListItemButton
                   disabled={
-                    processingLastChange ||
                     entry.used ||
                     entry.validLocationSets.length === 0 ||
                     !!draggedWord
@@ -276,7 +269,7 @@ function WordBank({
                   />
                 </ListItemButton>
                 <IconButton
-                  disabled={processingLastChange || entry.used || !!draggedWord}
+                  disabled={entry.used || !!draggedWord}
                   size="small"
                   style={{ position: 'absolute', right: 15 }}
                   onClick={mkHandleDeleteEntry(index)}
