@@ -78,6 +78,7 @@ interface Props {
   undo: () => void;
   undoDisabled: boolean;
   redo: () => void;
+  redoDisabled: boolean;
   clearLetters: () => void;
   clearSelection: () => void;
   selectBestNext: () => void;
@@ -92,6 +93,7 @@ export default function PuzzleBanner({
   undo,
   undoDisabled,
   redo,
+  redoDisabled,
   clearLetters,
   clearSelection,
   selectBestNext,
@@ -113,7 +115,7 @@ export default function PuzzleBanner({
       <IconButton disabled={undoDisabled} onClick={undo}>
         <UndoIcon />
       </IconButton>
-      <IconButton onClick={redo}>
+      <IconButton disabled={redoDisabled} onClick={redo}>
         <RedoIcon />
       </IconButton>
       <div style={{ marginTop: 'auto', marginBottom: 'auto' }}>
@@ -148,26 +150,32 @@ export default function PuzzleBanner({
           style={{ userSelect: 'none' }}
         />
       </FormGroup>
-      <FillAssistState
-        state={
-          WFCBusy || autoFillRunning
-            ? 'running'
-            : autoFillErrored
-            ? 'error'
-            : 'success'
-        }
-      />
-      <div style={{ marginTop: 'auto', marginBottom: 'auto', marginLeft: 8 }}>
-        <Button
-          variant="contained"
-          onClick={!autoFillRunning ? handleClickRun : handleClickStop}
-          disabled={(WFCBusy || autoFillErrored) && !autoFillRunning}
-          color={autoFillRunning ? 'error' : 'primary'}
-          endIcon={autoFillRunning ? <StopIcon /> : <PlayArrowIcon />}
-        >
-          {autoFillRunning ? 'Stop' : 'Auto-Fill'}
-        </Button>
-      </div>
+      {fillAssistActive && (
+        <>
+          <FillAssistState
+            state={
+              WFCBusy || autoFillRunning
+                ? 'running'
+                : autoFillErrored
+                ? 'error'
+                : 'success'
+            }
+          />
+          <div
+            style={{ marginTop: 'auto', marginBottom: 'auto', marginLeft: 8 }}
+          >
+            <Button
+              variant="contained"
+              onClick={!autoFillRunning ? handleClickRun : handleClickStop}
+              disabled={(WFCBusy || autoFillErrored) && !autoFillRunning}
+              color={autoFillRunning ? 'error' : 'primary'}
+              endIcon={autoFillRunning ? <StopIcon /> : <PlayArrowIcon />}
+            >
+              {autoFillRunning ? 'Stop' : 'Auto-Fill'}
+            </Button>
+          </div>
+        </>
+      )}
     </div>
   );
 }

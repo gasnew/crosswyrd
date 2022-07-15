@@ -13,7 +13,9 @@ export interface WaveAndPuzzleType {
 interface ReturnType {
   pushStateHistory: (waveAndPuzzle: WaveAndPuzzleType) => void;
   popStateHistory: (depth?: number) => WaveAndPuzzleType | null;
+  popStateFuture: () => WaveAndPuzzleType | null;
   checkHistoryEmpty: () => boolean;
+  checkFutureEmpty: () => boolean;
   atLastSnapshot: boolean;
 }
 
@@ -22,6 +24,7 @@ export default function useWaveAndPuzzleHistory(
   puzzle: CrosswordPuzzleType
 ): ReturnType {
   const [stateHistory, setStateHistory] = useState<WaveAndPuzzleType[]>([]);
+  const [stateFuture, setStateFuture] = useState<WaveAndPuzzleType[]>([]);
   const seenVersions = useRef<string[]>([]);
 
   const pushStateHistory = useCallback(
@@ -39,6 +42,7 @@ export default function useWaveAndPuzzleHistory(
 
       seenVersions.current.push(waveAndPuzzle.puzzle.version);
       setStateHistory([waveAndPuzzle, ...stateHistory]);
+      setStateFuture([]);
     },
     [stateHistory]
   );
@@ -62,17 +66,29 @@ export default function useWaveAndPuzzleHistory(
       if (atLastSnapshot || depth > 1) {
         // Go back past the last snapshot if we are at that snapshot now
         setStateHistory(_.drop(stateHistory, depth));
+        setStateFuture([stateHistory[0], ...stateFuture]);
         return stateHistory[depth];
       }
 
       // Go to the last checkpoint
       return stateHistory[0];
     },
-    [atLastSnapshot, stateHistory]
+    [atLastSnapshot, stateHistory, stateFuture]
   );
+
+  const popStateFuture = useCallback(() => {
+    if (stateFuture.length < 1) return null;
+
+    setStateFuture(_.drop(stateFuture));
+    setStateHistory([stateFuture[0], ...stateHistory]);
+    return stateFuture[0];
+  }, [stateFuture, stateHistory]);
 
   const checkHistoryEmpty = useCallback(() => stateHistory.length <= 1, [
     stateHistory,
+  ]);
+  const checkFutureEmpty = useCallback(() => stateFuture.length < 1, [
+    stateFuture,
   ]);
 
   // Log state history
@@ -91,7 +107,9 @@ export default function useWaveAndPuzzleHistory(
   return {
     pushStateHistory,
     popStateHistory,
+    popStateFuture,
     checkHistoryEmpty,
+    checkFutureEmpty,
     atLastSnapshot,
   };
 }

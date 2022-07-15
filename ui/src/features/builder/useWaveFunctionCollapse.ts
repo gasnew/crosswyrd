@@ -2,7 +2,6 @@ import _ from 'lodash';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
-import { randomId } from '../../app/util';
 import {
   bumpPuzzleVersion,
   DEFAULT_TILES,

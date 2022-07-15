@@ -25,6 +25,7 @@ import ClueEntry, { useClueData } from './ClueEntry';
 import { ALL_LETTERS } from './constants';
 import DraggedWord from './DraggedWord';
 import PuzzleBanner from './PuzzleBanner';
+import PuzzleStats from './PuzzleStats';
 import Tiles from './Tiles';
 import useAutoFill from './useAutoFill';
 import useDictionary from './useDictionary';
@@ -86,8 +87,10 @@ export default function CrosswordBuilder({ grid }: Props) {
   } = useWaveFunctionCollapse(puzzle);
   const {
     popStateHistory,
+    popStateFuture,
     pushStateHistory,
     checkHistoryEmpty,
+    checkFutureEmpty,
   } = useWaveAndPuzzleHistory(wave, puzzle);
   const [hoveredTile, setHoveredTile] = useState<LocationType | null>(null);
   const [
@@ -118,10 +121,30 @@ export default function CrosswordBuilder({ grid }: Props) {
           previousState.selectedTilesState.primaryLocation,
           previousState.selectedTilesState.direction
         );
+      else if (!autoFillRunning) selectBestNext(previousState);
       return previousState;
     },
-    [dispatch, setWaveState, popStateHistory, updateSelection]
+    [
+      dispatch,
+      setWaveState,
+      popStateHistory,
+      updateSelection,
+      selectBestNext,
+      autoFillRunning,
+    ]
   );
+  const stepForward = useCallback(() => {
+    const nextState = popStateFuture();
+    if (!nextState) return;
+    setWaveState(nextState.wave, nextState.puzzle);
+    dispatch(setPuzzleState(nextState.puzzle));
+    if (nextState.selectedTilesState)
+      updateSelection(
+        nextState.selectedTilesState.primaryLocation,
+        nextState.selectedTilesState.direction
+      );
+    return nextState;
+  }, [dispatch, setWaveState, popStateFuture, updateSelection]);
   const { runAutoFill, stopAutoFill } = useAutoFill(
     dictionary,
     puzzle,
@@ -231,9 +254,7 @@ export default function CrosswordBuilder({ grid }: Props) {
   }, [dispatch, setWaveState, puzzle, pushStateHistory, wave]);
 
   const handleClickBack = () => {
-    const previousState = stepBack();
-    if (selectedTilesState && selectedTilesState.locations.length > 0)
-      selectBestNext(previousState);
+    stepBack();
   };
   const mkHandleMouseoverTile = useCallback((row, column) => {
     return () => setHoveredTile({ row, column });
@@ -363,7 +384,8 @@ export default function CrosswordBuilder({ grid }: Props) {
             stopAutoFill={stopAutoFill}
             undo={handleClickBack}
             undoDisabled={WFCBusy || autoFillRunning || checkHistoryEmpty()}
-            redo={() => null}
+            redo={stepForward}
+            redoDisabled={WFCBusy || autoFillRunning || checkFutureEmpty()}
             clearLetters={clearLetters}
             clearSelection={clearSelection}
             selectBestNext={selectBestNext}
@@ -380,6 +402,7 @@ export default function CrosswordBuilder({ grid }: Props) {
             mkHandleMouseoverTile={mkHandleMouseoverTile}
             onMouseOut={onTilesMouseOut}
           />
+          <PuzzleStats puzzle={puzzle} />
         </div>
         <div className="sidebar-container sheet">
           {dictionary && (

@@ -29,7 +29,7 @@ function getDifficulty(grid: GridType) {
     ? 'medium'
     : 'hard';
 }
-function countWords(grid: GridType): number {
+export function countWords(grid: GridType): number {
   const solid = (tile: boolean | undefined): boolean =>
     tile === undefined || tile;
   let wordCount = 0;
@@ -44,7 +44,7 @@ function countWords(grid: GridType): number {
   );
   return wordCount;
 }
-function countBlocks(grid: GridType): number {
+export function countBlocks(grid: GridType): number {
   return _.sumBy(_.flatten(grid.tiles), (tile) => (tile ? 1 : 0));
 }
 
