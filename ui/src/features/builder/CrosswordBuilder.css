@@ -6,6 +6,10 @@ body,
   height: 100%;
 }
 
+/*.MuiButtonBase-root {             */
+/*  text-transform: none !important;*/
+/*}                                 */
+
 .sheet {
   position: relative;
   background-color: #fff;

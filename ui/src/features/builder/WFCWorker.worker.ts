@@ -95,6 +95,11 @@ interface ObservationType {
   column: number;
   value: LetterType;
 }
+interface ElementUpdateType extends ElementType {
+  // Whether this update should be forced to cascade, even if the target
+  // element is already constrained enough
+  force?: boolean;
+}
 
 function isSubset<T extends string>(subset: Array<T>, set: Array<T>): boolean {
   return _.every(subset, (element) => set.includes(element));
@@ -124,9 +129,9 @@ function wordsToLettersSets(
   //const map = _.times(wordLength, () => ({}));
   ////const lettersSets = _.times(wordLength, () => new Array<LetterType>());
   //_.forEach(words, (word) => {
-    //_.forEach(word, (letter, letterIndex) => {
-      //map[letterIndex][letter] = true;
-    //});
+  //_.forEach(word, (letter, letterIndex) => {
+  //map[letterIndex][letter] = true;
+  //});
   //});
 
   //return _.map(map, (letters) => _.keys(letters) as LetterType[]);
@@ -215,13 +220,16 @@ function withNewObservationAtLocation(
   // TODO: Don't rely on JSON parsing for doing a deep copy?
   const waveCopy = JSON.parse(JSON.stringify(wave));
   // Start with the given observation in the queue
-  const updateQueue: ElementType[] = [
+  const updateQueue: ElementUpdateType[] = [
     {
       row,
       column,
       options: [value],
       entropy: computeEntropy([value]),
       solid: false,
+      // Force cascading, even if the target element is already constrained
+      // enough
+      force: true,
     },
   ];
 
@@ -234,7 +242,7 @@ function withNewObservationAtLocation(
     const element = waveCopy.elements[update.row][update.column];
     // Update is less constrained than the current wave element (i.e., current
     // constraints are a subset of the update's) => go next
-    if (isSubset(element.options, update.options)) continue;
+    if (!update.force && isSubset(element.options, update.options)) continue;
 
     // Update the element with the intersection of the current options and the
     // update's options
@@ -291,7 +299,7 @@ function withNewObservations(
 
 function recoverTiles(newWave: WaveType, oldWave: WaveType) {
   // Preserve tiles that are already resolved to one option--this prevents a
-  // contradiction from making the whol board red.
+  // contradiction from making the whole board red.
   _.forEach(newWave.elements, (row, rowIndex) =>
     _.forEach(row, (newElement, columnIndex) => {
       const oldElement = oldWave.elements[rowIndex][columnIndex];

@@ -16,6 +16,7 @@ import { selectFillAssistActive, setFillAssistActive } from './builderSlice';
 type FillAssistStateType = 'running' | 'success' | 'error';
 function FillAssistState({ state }: { state: FillAssistStateType }) {
   const [spinnerVisible, setSpinnerVisible] = useState(false);
+  const [errorVisible, setErrorVisible] = useState(false);
 
   // Stop rendering the spinner after a little time if it isn't supposed to be
   // rendered
@@ -25,6 +26,17 @@ function FillAssistState({ state }: { state: FillAssistStateType }) {
       return;
     }
     const timeoutId = setTimeout(() => setSpinnerVisible(false), 1000);
+    return () => clearTimeout(timeoutId);
+  }, [state]);
+
+  // Stop rendering the red cross after a little time if it isn't supposed to be
+  // rendered
+  useEffect(() => {
+    if (state === 'error') {
+      setErrorVisible(true);
+      return;
+    }
+    const timeoutId = setTimeout(() => setErrorVisible(false), 1000);
     return () => clearTimeout(timeoutId);
   }, [state]);
 
@@ -47,12 +59,15 @@ function FillAssistState({ state }: { state: FillAssistStateType }) {
         }
         color="primary"
       />
-      <CloseIcon
-        className={
-          'fill-state-icon ' + (state === 'error' ? 'rotate-in' : 'rotate-out')
-        }
-        color="error"
-      />
+      {errorVisible && (
+        <CloseIcon
+          className={
+            'fill-state-icon ' +
+            (state === 'error' ? 'rotate-in' : 'rotate-out')
+          }
+          color="error"
+        />
+      )}
       {spinnerVisible && (
         <div
           className={'fill-state-icon fill-state-progress'}
