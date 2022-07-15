@@ -2,7 +2,11 @@ import _ from 'lodash';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 
-import { CrosswordPuzzleType, selectCurrentTab } from './builderSlice';
+import {
+  CrosswordPuzzleType,
+  selectCurrentTab,
+  selectFillAssistActive,
+} from './builderSlice';
 import { PUZZLE_SIZE } from './constants';
 import { LocationType } from './CrosswordBuilder';
 import { WaveAndPuzzleType } from './useWaveAndPuzzleHistory';
@@ -68,6 +72,7 @@ export default function useTileSelection(
   const [direction, setDirection] = useState<DirectionType>('across');
 
   const currentTab = useSelector(selectCurrentTab);
+  const fillAssistActive = useSelector(selectFillAssistActive);
 
   const dir = useMemo(() => (direction === 'across' ? [0, 1] : [1, 0]), [
     direction,
@@ -203,7 +208,8 @@ export default function useTileSelection(
   // Automatically select best next word
   const prevProcessingLastChange = useRef(processingLastChange);
   useEffect(() => {
-    if (currentTab !== 0 || running || primaryLocation) return;
+    if (currentTab !== 0 || running || primaryLocation || !fillAssistActive)
+      return;
 
     // Only proceed if we are not processing a change now, but we were last
     // time this was run (i.e., the user probably wants to move on to the next
@@ -239,6 +245,7 @@ export default function useTileSelection(
     selectBestNext,
     puzzle,
     wave,
+    fillAssistActive,
   ]);
 
   const onClick = useCallback(

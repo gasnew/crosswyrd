@@ -1,7 +1,8 @@
 import _ from 'lodash';
+import { Chip, Divider } from '@mui/material';
 import React, { useMemo } from 'react';
 
-import { countBlocks, countWords } from '../app/GridsDialog';
+import { countBlocks, countWordLengths } from '../app/GridsDialog';
 import { CrosswordPuzzleType } from './builderSlice';
 import { GridType } from '../app/useGrids';
 
@@ -18,13 +19,43 @@ export default function PuzzleStats({ puzzle }: Props) {
     }),
     [puzzle]
   );
-  const wordCount: number = useMemo(() => countWords(grid), [grid]);
+  const wordLengths: number[] = useMemo(() => countWordLengths(grid), [grid]);
   const blockCount: number = useMemo(() => countBlocks(grid), [grid]);
+  const smallWordCount: number = useMemo(
+    () => _.sumBy(wordLengths, (length) => (length <= 2 ? 1 : 0)),
+    [wordLengths]
+  );
 
   return (
-    <div>
-      <span>{wordCount} words</span>
+    <div className="puzzle-stats">
+      <span>{wordLengths.length} words</span>
+      <Divider
+        orientation="vertical"
+        flexItem
+        style={{ marginLeft: 8, marginRight: 8 }}
+      />
       <span>{blockCount} blocks</span>
+      {smallWordCount > 0 && (
+        <>
+          <Divider
+            orientation="vertical"
+            flexItem
+            style={{ marginLeft: 8, marginRight: 8 }}
+          />
+          <Chip
+            size="small"
+            color="error"
+            variant="filled"
+            label={
+              <span>
+                <span style={{ fontWeight: 'bold' }}>{smallWordCount}</span>{' '}
+                words 2 letters long or shorter
+              </span>
+            }
+            style={{ pointerEvents: 'none' }}
+          />
+        </>
+      )}
     </div>
   );
 }

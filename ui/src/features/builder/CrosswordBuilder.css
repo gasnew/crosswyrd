@@ -314,3 +314,9 @@ body,
     opacity: 0;
   }
 }
+
+.puzzle-stats {
+  height: 32px;
+  padding-top: 12px;
+  display: flex;
+}

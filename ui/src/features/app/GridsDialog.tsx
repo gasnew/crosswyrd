@@ -29,20 +29,38 @@ function getDifficulty(grid: GridType) {
     ? 'medium'
     : 'hard';
 }
-export function countWords(grid: GridType): number {
+export function countWordLengths(grid: GridType): number[] {
   const solid = (tile: boolean | undefined): boolean =>
     tile === undefined || tile;
-  let wordCount = 0;
-  _.forEach(grid.tiles, (row, rowIndex) =>
-    _.forEach(row, (tile, columnIndex) => {
-      const leftTile = grid.tiles[rowIndex][columnIndex - 1];
-      const aboveTile = grid.tiles[rowIndex - 1]?.[columnIndex];
-      wordCount += !tile // tile is empty
-        ? (solid(leftTile) ? 1 : 0) + (solid(aboveTile) ? 1 : 0)
-        : 0;
+  return _.flatMap(grid.tiles, (row, rowIndex) =>
+    _.flatMap(row, (tile, columnIndex) => {
+      if (tile) return []; // tile is solid
+      return _.flatMap(
+        [
+          [1, 0],
+          [0, 1],
+        ],
+        (dir) => {
+          const previousTile =
+            grid.tiles[rowIndex - dir[0]]?.[columnIndex - dir[1]];
+          if (!solid(previousTile)) return [];
+          let length = 1;
+          while (
+            !solid(
+              grid.tiles[rowIndex + length * dir[0]]?.[
+                columnIndex + length * dir[1]
+              ]
+            )
+          )
+            length += 1;
+          return [length];
+        }
+      );
     })
   );
-  return wordCount;
+}
+export function countWords(grid: GridType): number {
+  return countWordLengths(grid).length;
 }
 export function countBlocks(grid: GridType): number {
   return _.sumBy(_.flatten(grid.tiles), (tile) => (tile ? 1 : 0));
