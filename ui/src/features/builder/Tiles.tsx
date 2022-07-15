@@ -94,7 +94,8 @@ export default function Tiles({
               tile.value === 'empty' &&
               selectionIndex >= 0 &&
               element &&
-              element.options.length <= 9;
+              element.options.length <= 9 &&
+              element.options.length > 0;
             const hovered =
               hoveredTile &&
               hoveredTile.row === rowIndex &&
