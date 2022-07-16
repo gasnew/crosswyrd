@@ -20,7 +20,10 @@ interface BuilderState {
   puzzle: CrosswordPuzzleType;
   draggedWord: string | null;
   currentTab: number;
-  fillAssistActive: boolean;
+  fillAssistState: {
+    active: boolean;
+    toggledAutomatically: boolean;
+  };
 }
 
 export const DEFAULT_TILES: TileType[][] = Array.from(Array(PUZZLE_SIZE), () =>
@@ -39,7 +42,10 @@ const initialState: BuilderState = {
   },
   draggedWord: null,
   currentTab: 0,
-  fillAssistActive: false,
+  fillAssistState: {
+    active: false,
+    toggledAutomatically: false,
+  },
 };
 
 export function getSymmetricTile(
@@ -119,7 +125,16 @@ export const builderSlice = createSlice({
       state.currentTab = action.payload;
     },
     setFillAssistActive: (state, action: PayloadAction<boolean>) => {
-      state.fillAssistActive = action.payload;
+      state.fillAssistState = {
+        active: action.payload,
+        toggledAutomatically: false,
+      };
+    },
+    autoSetFillAssistActive: (state, action: PayloadAction<boolean>) => {
+      state.fillAssistState = {
+        active: action.payload,
+        toggledAutomatically: true,
+      };
     },
   },
 });
@@ -133,6 +148,7 @@ export const {
   setDraggedWord,
   setCurrentTab,
   setFillAssistActive,
+  autoSetFillAssistActive,
 } = builderSlice.actions;
 
 export const selectPuzzle = (state: RootState) => state.builder.puzzle;
@@ -140,6 +156,8 @@ export const selectDraggedWord = (state: RootState) =>
   state.builder.draggedWord;
 export const selectCurrentTab = (state: RootState) => state.builder.currentTab;
 export const selectFillAssistActive = (state: RootState) =>
-  state.builder.fillAssistActive;
+  state.builder.fillAssistState.active;
+export const selectFillAssistToggledAutomatically = (state: RootState) =>
+  state.builder.fillAssistState.toggledAutomatically;
 
 export default builderSlice.reducer;

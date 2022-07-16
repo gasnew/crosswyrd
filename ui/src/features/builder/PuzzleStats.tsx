@@ -1,9 +1,15 @@
 import _ from 'lodash';
 import { Chip, Divider } from '@mui/material';
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo, useRef } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 
+import { AUTO_FILL_ASSIST_TOGGLE_THRESHOLD } from './constants';
 import { countBlocks, countWordLengths } from '../app/GridsDialog';
-import { CrosswordPuzzleType } from './builderSlice';
+import {
+  CrosswordPuzzleType,
+  selectFillAssistActive,
+  autoSetFillAssistActive,
+} from './builderSlice';
 import { GridType } from '../app/useGrids';
 
 interface Props {
@@ -25,6 +31,26 @@ export default function PuzzleStats({ puzzle }: Props) {
     () => _.sumBy(wordLengths, (length) => (length <= 2 ? 1 : 0)),
     [wordLengths]
   );
+
+  const dispatch = useDispatch();
+  const fillAssistActive = useSelector(selectFillAssistActive);
+  const prevWordCount = useRef(wordLengths.length);
+  useEffect(() => {
+    if (
+      !fillAssistActive &&
+      wordLengths.length >= AUTO_FILL_ASSIST_TOGGLE_THRESHOLD &&
+      prevWordCount.current < AUTO_FILL_ASSIST_TOGGLE_THRESHOLD
+    )
+      dispatch(autoSetFillAssistActive(true));
+    else if (
+      fillAssistActive &&
+      wordLengths.length < AUTO_FILL_ASSIST_TOGGLE_THRESHOLD &&
+      prevWordCount.current >= AUTO_FILL_ASSIST_TOGGLE_THRESHOLD
+    )
+      dispatch(autoSetFillAssistActive(false));
+
+    prevWordCount.current = wordLengths.length;
+  }, [dispatch, fillAssistActive, wordLengths.length]);
 
   return (
     <div className="puzzle-stats">

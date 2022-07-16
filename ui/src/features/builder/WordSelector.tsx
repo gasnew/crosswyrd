@@ -1,7 +1,6 @@
 import _ from 'lodash';
 import {
   Box,
-  CircularProgress,
   List,
   ListItem,
   ListItemButton,
@@ -17,17 +16,6 @@ import {
   findWordOptions,
   findWordOptionsFromDictionary,
 } from './useWaveFunctionCollapse';
-
-function Processing() {
-  return (
-    <span>
-      <span style={{ position: 'relative', top: 3, margin: 5 }}>
-        <CircularProgress size={15} thickness={6} />
-      </span>
-      <span style={{ fontStyle: 'italic' }}>Processing...</span>
-    </span>
-  );
-}
 
 function WordEntry({
   data: { possibleWords, mkHandleClickWord },

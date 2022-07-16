@@ -53,13 +53,13 @@
     + fix removing black tiles where options seems to be empty
 + add words to dictionary when formed by changing black tiles
   + do binary search in dictionary to check all words
-/ turn off solver
++ turn off solver
   + can place words and blocks rapidly when solver is off
   + when solver off, still filters on existing words
   + spinner on solver
   + possibly filter out grids that have too few words
-  - automatically turns on after 70+ words?
-  - notification for when solver is turned on
+  + automatically turns on after 70+ words?
+  + notification for when solver is turned on
 / QoL
   + do not mark ?s red
   + optimization: sort dictionary by word size
@@ -79,14 +79,19 @@
   + optimize word list
   + fix solver going a second time again at the end
   + redo
+  + move controls to above the grid, and move grid stuff to "new"
+  + display total words and blocks
   - "click to select down/across" tooltip/hint
   - blue border and outline + higher z-index + different color than entropy
   - arrow key navigation
   - persist puzzle builder state in local storage
   - in-focus vs out-of-focus coloration
-  - move controls to above the grid, and move grid stuff to "new"
-  - display total words and blocks
   - spacebar to advance one position
+  - fix styling
+  - fix word bank and clues
+- import/export
+  - export
+  - import
 - add license
 - Ko-Fi for donations
   - input code to unlock feature (color themes)!

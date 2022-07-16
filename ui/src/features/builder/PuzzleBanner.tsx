@@ -7,11 +7,79 @@ import StopIcon from '@mui/icons-material/Stop';
 import FormGroup from '@mui/material/FormGroup';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import Switch from '@mui/material/Switch';
-import { Button, CircularProgress, Divider, IconButton } from '@mui/material';
+import {
+  Button,
+  CircularProgress,
+  Divider,
+  IconButton,
+  Popover,
+  Typography,
+} from '@mui/material';
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
-import { selectFillAssistActive, setFillAssistActive } from './builderSlice';
+import {
+  selectFillAssistActive,
+  selectFillAssistToggledAutomatically,
+  setFillAssistActive,
+} from './builderSlice';
+import { AUTO_FILL_ASSIST_TOGGLE_THRESHOLD } from './constants';
+
+function FillAssistPopover({ anchorEl }: { anchorEl: HTMLElement }) {
+  const [state, setState] = useState<'activated' | 'deactivated' | null>(null);
+  const [open, setOpen] = useState(false);
+
+  const active = useSelector(selectFillAssistActive);
+  const toggledAutomatically = useSelector(
+    selectFillAssistToggledAutomatically
+  );
+
+  useEffect(() => {
+    let timeoutId: NodeJS.Timeout | null = null;
+    if (toggledAutomatically) {
+      if (active) setState('activated');
+      else setState('deactivated');
+      setOpen(true);
+      timeoutId = setTimeout(() => setOpen(false), 5000);
+    } else timeoutId = setTimeout(() => setOpen(false), 100);
+    return () => {
+      timeoutId && clearTimeout(timeoutId);
+    };
+  }, [active, toggledAutomatically]);
+
+  return (
+    <Popover
+      anchorEl={anchorEl}
+      open={open}
+      sx={{ pointerEvents: 'none' }}
+      anchorOrigin={{
+        vertical: 'top',
+        horizontal: 'center',
+      }}
+      transformOrigin={{
+        vertical: 'bottom',
+        horizontal: 'center',
+      }}
+    >
+      <Typography sx={{ p: 1 }} style={{ maxWidth: 340, textAlign: 'center' }}>
+        {state === 'activated' ? (
+          <span>
+            There are {AUTO_FILL_ASSIST_TOGGLE_THRESHOLD} or more words in the
+            puzzle: <span style={{ fontWeight: 'bold' }}>Fill&nbsp;Assist</span>
+            &nbsp;automatically&nbsp;activated!
+          </span>
+        ) : (
+          <span>
+            There are fewer than {AUTO_FILL_ASSIST_TOGGLE_THRESHOLD} words in
+            the puzzle:{' '}
+            <span style={{ fontWeight: 'bold' }}>Fill&nbsp;Assist</span>
+            &nbsp;automatically&nbsp;deactivated!
+          </span>
+        )}
+      </Typography>
+    </Popover>
+  );
+}
 
 type FillAssistStateType = 'running' | 'success' | 'error';
 function FillAssistState({ state }: { state: FillAssistStateType }) {
@@ -113,6 +181,11 @@ export default function PuzzleBanner({
   clearSelection,
   selectBestNext,
 }: Props) {
+  const [
+    fillAssistElement,
+    setFillAssistElement,
+  ] = useState<HTMLElement | null>(null);
+
   const dispatch = useDispatch();
 
   const fillAssistActive = useSelector(selectFillAssistActive);
@@ -151,6 +224,7 @@ export default function PuzzleBanner({
       />
       <FormGroup
         style={{ marginTop: 'auto', marginBottom: 'auto', marginLeft: 12 }}
+        ref={setFillAssistElement}
       >
         <FormControlLabel
           control={
@@ -165,6 +239,7 @@ export default function PuzzleBanner({
           style={{ userSelect: 'none' }}
         />
       </FormGroup>
+      {fillAssistElement && <FillAssistPopover anchorEl={fillAssistElement} />}
       {fillAssistActive && (
         <>
           <FillAssistState
