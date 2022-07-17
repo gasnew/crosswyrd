@@ -81,14 +81,16 @@
   + redo
   + move controls to above the grid, and move grid stuff to "new"
   + display total words and blocks
+  + fix word bank and clues
+  x in-focus vs out-of-focus coloration
+  x blue border and outline + higher z-index + different color than entropy
   - "click to select down/across" tooltip/hint
-  - blue border and outline + higher z-index + different color than entropy
   - arrow key navigation
   - persist puzzle builder state in local storage
-  - in-focus vs out-of-focus coloration
   - spacebar to advance one position
   - fix styling
-  - fix word bank and clues
+  - fill assist turned on and off on grid selection only--also, turning on
+    suggestion when >= 70 words
 - import/export
   - export
   - import

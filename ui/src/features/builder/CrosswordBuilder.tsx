@@ -121,7 +121,8 @@ export default function CrosswordBuilder({ grid }: Props) {
           previousState.selectedTilesState.primaryLocation,
           previousState.selectedTilesState.direction
         );
-      else if (!autoFillRunning) selectBestNext(previousState);
+      else if (!autoFillRunning && currentTab === 0)
+        selectBestNext(previousState);
       return previousState;
     },
     [
@@ -131,6 +132,7 @@ export default function CrosswordBuilder({ grid }: Props) {
       updateSelection,
       selectBestNext,
       autoFillRunning,
+      currentTab,
     ]
   );
   const stepForward = useCallback(() => {

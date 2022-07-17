@@ -1,12 +1,13 @@
 import _ from 'lodash';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 
 import { randomId } from '../../app/util';
 import {
   CrosswordPuzzleType,
   getSymmetricTile,
   LetterType,
+  selectCurrentTab,
   setPuzzleTileValues,
   TileValueType,
 } from './builderSlice';
@@ -46,6 +47,8 @@ export default function useTileInput(
   // miss keystrokes that happened before this hook had a chance to rerun
   const cachedInputQueue = useRef<string[]>([]);
   const [inputQueue, setInputQueue] = useState<string[]>([]);
+
+  const currentTab = useSelector(selectCurrentTab);
 
   const onKeyDown = useCallback(
     (event) => {
@@ -170,12 +173,15 @@ export default function useTileInput(
     puzzle,
   ]);
 
+  // Add and remove event listeners
   useEffect(() => {
-    document.addEventListener('keydown', onKeyDown);
-    document.addEventListener('keyup', onKeyUp);
+    if (currentTab === 0) {
+      document.addEventListener('keydown', onKeyDown);
+      document.addEventListener('keyup', onKeyUp);
+    }
     return () => {
       document.removeEventListener('keydown', onKeyDown);
       document.removeEventListener('keyup', onKeyUp);
     };
-  }, [onKeyDown, onKeyUp]);
+  }, [onKeyDown, onKeyUp, currentTab]);
 }

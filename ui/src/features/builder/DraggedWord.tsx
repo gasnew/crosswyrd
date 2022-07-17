@@ -1,9 +1,9 @@
 import _ from 'lodash';
 import { Card, CardContent } from '@mui/material';
 import React, { useCallback, useEffect, useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 
-import { selectDraggedWord, setDraggedWord } from './builderSlice';
+import { selectDraggedWord } from './builderSlice';
 
 interface PositionType {
   x: number;
@@ -16,8 +16,6 @@ export default function DraggedWord() {
 
   const draggedWord = useSelector(selectDraggedWord);
 
-  const dispatch = useDispatch();
-
   const onMouseMove = useCallback(
     (event) =>
       draggedWord && setPosition({ x: event.clientX, y: event.clientY }),
@@ -25,9 +23,9 @@ export default function DraggedWord() {
   );
   const onMouseLeave = useCallback(() => setHidden(true), []);
   const onMouseEnter = useCallback(() => setHidden(false), []);
-  const onClick = useCallback(() => {
-    if (draggedWord) dispatch(setDraggedWord(null));
-  }, [dispatch, draggedWord]);
+  const onClick = useCallback((event) => {
+    setPosition({ x: event.clientX, y: event.clientY });
+  }, []);
 
   useEffect(() => {
     document.addEventListener('mousemove', onMouseMove);
@@ -40,7 +38,7 @@ export default function DraggedWord() {
       document.removeEventListener('mouseleave', onMouseLeave);
       document.removeEventListener('click', onClick);
     };
-  }, [onMouseMove, onMouseEnter, onMouseLeave, onClick]);
+  }, [onMouseMove, onMouseEnter, onMouseLeave, onClick, draggedWord]);
 
   if (!draggedWord || hidden) return null;
   return (
