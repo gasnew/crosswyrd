@@ -86,19 +86,18 @@
   x blue border and outline + higher z-index + different color than entropy
   + fill assist turned on and off on grid selection only--also, turning on
     suggestion when >= 70 words
+  + hover color faded & hide when cursor is hidden
   - "click to select down/across" tooltip/hint
   - arrow key navigation
-  - persist puzzle builder state in local storage
   - spacebar to advance one position
-  - fix styling
-  - add to dictionary prompt?
-  - clearer location of cursor + feedback
-  - eliminate duplicates
   - . to toggle
-  - hover color faded & hide when cursor is hidden
+  - fix styling
+  - clearer location of cursor + feedback
+  - persist puzzle builder state in local storage
   - look at survey monkey
-- Mobile version (player only, not builder?)
 - Share link to play
+- Mobile version (player only, not builder)
+- include 10x10 and 5x5 boards
 - Share puzzle at completion?
 - add license
 - Ko-Fi for donations
@@ -127,9 +126,10 @@ juicy animations
   - heatmap for failures: count up contradictions per tile somehow?
   - auto-fill prioritizes word bank?
   - dictionary with more common words?
-  - include 10x10 and 5x5 boards
   - import/export
     - export
     - import
+  - add to dictionary prompt?
   - check words in the possible words list in the background to see if they can
     be validly placed (probably use a separate WFC worker for this)
+  - eliminate duplicate words

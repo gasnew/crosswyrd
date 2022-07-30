@@ -321,12 +321,10 @@ export default function CrosswordBuilder({ grid }: Props) {
     [
       dispatch,
       WFCBusy,
-      //pushStateHistory,
       puzzle,
       wave,
       dictionary,
       selectedTilesState,
-      //updateWaveWithTileUpdates,
       clearSelection,
     ]
   );
@@ -355,7 +353,7 @@ export default function CrosswordBuilder({ grid }: Props) {
   );
   const onTilesMouseOut = useCallback(() => setHoveredTile(null), []);
   const mkHandleClickTile = useCallback(
-    (row, column) => {
+    (row, column, hoveredTile: LocationType | null) => {
       return (event) => {
         if (draggedWord) {
           dispatch(setDraggedWord(null));
@@ -372,14 +370,7 @@ export default function CrosswordBuilder({ grid }: Props) {
         }
       };
     },
-    [
-      hoveredTile,
-      onClick,
-      wordLocationsGrid,
-      handleEnterWord,
-      dispatch,
-      draggedWord,
-    ]
+    [onClick, wordLocationsGrid, handleEnterWord, dispatch, draggedWord]
   );
 
   return (
