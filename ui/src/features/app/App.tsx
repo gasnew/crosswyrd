@@ -8,7 +8,7 @@ import {
 } from 'react-router-dom';
 
 import { devMode } from '../../app/util';
-import CrosswordBuilder from '../builder/CrosswordBuilder';
+import Crosswyrd from './Crosswyrd';
 
 function App() {
   return (
@@ -22,7 +22,7 @@ function App() {
       <Router>
         <Switch>
           <Route path="/builder">
-            <CrosswordBuilder />
+            <Crosswyrd />
           </Route>
           <Redirect to="/builder" />
         </Switch>

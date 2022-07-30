@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { v4 as uuidv4 } from 'uuid';
 
 export function useInterval(callback: () => void, delay: number | null) {
   const savedCallback = useRef<() => void>();
@@ -81,4 +82,8 @@ export function useAlert(): AlertReturnType {
     onCancel,
     isOpen,
   };
+}
+
+export function randomId(): string {
+  return uuidv4();
 }

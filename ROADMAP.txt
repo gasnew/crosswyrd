@@ -1,20 +1,136 @@
-15x15
-Place black tiles
-Auto-symmetry
-Automatic WFC (alphabet is tile set, dictionary is constraints)
-- weights are scrabble weights (except inverse I guess)--could also be frequency in valid word list
-- add all updated tiles to queue
-- process through whole queue, finding all words across and down to find letter set (maybe set entropy here, actually)
-- each loop, set component state only when function has collapsed, then proceed to next tile
-Visualize entropy as faded highlights
++ 15x15
++ Place black tiles
++ Auto-symmetry
+/ Automatic WFC (alphabet is tile set, dictionary is constraints)
+  - weights are scrabble weights (except inverse I guess)--could also be frequency in valid word list
+  + add all updated tiles to queue
+  + process through whole queue, finding all words across and down to find letter set (maybe set entropy here, actually)
+  + each loop, set component state only when function has collapsed, then proceed to next tile
+  + backtracks
++ visualize entropy as faded highlights
 
++ search => "write a word" + enter & clear
++ Allow typing letters and selecting full words for across or down
++ As typing in a word, see yellow-highlighted tile on board--turns white when "enter"
++ Overwrite existing words
++ autofill never backtracks user-entered words--if it backtracks too many times
+  or cannot proceed without backtracking past user-entered word, show error
+  message, "Auto-fill could not complete. Try clearing or changing one of the
+  words you entered"
++ => "calculating..." spinner
+  + Some sort of indicator for when long operation is happening
+  + Use comlink to make web workers nice? https://dev.to/nicolasrannou/web-workers-in-create-react-app-cra-without-unmounting-4865#attempt-4--comlink
+  + when computing wave, disable entering a new word/dict search
+  + "calculating..." indicator
++ Any time black changed, recalculate off all letters
++ interface for typing in theme words into a word bank you want to have on the
+  board
+  + see suggestions for where they can go on hover
+  + click and drag the word onto a valid slot
+  x hint for shift+click to pick down instead of across
+  x letter count
++ maybe update recalculating algorithm to support placing black tiles better
++ Allow clue entry
++ Grid selector
+  + list of legacy grids
+  + can just use plain grid
+  + added some frankly dope animations
++ guided filling
+  + button for "best next word" instead of "place 1"
+  + sort words by increasing difficulty. Maybe use Scrabble weights here?
+  + when word entered, go to next best automatically
++ better editing
+  + select individual tile
+  + remove input field
+  + debounced wave updates
+    + API now accepts whole puzzle, rather than changes ("observations")
+    + if calculation active, stage the next one--overwrite stage if one present
+    + useWaveFunctionCollapse determines observations from puzzle diff
+    + reinstate adding words to dictionary
+    + mirror black tiles again
+    + make sure selection is always updated, even when redoing
+    + fix backtracking algorithm
+    + fix removing black tiles where options seems to be empty
++ add words to dictionary when formed by changing black tiles
+  + do binary search in dictionary to check all words
++ turn off solver
+  + can place words and blocks rapidly when solver is off
+  + when solver off, still filters on existing words
+  + spinner on solver
+  + possibly filter out grids that have too few words
+  + automatically turns on after 70+ words?
+  + notification for when solver is turned on
++ QoL
+  + do not mark ?s red
+  + optimization: sort dictionary by word size
+  + control selections and stuff when changing tabs + clicking on the board
+  + auto-enter word when leave selection + remove selection when entered word
+    x remove filled-in tile when leave selection if it was red? (try not doing this and see what happens)
+  + auto-fill search with highlighted letters (replacing spaces with ?s?)
+  + height 100%, overflow-y: hidden, center on board
+  x place 1 and auto-fill disabled when done + they auto-place any decided wave elements
+  x focus on word input if type while a word is selected (same with backspace)
+  x undo to before auto-fill
+  + note for when red tile appears
+  + show all letters allowed on a tile (when selected?)
+  x convert things to underscore?
+  + auto-fill by word?
+  + traverse by tile--fill input box is removed
+  + optimize word list
+  + fix solver going a second time again at the end
+  + redo
+  + move controls to above the grid, and move grid stuff to "new"
+  + display total words and blocks
+  + fix word bank and clues
+  x in-focus vs out-of-focus coloration
+  x blue border and outline + higher z-index + different color than entropy
+  + fill assist turned on and off on grid selection only--also, turning on
+    suggestion when >= 70 words
+  + hover color faded & hide when cursor is hidden
+  + . to toggle
+  + arrow key navigation
+  + spacebar to advance one position
+  + clearer location of cursor + feedback
+- Share link to play
+- Mobile version (player only, not builder)
+- include 10x10 and 5x5 boards
+- QoL pt2
+  - "click to select down/across" tooltip/hint
+  - fix styling
+  - persist puzzle builder state in local storage
+- Share puzzle at completion?
+- add license
+- Ko-Fi for donations
+  - input code to unlock feature (color themes)!
+  - when code input, donation button says "Thank you!" and has stars
 
-Variable size
-Toggle symmetry
-Toggle enforce NYT rules
-Show counts of 3-letter words
-Allow typing letters and selecting full words for across or down (sorted by increasing difficulty? Maybe use Scrabble weights here?)
-Any time black changed, recalculate off all letters
-Allow clue entry
-Share link to play
-Mobile version
+- INITIAL RELEASE!
+
+Variable board size
+ingest files as dictionaries
+sell custom dictionaries?
+pentatonic scale sounds
+BEEG BOARD
+juicy animations
+
+- pro features
+  - download as XML variant
+  - edit from play link
+  - custom dictionary (including ingesting a file)
+  - toggle symmetry
+  - toggle enforce NYT rules
+  - show counts of 3-letter words
+  - load word bank
+
+- possible future features
+  - heatmap for failures: count up contradictions per tile somehow?
+  - auto-fill prioritizes word bank?
+  - dictionary with more common words?
+  - import/export
+    - export
+    - import
+  - add to dictionary prompt?
+  - look at survey monkey for inspiration on clue-writing
+  - check words in the possible words list in the background to see if they can
+    be validly placed (probably use a separate WFC worker for this)
+  - eliminate duplicate words
