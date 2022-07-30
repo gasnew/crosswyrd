@@ -3,6 +3,7 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
 import { RootState } from '../../app/store';
 import { ALL_LETTERS, PUZZLE_SIZE } from './constants';
+import { DirectionType } from './useTileSelection';
 import { TileUpdateType, WaveType } from './useWaveFunctionCollapse';
 import { randomId } from '../../app/util';
 
@@ -16,8 +17,13 @@ export interface CrosswordPuzzleType {
   tiles: TileType[][];
   version: string;
 }
+export interface ClueGridCellType {
+  across: string | null;
+  down: string | null;
+}
 interface BuilderState {
   puzzle: CrosswordPuzzleType;
+  clueGrid: ClueGridCellType[][] | null;
   draggedWord: string | null;
   currentTab: number;
   wordCount: number | null;
@@ -30,14 +36,12 @@ export const DEFAULT_TILES: TileType[][] = Array.from(Array(PUZZLE_SIZE), () =>
 
 const initialState: BuilderState = {
   puzzle: {
-    //tiles: _.times(15, (rowIndex) =>
-    //_.times(15, (columnIndex) => ({
-    //value: 'empty',
-    //}))
-    //),
     tiles: DEFAULT_TILES,
     version: randomId(),
   },
+  clueGrid: _.times(PUZZLE_SIZE, (index) =>
+    _.times(PUZZLE_SIZE, (index) => ({ across: null, down: null }))
+  ),
   draggedWord: null,
   currentTab: 0,
   wordCount: null,
@@ -126,6 +130,24 @@ export const builderSlice = createSlice({
     setWordCount: (state, action: PayloadAction<number>) => {
       state.wordCount = action.payload;
     },
+    initClueGrid: (state, action: PayloadAction<{ size: number }>) => {
+      state.clueGrid = _.times(action.payload.size, (index) =>
+        _.times(action.payload.size, (index) => ({ across: null, down: null }))
+      );
+    },
+    setClue: (
+      state,
+      action: PayloadAction<{
+        row: number;
+        column: number;
+        direction: DirectionType;
+        value: string;
+      }>
+    ) => {
+      if (!state.clueGrid) return;
+      const { row, column, direction, value } = action.payload;
+      state.clueGrid[row][column][direction] = value;
+    },
   },
 });
 
@@ -139,6 +161,8 @@ export const {
   setCurrentTab,
   setFillAssistActive,
   setWordCount,
+  initClueGrid,
+  setClue,
 } = builderSlice.actions;
 
 export const selectPuzzle = (state: RootState) => state.builder.puzzle;
@@ -148,5 +172,6 @@ export const selectCurrentTab = (state: RootState) => state.builder.currentTab;
 export const selectFillAssistActive = (state: RootState) =>
   state.builder.fillAssistState;
 export const selectWordCount = (state: RootState) => state.builder.wordCount;
+export const selectClueGrid = (state: RootState) => state.builder.clueGrid;
 
 export default builderSlice.reducer;

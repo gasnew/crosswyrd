@@ -13,7 +13,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { FixedSizeList } from 'react-window';
 
-import { setFillAssistActive } from '../builder/builderSlice';
+import { initClueGrid, setFillAssistActive } from '../builder/builderSlice';
 import { PUZZLE_SIZE } from '../builder/constants';
 import { GridType } from './useGrids';
 
@@ -217,6 +217,7 @@ export default function GridsDialog({
       // the animations can play out
       setTimeout(() => {
         selectGrid(grid);
+        dispatch(initClueGrid({ size: grid.tiles.length }));
         // Activate fill assist for non-blank grids
         dispatch(setFillAssistActive(!_.isEqual(grid, BLANK_GRID)));
       }, 20);
