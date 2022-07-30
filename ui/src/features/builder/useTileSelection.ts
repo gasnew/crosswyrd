@@ -8,6 +8,7 @@ import {
   selectFillAssistActive,
 } from './builderSlice';
 import { PUZZLE_SIZE } from './constants';
+import { getFlattenedAnswers } from './ClueEntry';
 import { LocationType } from './CrosswordBuilder';
 import { WaveAndPuzzleType } from './useWaveAndPuzzleHistory';
 import { ElementType, WaveType } from './useWaveFunctionCollapse';
@@ -20,7 +21,9 @@ export interface SelectedTilesStateType {
   direction: DirectionType;
 }
 export type UpdateSelectionWithPuzzleType = (
-  puzzle: CrosswordPuzzleType
+  puzzle: CrosswordPuzzleType,
+  newPrimaryLocation: LocationType,
+  newDirection: DirectionType
 ) => void;
 
 export function getBestNextElementSet(
@@ -58,6 +61,7 @@ interface ReturnType {
   updateSelectionWithPuzzle: UpdateSelectionWithPuzzleType;
   clearSelection: () => void;
   selectBestNext: (state?: WaveAndPuzzleType) => void;
+  selectNextAnswer: (forward: boolean) => void;
 }
 
 export default function useTileSelection(
@@ -114,68 +118,73 @@ export default function useTileSelection(
   }, []);
 
   const updateSelectionWithPuzzle = useCallback(
-    (newPuzzle: CrosswordPuzzleType) => {
+    (
+      newPuzzle: CrosswordPuzzleType,
+      newPrimaryLocation: LocationType,
+      newDirection: DirectionType
+    ) => {
       if (!primaryLocation || locations.length < 1) return;
 
-      if (
-        _.every(
-          locations,
-          ({ row, column }) => newPuzzle.tiles[row][column].value !== 'empty'
-        )
-      ) {
-        // Clear selection because we have reached the end of the word, and the
-        // word is completely filled
-        clearSelection();
-        return;
-      }
+      //if (
+      //_.every(
+      //locations,
+      //({ row, column }) => newPuzzle.tiles[row][column].value !== 'empty'
+      //)
+      //) {
+      //// Clear selection because we have reached the end of the word, and the
+      //// word is completely filled
+      //clearSelection();
+      //return;
+      //}
 
-      let newPrimaryLocation = primaryLocation;
-      if (
-        newPuzzle.tiles[newPrimaryLocation.row][newPrimaryLocation.column]
-          .value === 'empty'
-      ) {
-        // Move backward to first non-empty tile
-        while (
-          newPuzzle.tiles[newPrimaryLocation.row - dir[0]]?.[
-            newPrimaryLocation.column - dir[1]
-          ]?.value === 'empty'
-        ) {
-          newPrimaryLocation = {
-            row: newPrimaryLocation.row - dir[0],
-            column: newPrimaryLocation.column - dir[1],
-          };
-        }
-      } else {
-        // Move forward to first empty tile
-        const next = ({ row, column }) => ({
-          row: row + dir[0],
-          column: column + dir[1],
-        });
-        while (
-          next(newPrimaryLocation).row < PUZZLE_SIZE &&
-          next(newPrimaryLocation).column < PUZZLE_SIZE &&
-          newPuzzle.tiles[newPrimaryLocation.row + dir[0]]?.[
-            newPrimaryLocation.column + dir[1]
-          ]?.value !== 'empty'
-        ) {
-          newPrimaryLocation = {
-            row: newPrimaryLocation.row + dir[0],
-            column: newPrimaryLocation.column + dir[1],
-          };
-        }
-        if (
-          newPrimaryLocation.row + dir[0] < PUZZLE_SIZE &&
-          newPrimaryLocation.column + dir[1] < PUZZLE_SIZE
-        )
-          // Move it one more into the empty spot
-          newPrimaryLocation = {
-            row: newPrimaryLocation.row + dir[0],
-            column: newPrimaryLocation.column + dir[1],
-          };
-        else newPrimaryLocation = primaryLocation;
-      }
+      // TODO: Remove all this fancy jazz?
+      //if (
+      //newPuzzle.tiles[newPrimaryLocation.row][newPrimaryLocation.column]
+      //.value === 'empty'
+      //) {
+      //// Move backward to first non-empty tile
+      //while (
+      //newPuzzle.tiles[newPrimaryLocation.row - dir[0]]?.[
+      //newPrimaryLocation.column - dir[1]
+      //]?.value === 'empty'
+      //) {
+      //newPrimaryLocation = {
+      //row: newPrimaryLocation.row - dir[0],
+      //column: newPrimaryLocation.column - dir[1],
+      //};
+      //}
+      //} else {
+      //// Move forward to first empty tile
+      //const next = ({ row, column }) => ({
+      //row: row + dir[0],
+      //column: column + dir[1],
+      //});
+      //while (
+      //next(newPrimaryLocation).row < PUZZLE_SIZE &&
+      //next(newPrimaryLocation).column < PUZZLE_SIZE &&
+      //newPuzzle.tiles[newPrimaryLocation.row + dir[0]]?.[
+      //newPrimaryLocation.column + dir[1]
+      //]?.value !== 'empty'
+      //) {
+      //newPrimaryLocation = {
+      //row: newPrimaryLocation.row + dir[0],
+      //column: newPrimaryLocation.column + dir[1],
+      //};
+      //}
+      //if (
+      //newPrimaryLocation.row + dir[0] < PUZZLE_SIZE &&
+      //newPrimaryLocation.column + dir[1] < PUZZLE_SIZE
+      //)
+      //// Move it one more into the empty spot
+      //newPrimaryLocation = {
+      //row: newPrimaryLocation.row + dir[0],
+      //column: newPrimaryLocation.column + dir[1],
+      //};
+      //else newPrimaryLocation = primaryLocation;
+      //}
 
       setPrimaryLocation(newPrimaryLocation);
+      setDirection(newDirection || direction);
     },
     [primaryLocation, locations, clearSelection, dir]
   );
@@ -218,6 +227,7 @@ export default function useTileSelection(
       prevProcessingLastChange.current = processingLastChange;
       return;
     }
+    prevProcessingLastChange.current = processingLastChange;
     if (
       wave &&
       _.some(
@@ -234,7 +244,6 @@ export default function useTileSelection(
       // There is at least one problem in the board--do not automatically
       // select anything.
       return;
-    prevProcessingLastChange.current = processingLastChange;
 
     selectBestNext();
   }, [
@@ -267,6 +276,28 @@ export default function useTileSelection(
     [direction, primaryLocation]
   );
 
+  const selectNextAnswer = useCallback(
+    (forward: boolean) => {
+      if (locations.length === 0) return;
+      const answers = getFlattenedAnswers(puzzle);
+      const currentAnswerIndex = _.findIndex(
+        answers,
+        (answer) =>
+          locations[0].row === answer.row &&
+          locations[0].column === answer.column &&
+          direction === answer.direction
+      );
+      if (currentAnswerIndex < 0) return;
+
+      const { direction: answerDirection, row, column } = answers[
+        (currentAnswerIndex + (forward ? 1 : -1) + answers.length) %
+          answers.length
+      ];
+      updateSelection({ row, column }, answerDirection);
+    },
+    [puzzle, locations, direction, updateSelection]
+  );
+
   const selectedTilesState = useMemo(() => {
     if (!primaryLocation) return null;
     return {
@@ -283,5 +314,6 @@ export default function useTileSelection(
     selectedTilesState,
     clearSelection,
     selectBestNext,
+    selectNextAnswer,
   };
 }

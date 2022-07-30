@@ -87,12 +87,12 @@
   + fill assist turned on and off on grid selection only--also, turning on
     suggestion when >= 70 words
   + hover color faded & hide when cursor is hidden
+  + . to toggle
+  + arrow key navigation
+  + spacebar to advance one position
+  + clearer location of cursor + feedback
   - "click to select down/across" tooltip/hint
-  - arrow key navigation
-  - spacebar to advance one position
-  - . to toggle
   - fix styling
-  - clearer location of cursor + feedback
   - persist puzzle builder state in local storage
   - look at survey monkey
 - Share link to play

@@ -52,6 +52,7 @@ body,
   outline-style: solid;
   outline-color: black;
   outline-width: 2px;
+  background-color: white;
 }
 
 .puzzle-row {
