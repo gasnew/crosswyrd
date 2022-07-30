@@ -186,7 +186,7 @@ export default function useTileSelection(
       setPrimaryLocation(newPrimaryLocation);
       setDirection(newDirection || direction);
     },
-    [primaryLocation, locations, clearSelection, dir]
+    [primaryLocation, locations, direction]
   );
 
   const selectBestNext = useCallback(

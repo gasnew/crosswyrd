@@ -197,8 +197,9 @@ export default function useTileInput(
           newPrimaryLocation = shift(newPrimaryLocation, 1);
           return [];
         } else {
-          const currentTile =
-            puzzle.tiles[newPrimaryLocation.row][newPrimaryLocation.column];
+          const tileAtLocation = (location) =>
+            puzzle.tiles[location.row][location.column];
+          const currentTile = tileAtLocation(newPrimaryLocation);
           const tileUpdate: TileUpdateType = {
             ...newPrimaryLocation,
             value:
@@ -217,12 +218,29 @@ export default function useTileInput(
                 )
               : null;
 
-          const nextLocation = shift(newPrimaryLocation, 1);
+          // Move to the next empty location, to the next letter if no empty
+          // tile, or not at all if blocked by a black tile
+          const nextNonLetterTileDistance = _.find(
+            _.range(1, PUZZLE_SIZE),
+            (index) => {
+              const nextLocation = shift(newPrimaryLocation, index);
+              const nextTile = tileAtLocation(nextLocation);
+              return nextTile.value === 'empty' || nextTile.value === 'black';
+            }
+          );
+          const nextNonLetterLocation =
+            nextNonLetterTileDistance &&
+            shift(newPrimaryLocation, nextNonLetterTileDistance);
           if (
-            puzzle.tiles[nextLocation.row][nextLocation.column].value !==
-            'black'
+            nextNonLetterLocation &&
+            tileAtLocation(nextNonLetterLocation).value === 'empty'
           )
-            newPrimaryLocation = nextLocation;
+            // The next non-letter tile is empty, so let's move there!
+            newPrimaryLocation = nextNonLetterLocation;
+          else if (nextNonLetterTileDistance && nextNonLetterTileDistance > 1)
+            // The next non-letter tile is black but is far away, so let's
+            // advance one tile!
+            newPrimaryLocation = shift(newPrimaryLocation, 1);
 
           return [
             tileUpdate,
