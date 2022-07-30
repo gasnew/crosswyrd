@@ -1,14 +1,22 @@
 import _ from 'lodash';
 import { colors } from '@mui/material';
-import React, { useCallback, useMemo } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 
-import { CrosswordPuzzleType, TileType } from './builderSlice';
+import { CrosswordPuzzleType, TileValueType, TileType } from './builderSlice';
 import { TileNumbersType } from './ClueEntry';
 import { LocationType } from './CrosswordBuilder';
 import TileLetterOptions from './TileLetterOptions';
 import { SelectedTilesStateType } from './useTileSelection';
 import { WaveType } from './useWaveFunctionCollapse';
 import { WordLocationsGridType } from './WordBank';
+
+const TILE_ANIMATION_MS = 150;
 
 interface TileProps {
   wave: WaveType | null;
@@ -79,6 +87,20 @@ function Tile({
     tile.value !== 'empty' &&
     !_.includes(element.options, tile.value);
 
+  // Animate the tile when it becomes a letter from empty
+  const [animating, setAnimating] = useState(false);
+  const prevValue = useRef<TileValueType>('empty');
+  useEffect(() => {
+    if (
+      prevValue.current === 'empty' &&
+      tile.value !== 'empty' &&
+      tile.value !== 'black'
+    )
+      setAnimating(true);
+    const timeoutId = setTimeout(() => setAnimating(false), TILE_ANIMATION_MS);
+    return () => clearTimeout(timeoutId);
+  }, [tile.value]);
+
   return (
     <div
       key={columnIndex}
@@ -87,7 +109,8 @@ function Tile({
         (tile.value === 'black' ? ' tile--black' : '') +
         (selectionIndex >= 0 ? ' tile--selected' : '') +
         (wordLocationOptions ? ' tile--option' : '') +
-        (primarySelection ? ' tile--primary-selected' : '')
+        (primarySelection ? ' tile--primary-selected' : '') +
+        (animating ? ' tile--animating' : '')
       }
       style={{
         ...(draggedWordLetterIndex >= 0
