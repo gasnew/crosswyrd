@@ -60,7 +60,7 @@
   + possibly filter out grids that have too few words
   + automatically turns on after 70+ words?
   + notification for when solver is turned on
-/ QoL
++ QoL
   + do not mark ?s red
   + optimization: sort dictionary by word size
   + control selections and stuff when changing tabs + clicking on the board
@@ -91,13 +91,13 @@
   + arrow key navigation
   + spacebar to advance one position
   + clearer location of cursor + feedback
-  - "click to select down/across" tooltip/hint
-  - fix styling
-  - persist puzzle builder state in local storage
-  - look at survey monkey
 - Share link to play
 - Mobile version (player only, not builder)
 - include 10x10 and 5x5 boards
+- QoL pt2
+  - "click to select down/across" tooltip/hint
+  - fix styling
+  - persist puzzle builder state in local storage
 - Share puzzle at completion?
 - add license
 - Ko-Fi for donations
@@ -130,6 +130,7 @@ juicy animations
     - export
     - import
   - add to dictionary prompt?
+  - look at survey monkey for inspiration on clue-writing
   - check words in the possible words list in the background to see if they can
     be validly placed (probably use a separate WFC worker for this)
   - eliminate duplicate words
