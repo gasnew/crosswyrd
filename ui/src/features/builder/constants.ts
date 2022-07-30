@@ -1,4 +1,4 @@
-export const AUTO_FILL_ASSIST_TOGGLE_THRESHOLD = 70;
+export const AUTO_FILL_ASSIST_SUGGESTION_TOGGLE_THRESHOLD = 70;
 export const ALL_LETTERS = [
   'a',
   'b',

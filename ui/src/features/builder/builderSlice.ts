@@ -20,10 +20,8 @@ interface BuilderState {
   puzzle: CrosswordPuzzleType;
   draggedWord: string | null;
   currentTab: number;
-  fillAssistState: {
-    active: boolean;
-    toggledAutomatically: boolean;
-  };
+  wordCount: number | null;
+  fillAssistState: boolean;
 }
 
 export const DEFAULT_TILES: TileType[][] = Array.from(Array(PUZZLE_SIZE), () =>
@@ -42,10 +40,8 @@ const initialState: BuilderState = {
   },
   draggedWord: null,
   currentTab: 0,
-  fillAssistState: {
-    active: false,
-    toggledAutomatically: false,
-  },
+  wordCount: null,
+  fillAssistState: false,
 };
 
 export function getSymmetricTile(
@@ -125,16 +121,10 @@ export const builderSlice = createSlice({
       state.currentTab = action.payload;
     },
     setFillAssistActive: (state, action: PayloadAction<boolean>) => {
-      state.fillAssistState = {
-        active: action.payload,
-        toggledAutomatically: false,
-      };
+      state.fillAssistState = action.payload;
     },
-    autoSetFillAssistActive: (state, action: PayloadAction<boolean>) => {
-      state.fillAssistState = {
-        active: action.payload,
-        toggledAutomatically: true,
-      };
+    setWordCount: (state, action: PayloadAction<number>) => {
+      state.wordCount = action.payload;
     },
   },
 });
@@ -148,7 +138,7 @@ export const {
   setDraggedWord,
   setCurrentTab,
   setFillAssistActive,
-  autoSetFillAssistActive,
+  setWordCount,
 } = builderSlice.actions;
 
 export const selectPuzzle = (state: RootState) => state.builder.puzzle;
@@ -156,8 +146,7 @@ export const selectDraggedWord = (state: RootState) =>
   state.builder.draggedWord;
 export const selectCurrentTab = (state: RootState) => state.builder.currentTab;
 export const selectFillAssistActive = (state: RootState) =>
-  state.builder.fillAssistState.active;
-export const selectFillAssistToggledAutomatically = (state: RootState) =>
-  state.builder.fillAssistState.toggledAutomatically;
+  state.builder.fillAssistState;
+export const selectWordCount = (state: RootState) => state.builder.wordCount;
 
 export default builderSlice.reducer;

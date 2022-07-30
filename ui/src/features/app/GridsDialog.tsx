@@ -10,8 +10,10 @@ import {
   IconButton,
 } from '@mui/material';
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useDispatch } from 'react-redux';
 import { FixedSizeList } from 'react-window';
 
+import { setFillAssistActive } from '../builder/builderSlice';
 import { PUZZLE_SIZE } from '../builder/constants';
 import { GridType } from './useGrids';
 
@@ -195,6 +197,8 @@ export default function GridsDialog({
     null
   );
 
+  const dispatch = useDispatch();
+
   useEffect(() => {
     // Reset state 1 second after the dialog closes
     if (!open) setTimeout(() => setSelectedGridIndex(null), 1000);
@@ -211,9 +215,13 @@ export default function GridsDialog({
       setSelectedGridIndex(gridIndex(rowIndex, columnIndex));
       // Wait a second before running the expensive selectGrid function so that
       // the animations can play out
-      setTimeout(() => selectGrid(grid), 20);
+      setTimeout(() => {
+        selectGrid(grid);
+        // Activate fill assist for non-blank grids
+        dispatch(setFillAssistActive(!_.isEqual(grid, BLANK_GRID)));
+      }, 20);
     },
-    [selectedGridIndex, selectGrid]
+    [dispatch, selectedGridIndex, selectGrid]
   );
 
   return (

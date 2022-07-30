@@ -37,7 +37,8 @@ export function withPuzzleTileUpdates(
 export default function useTileInput(
   puzzle: CrosswordPuzzleType,
   selectedTilesState: SelectedTilesStateType | null,
-  updateSelectionWithPuzzle: UpdateSelectionWithPuzzleType
+  updateSelectionWithPuzzle: UpdateSelectionWithPuzzleType,
+  clearHoveredTile: () => void
 ) {
   const dispatch = useDispatch();
   // A map of key states, used to prevent rapid-fire keypresses by olding keys
@@ -56,6 +57,7 @@ export default function useTileInput(
       if (!_.includes([...ALL_LETTERS, '.', 'Backspace', 'Tab'], event.key))
         return;
       event.preventDefault();
+      clearHoveredTile();
       if (keyStates.current[event.key] === 'down') return;
       keyStates.current[event.key] = 'down';
 
@@ -65,7 +67,7 @@ export default function useTileInput(
       cachedInputQueue.current.push(key);
       setInputQueue(cachedInputQueue.current);
     },
-    [setInputQueue]
+    [setInputQueue, clearHoveredTile]
   );
   const onKeyUp = useCallback((event) => {
     keyStates.current[event.key] = 'up';

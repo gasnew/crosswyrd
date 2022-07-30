@@ -15,37 +15,37 @@ import {
   Popover,
   Typography,
 } from '@mui/material';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
 import {
   selectFillAssistActive,
-  selectFillAssistToggledAutomatically,
+  selectWordCount,
   setFillAssistActive,
 } from './builderSlice';
-import { AUTO_FILL_ASSIST_TOGGLE_THRESHOLD } from './constants';
+import { AUTO_FILL_ASSIST_SUGGESTION_TOGGLE_THRESHOLD } from './constants';
 
 function FillAssistPopover({ anchorEl }: { anchorEl: HTMLElement }) {
-  const [state, setState] = useState<'activated' | 'deactivated' | null>(null);
   const [open, setOpen] = useState(false);
 
   const active = useSelector(selectFillAssistActive);
-  const toggledAutomatically = useSelector(
-    selectFillAssistToggledAutomatically
-  );
+  const wordCount = useSelector(selectWordCount);
 
+  const prevWordCount = useRef<number | null>(wordCount);
   useEffect(() => {
-    let timeoutId: NodeJS.Timeout | null = null;
-    if (toggledAutomatically) {
-      if (active) setState('activated');
-      else setState('deactivated');
+    if (wordCount === null) return;
+    if (
+      !active &&
+      wordCount >= AUTO_FILL_ASSIST_SUGGESTION_TOGGLE_THRESHOLD &&
+      prevWordCount.current !== null &&
+      prevWordCount.current < AUTO_FILL_ASSIST_SUGGESTION_TOGGLE_THRESHOLD
+    ) {
       setOpen(true);
-      timeoutId = setTimeout(() => setOpen(false), 5000);
-    } else timeoutId = setTimeout(() => setOpen(false), 100);
-    return () => {
-      timeoutId && clearTimeout(timeoutId);
-    };
-  }, [active, toggledAutomatically]);
+      setTimeout(() => setOpen(false), 5000);
+    }
+
+    prevWordCount.current = wordCount;
+  }, [active, wordCount]);
 
   return (
     <Popover
@@ -60,22 +60,16 @@ function FillAssistPopover({ anchorEl }: { anchorEl: HTMLElement }) {
         vertical: 'bottom',
         horizontal: 'center',
       }}
+      disableAutoFocus
+      disableEnforceFocus
     >
       <Typography sx={{ p: 1 }} style={{ maxWidth: 340, textAlign: 'center' }}>
-        {state === 'activated' ? (
-          <span>
-            There are {AUTO_FILL_ASSIST_TOGGLE_THRESHOLD} or more words in the
-            puzzle: <span style={{ fontWeight: 'bold' }}>Fill&nbsp;Assist</span>
-            &nbsp;automatically&nbsp;activated!
-          </span>
-        ) : (
-          <span>
-            There are fewer than {AUTO_FILL_ASSIST_TOGGLE_THRESHOLD} words in
-            the puzzle:{' '}
-            <span style={{ fontWeight: 'bold' }}>Fill&nbsp;Assist</span>
-            &nbsp;automatically&nbsp;deactivated!
-          </span>
-        )}
+        <span>
+          There are {AUTO_FILL_ASSIST_SUGGESTION_TOGGLE_THRESHOLD} or more words
+          in the puzzle:{' '}
+          <span style={{ fontWeight: 'bold' }}>Fill&nbsp;Assist</span>
+          &nbsp;is&nbsp;recommended!
+        </span>
       </Typography>
     </Popover>
   );

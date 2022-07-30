@@ -124,6 +124,7 @@ body,
   height: calc(100% + 4px);
   width: calc(100% + 4px);
   transform: translate(-2px, -2px);
+  opacity: 0.5;
 }
 
 .tile-highlight--secondary {

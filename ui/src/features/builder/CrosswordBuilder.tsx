@@ -107,7 +107,15 @@ export default function CrosswordBuilder({ grid }: Props) {
     clearSelection,
     selectBestNext,
   } = useTileSelection(puzzle, wave, WFCBusy, autoFillRunning);
-  useTileInput(puzzle, selectedTilesState, updateSelectionWithPuzzle);
+  const clearHoveredTile = useCallback(() => setHoveredTile(null), [
+    setHoveredTile,
+  ]);
+  useTileInput(
+    puzzle,
+    selectedTilesState,
+    updateSelectionWithPuzzle,
+    clearHoveredTile
+  );
 
   const dispatch = useDispatch();
   const stepBack = useCallback(
