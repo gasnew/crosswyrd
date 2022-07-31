@@ -13,45 +13,13 @@ import useTileSelection, { DirectionType } from '../builder/useTileSelection';
 
 import './CrosswordPlayer.css';
 
-interface PlayerClueType {
-  row: number;
-  column: number;
-  direction: DirectionType;
-  clue: string;
-  answer: string;
-}
-
-export default function CrosswordPlayer() {
-  const { puzzleData } = useParams();
-
-  const [clues, setClues] = useState<PlayerClueType[] | null>(null);
-
-  const puzzle = useSelector(selectPuzzle);
-  const { tileNumbers } = useClueData(puzzle);
-  const [hoveredTile, setHoveredTile] = useState<LocationType | null>(null);
-
-  const {
-    onClick,
-    updateSelectionWithPuzzle,
-    selectedTilesState,
-    selectBestNext,
-    selectNextAnswer,
-  } = useTileSelection(puzzle, null, false, false);
-  const clearHoveredTile = useCallback(() => setHoveredTile(null), [
-    setHoveredTile,
-  ]);
-  useTileInput(
-    puzzle,
-    selectedTilesState,
-    updateSelectionWithPuzzle,
-    clearHoveredTile,
-    selectNextAnswer,
-    selectBestNext
-  );
-
+function usePuzzleData(
+  puzzleData: string,
+  setClues: (clues: PlayerClueType[]) => void
+) {
   const dispatch = useDispatch();
 
-  // Load puzzle data
+  // Decode and load puzzle data
   useEffect(() => {
     var codec = require('json-url')('lzma');
     codec
@@ -83,12 +51,77 @@ export default function CrosswordPlayer() {
           )
         );
       });
-  }, [dispatch, puzzleData]);
+  }, [dispatch, puzzleData, setClues]);
+}
+
+function usePuzzleScaleToFit(puzzleRef: HTMLElement | null): number {
+  const [scale, setScale] = useState(1);
+
+  const onResize = useCallback(() => {
+    if (!puzzleRef) return;
+    setScale(window.innerWidth / puzzleRef.clientWidth);
+  }, [puzzleRef]);
+
+  // Scale on load
+  useEffect(() => {
+    if (!puzzleRef) return;
+    onResize();
+  }, [onResize, puzzleRef]);
+
+  // Add resize listener
+  useEffect(() => {
+    window.addEventListener('resize', onResize);
+    return () => {
+      window.removeEventListener('resize', onResize);
+    };
+  }, [onResize]);
+
+  return scale;
+}
+
+interface PlayerClueType {
+  row: number;
+  column: number;
+  direction: DirectionType;
+  clue: string;
+  answer: string;
+}
+
+export default function CrosswordPlayer() {
+  const [clues, setClues] = useState<PlayerClueType[] | null>(null);
+
+  const puzzle = useSelector(selectPuzzle);
+  const { tileNumbers } = useClueData(puzzle);
+  const [hoveredTile, setHoveredTile] = useState<LocationType | null>(null);
+  const [puzzleRef, setPuzzleRef] = useState<HTMLElement | null>(null);
+
+  const {
+    onClick,
+    updateSelectionWithPuzzle,
+    selectedTilesState,
+    selectBestNext,
+    selectNextAnswer,
+  } = useTileSelection(puzzle, null, false, false);
+  const clearHoveredTile = useCallback(() => setHoveredTile(null), [
+    setHoveredTile,
+  ]);
+  useTileInput(
+    puzzle,
+    selectedTilesState,
+    updateSelectionWithPuzzle,
+    clearHoveredTile,
+    selectNextAnswer,
+    selectBestNext
+  );
+
+  const { puzzleData } = useParams();
+  usePuzzleData(puzzleData, setClues);
+
+  const puzzleScale = usePuzzleScaleToFit(puzzleRef);
 
   const mkHandleMouseoverTile = useCallback((row, column) => {
     return () => setHoveredTile({ row, column });
   }, []);
-
   const onTilesMouseOut = useCallback(() => setHoveredTile(null), []);
   const mkHandleClickTile = useCallback(
     (row, column) => {
@@ -101,7 +134,15 @@ export default function CrosswordPlayer() {
 
   return (
     <div className="content-container">
-      <div className="puzzle-player-container">
+      <div
+        className="puzzle-player-container"
+        style={{
+          transform: `scale(${puzzleScale})`,
+          // Transform from center left when scaling down
+          transformOrigin: puzzleScale <= 1 ? 'center left' : 'initial',
+        }}
+        ref={setPuzzleRef}
+      >
         <div className="puzzle-container sheet">
           <Tiles
             puzzle={puzzle}
