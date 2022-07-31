@@ -25,7 +25,7 @@ function App() {
           <Route path="/builder">
             <Crosswyrd />
           </Route>
-          <Route path="/player">
+          <Route path="/player/:puzzleData">
             <CrosswordPlayer />
           </Route>
           <Redirect to="/builder" />

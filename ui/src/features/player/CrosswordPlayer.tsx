@@ -1,18 +1,31 @@
 import _ from 'lodash';
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { useParams } from 'react-router-dom';
 
-import { GridWithVersionType } from '../app/Crosswyrd';
-import { selectPuzzle } from '../builder/builderSlice';
+import { CompletePuzzleDataType } from '../app/Crosswyrd';
+import { selectPuzzle, setPuzzleState } from '../builder/builderSlice';
 import { LocationType } from '../builder/CrosswordBuilder';
-import { useClueData } from '../builder/ClueEntry';
+import { getFlattenedAnswers, useClueData } from '../builder/ClueEntry';
 import Tiles from '../builder/Tiles';
 import useTileInput from '../builder/useTileInput';
-import useTileSelection from '../builder/useTileSelection';
+import useTileSelection, { DirectionType } from '../builder/useTileSelection';
 
 import './CrosswordPlayer.css';
 
-export default function CrosswordBuilder() {
+interface PlayerClueType {
+  row: number;
+  column: number;
+  direction: DirectionType;
+  clue: string;
+  answer: string;
+}
+
+export default function CrosswordPlayer() {
+  const { puzzleData } = useParams();
+
+  const [clues, setClues] = useState<PlayerClueType[] | null>(null);
+
   const puzzle = useSelector(selectPuzzle);
   const { tileNumbers } = useClueData(puzzle);
   const [hoveredTile, setHoveredTile] = useState<LocationType | null>(null);
@@ -37,6 +50,40 @@ export default function CrosswordBuilder() {
   );
 
   const dispatch = useDispatch();
+
+  // Load puzzle data
+  useEffect(() => {
+    var codec = require('json-url')('lzma');
+    codec
+      .decompress(puzzleData)
+      .then(({ puzzle, clueGrid }: CompletePuzzleDataType) => {
+        // Set a puzzle with empty tiles
+        dispatch(
+          setPuzzleState({
+            ...puzzle,
+            tiles: _.map(puzzle.tiles, (row) =>
+              _.map(row, (tile) => ({
+                ...tile,
+                value: tile.value === 'black' ? 'black' : 'empty',
+              }))
+            ),
+          })
+        );
+        // Set a list of clues in the order of flattened answers
+        setClues(
+          _.map(
+            getFlattenedAnswers(puzzle),
+            ({ row, column, direction, answer }) => ({
+              row,
+              column,
+              direction,
+              answer: answer.word,
+              clue: clueGrid[row][column][direction] || '',
+            })
+          )
+        );
+      });
+  }, [dispatch, puzzleData]);
 
   const mkHandleMouseoverTile = useCallback((row, column) => {
     return () => setHoveredTile({ row, column });

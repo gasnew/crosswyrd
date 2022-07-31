@@ -21,9 +21,10 @@ export interface ClueGridCellType {
   across: string | null;
   down: string | null;
 }
+export type ClueGridType = ClueGridCellType[][];
 interface BuilderState {
   puzzle: CrosswordPuzzleType;
-  clueGrid: ClueGridCellType[][] | null;
+  clueGrid: ClueGridType | null;
   draggedWord: string | null;
   currentTab: number;
   wordCount: number | null;
@@ -148,6 +149,9 @@ export const builderSlice = createSlice({
       const { row, column, direction, value } = action.payload;
       state.clueGrid[row][column][direction] = value;
     },
+    setClueGrid: (state, action: PayloadAction<ClueGridType>) => {
+      state.clueGrid = action.payload;
+    },
   },
 });
 
@@ -163,6 +167,7 @@ export const {
   setWordCount,
   initClueGrid,
   setClue,
+  setClueGrid,
 } = builderSlice.actions;
 
 export const selectPuzzle = (state: RootState) => state.builder.puzzle;
