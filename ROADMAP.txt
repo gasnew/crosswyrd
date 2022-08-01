@@ -96,12 +96,14 @@
   - display/navigate clues
   - move to next clue when complete word
   - backspace to previous clue
+  - prevent destruction
   - desktop version (simple clues on right side, no virtual keyboard)
   - fix portrait mode
   - completion screen w/ confetti
   - banner and dropdown
     - edit button
     - share button
+  - fix font
 - include 10x10 and 5x5 boards
 - QoL pt2
   - "click to select down/across" tooltip/hint

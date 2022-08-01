@@ -13,3 +13,13 @@
   display: flex;
   flex-direction: column;
 }
+
+.hg-button-bksp {
+  background-color: #e0e0e0 !important;
+}
+.hg-activeButton {
+  background-color: #bdbdbd !important;
+}
+.hg-button-bksp.hg-activeButton {
+  background-color: #9e9e9e !important;
+}

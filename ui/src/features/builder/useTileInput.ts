@@ -258,9 +258,9 @@ export default function useTileInput(
           )
             // The next non-letter tile is empty, so let's move there!
             newPrimaryLocation = nextNonLetterLocation;
-          else if (nextNonLetterTileDistance && nextNonLetterTileDistance > 1)
-            // The next non-letter tile is black but is far away, so let's
-            // advance one tile!
+          else if (!nextNonLetterTileDistance || nextNonLetterTileDistance > 1)
+            // The next non-letter tile is black or is the edge of the board
+            // but is far away, so let's advance one tile!
             newPrimaryLocation = shift(newPrimaryLocation, 1);
 
           return [

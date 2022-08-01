@@ -173,7 +173,7 @@ export default function CrosswordPlayer() {
           ..._.keyBy(_.map(ALL_LETTERS, _.toUpper), (letter) =>
             _.toLower(letter)
           ),
-          '{bksp}': 'backspace',
+          '{bksp}': '⌫',
         }}
         onKeyPress={(key) => inputKey(key === '{bksp}' ? 'Backspace' : key)}
         onKeyReleased={(key) =>
