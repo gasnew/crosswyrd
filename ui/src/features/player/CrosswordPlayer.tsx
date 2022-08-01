@@ -2,9 +2,12 @@ import _ from 'lodash';
 import React, { useCallback, useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useParams } from 'react-router-dom';
+import Keyboard from 'react-simple-keyboard';
+import 'react-simple-keyboard/build/css/index.css';
 
 import { CompletePuzzleDataType } from '../app/Crosswyrd';
 import { selectPuzzle, setPuzzleState } from '../builder/builderSlice';
+import { ALL_LETTERS } from '../builder/constants';
 import { LocationType } from '../builder/CrosswordBuilder';
 import { getFlattenedAnswers, useClueData } from '../builder/ClueEntry';
 import Tiles from '../builder/Tiles';
@@ -105,7 +108,7 @@ export default function CrosswordPlayer() {
   const clearHoveredTile = useCallback(() => setHoveredTile(null), [
     setHoveredTile,
   ]);
-  useTileInput(
+  const { inputKey, releaseKey } = useTileInput(
     puzzle,
     selectedTilesState,
     updateSelectionWithPuzzle,
@@ -133,7 +136,7 @@ export default function CrosswordPlayer() {
   );
 
   return (
-    <div className="content-container">
+    <div className="puzzle-player-content-container">
       <div
         className="puzzle-player-container"
         style={{
@@ -158,6 +161,25 @@ export default function CrosswordPlayer() {
           />
         </div>
       </div>
+      <Keyboard
+        layout={{
+          default: [
+            'q w e r t y u i o p',
+            'a s d f g h j k l',
+            'z x c v b n m {bksp}',
+          ],
+        }}
+        display={{
+          ..._.keyBy(_.map(ALL_LETTERS, _.toUpper), (letter) =>
+            _.toLower(letter)
+          ),
+          '{bksp}': 'backspace',
+        }}
+        onKeyPress={(key) => inputKey(key === '{bksp}' ? 'Backspace' : key)}
+        onKeyReleased={(key) =>
+          releaseKey(key === '{bksp}' ? 'Backspace' : key)
+        }
+      />
     </div>
   );
 }

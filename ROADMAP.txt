@@ -91,8 +91,17 @@
   + arrow key navigation
   + spacebar to advance one position
   + clearer location of cursor + feedback
-- Share link to play
-- Mobile version (player only, not builder)
+/ puzzle player
+  / share link to play
+  - display/navigate clues
+  - move to next clue when complete word
+  - backspace to previous clue
+  - desktop version (simple clues on right side, no virtual keyboard)
+  - fix portrait mode
+  - completion screen w/ confetti
+  - banner and dropdown
+    - edit button
+    - share button
 - include 10x10 and 5x5 boards
 - QoL pt2
   - "click to select down/across" tooltip/hint

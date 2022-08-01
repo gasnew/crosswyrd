@@ -47,12 +47,28 @@ function DrawerControls({ handleDrawerToggle, setGridDialogState }) {
       puzzle,
       clueGrid,
     };
-    console.log(completePuzzleData);
-    console.log(btoa(JSON.stringify(completePuzzleData)));
+    //console.log(completePuzzleData);
+    //const puz = _.join(
+    //  _.flatMap(puzzle.tiles, (row) =>
+    //    _.flatMap(row, (tile) => (tile.value === 'black' ? '.' : tile.value))
+    //  ),
+    //  ''
+    //);
+    //console.log(puz);
+    //const cl = _.compact(
+    //  _.flatMap(clueGrid, (row) =>
+    //    _.flatMap(row, (clue) => [clue.across, clue.down])
+    //  )
+    //);
+    //console.log(cl);
+    //console.log(btoa(JSON.stringify(completePuzzleData)));
     var codec = require('json-url')('lzma');
     codec.compress(completePuzzleData).then((result) => {
       console.log(result.length, result);
     });
+    //codec.compress({ puz, cl }).then((result) => {
+    //  console.log(result.length, result);
+    //});
   };
 
   return (

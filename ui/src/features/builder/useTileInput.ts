@@ -39,7 +39,8 @@ const SUPPORTED_KEYS = [
   UP,
   DOWN,
   SPACEBAR,
-];
+] as const;
+export type SupportedKeysType = typeof SUPPORTED_KEYS[number];
 
 export function withPuzzleTileUpdates(
   puzzle: CrosswordPuzzleType,
@@ -57,6 +58,10 @@ export function withPuzzleTileUpdates(
   return newPuzzle;
 }
 
+interface ReturnType {
+  inputKey: (key: SupportedKeysType) => void;
+  releaseKey: (key: SupportedKeysType) => void;
+}
 export default function useTileInput(
   puzzle: CrosswordPuzzleType,
   selectedTilesState: SelectedTilesStateType | null,
@@ -64,7 +69,7 @@ export default function useTileInput(
   clearHoveredTile: () => void,
   selectNextAnswer: (forward: boolean) => void,
   selectBestNext: () => void
-) {
+): ReturnType {
   const dispatch = useDispatch();
   // A map of key states, used to prevent rapid-fire keypresses by olding keys
   // down
@@ -76,24 +81,40 @@ export default function useTileInput(
 
   const currentTab = useSelector(selectCurrentTab);
 
+  const inputKey = useCallback(
+    (key: SupportedKeysType, shift?: boolean) => {
+      console.log(key);
+      if (!_.includes(SUPPORTED_KEYS, key)) return;
+      clearHoveredTile();
+      if (keyStates.current[key] === 'down') return;
+      keyStates.current[key] = 'down';
+
+      // Add valid inputs to the queue.
+      const trueKey = key === TAB && shift ? SHIFT_TAB : key;
+      cachedInputQueue.current.push(trueKey);
+      setInputQueue(cachedInputQueue.current);
+    },
+    [clearHoveredTile]
+  );
+  const releaseKey = useCallback((key: SupportedKeysType) => {
+    keyStates.current[key] = 'up';
+  }, []);
+
   const onKeyDown = useCallback(
     (event) => {
       if (!_.includes(SUPPORTED_KEYS, event.key)) return;
       event.preventDefault();
-      clearHoveredTile();
-      if (keyStates.current[event.key] === 'down') return;
-      keyStates.current[event.key] = 'down';
-
-      // Add valid inputs to the queue.
-      const key = event.key === TAB && event.shiftKey ? SHIFT_TAB : event.key;
-      cachedInputQueue.current.push(key);
-      setInputQueue(cachedInputQueue.current);
+      inputKey(event.key, event.shiftKey);
     },
-    [setInputQueue, clearHoveredTile]
+    [inputKey]
   );
-  const onKeyUp = useCallback((event) => {
-    keyStates.current[event.key] = 'up';
-  }, []);
+  const onKeyUp = useCallback(
+    (event) => {
+      if (!_.includes(SUPPORTED_KEYS, event.key)) return;
+      releaseKey(event.key);
+    },
+    [releaseKey]
+  );
 
   // Churn through queue
   useEffect(() => {
@@ -292,4 +313,6 @@ export default function useTileInput(
       document.removeEventListener('keyup', onKeyUp);
     };
   }, [onKeyDown, onKeyUp, currentTab]);
+
+  return { inputKey, releaseKey };
 }
