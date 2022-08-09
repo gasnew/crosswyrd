@@ -13,8 +13,17 @@ import { getFlattenedAnswers, useClueData } from '../builder/ClueEntry';
 import Tiles from '../builder/Tiles';
 import useTileInput from '../builder/useTileInput';
 import useTileSelection, { DirectionType } from '../builder/useTileSelection';
+import ClueNavigator from './ClueNavigator';
 
 import './CrosswordPlayer.css';
+
+export interface PlayerClueType {
+  row: number;
+  column: number;
+  direction: DirectionType;
+  clue: string;
+  answer: string;
+}
 
 function usePuzzleData(
   puzzleData: string,
@@ -82,14 +91,6 @@ function usePuzzleScaleToFit(puzzleRef: HTMLElement | null): number {
   return scale;
 }
 
-interface PlayerClueType {
-  row: number;
-  column: number;
-  direction: DirectionType;
-  clue: string;
-  answer: string;
-}
-
 export default function CrosswordPlayer() {
   const [clues, setClues] = useState<PlayerClueType[] | null>(null);
 
@@ -104,6 +105,7 @@ export default function CrosswordPlayer() {
     selectedTilesState,
     selectBestNext,
     selectNextAnswer,
+    updateSelection,
   } = useTileSelection(puzzle, null, false, false);
   const clearHoveredTile = useCallback(() => setHoveredTile(null), [
     setHoveredTile,
@@ -122,6 +124,12 @@ export default function CrosswordPlayer() {
 
   const puzzleScale = usePuzzleScaleToFit(puzzleRef);
 
+  // Default the selection to the first clue
+  useEffect(() => {
+    if (selectedTilesState || !clues || clues.length === 0) return;
+    updateSelection({ row: clues[0].row, column: clues[0].column }, 'across');
+  }, [clues, selectedTilesState, updateSelection]);
+
   const mkHandleMouseoverTile = useCallback((row, column) => {
     return () => setHoveredTile({ row, column });
   }, []);
@@ -135,6 +143,7 @@ export default function CrosswordPlayer() {
     [onClick]
   );
 
+  if (!clues) return null;
   return (
     <div className="puzzle-player-content-container">
       <div
@@ -161,6 +170,12 @@ export default function CrosswordPlayer() {
           />
         </div>
       </div>
+      <ClueNavigator
+        selectedTilesState={selectedTilesState}
+        clues={clues}
+        selectNextAnswer={selectNextAnswer}
+        updateSelection={updateSelection}
+      />
       <Keyboard
         layout={{
           default: [

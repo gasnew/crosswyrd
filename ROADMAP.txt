@@ -93,7 +93,7 @@
   + clearer location of cursor + feedback
 / puzzle player
   / share link to play
-  - display/navigate clues
+  + display/navigate clues
   - move to next clue when complete word
   - backspace to previous clue
   - prevent destruction
@@ -104,6 +104,8 @@
     - edit button
     - share button
   - fix font
+  - prevent selecting black tiles
+  - prevent deselecting
 - include 10x10 and 5x5 boards
 - QoL pt2
   - "click to select down/across" tooltip/hint

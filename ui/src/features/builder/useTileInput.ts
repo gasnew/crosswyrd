@@ -83,7 +83,6 @@ export default function useTileInput(
 
   const inputKey = useCallback(
     (key: SupportedKeysType, shift?: boolean) => {
-      console.log(key);
       if (!_.includes(SUPPORTED_KEYS, key)) return;
       clearHoveredTile();
       if (keyStates.current[key] === 'down') return;
