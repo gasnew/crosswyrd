@@ -170,31 +170,33 @@ export default function CrosswordPlayer() {
           />
         </div>
       </div>
-      <ClueNavigator
-        selectedTilesState={selectedTilesState}
-        clues={clues}
-        selectNextAnswer={selectNextAnswer}
-        updateSelection={updateSelection}
-      />
-      <Keyboard
-        layout={{
-          default: [
-            'q w e r t y u i o p',
-            'a s d f g h j k l',
-            'z x c v b n m {bksp}',
-          ],
-        }}
-        display={{
-          ..._.keyBy(_.map(ALL_LETTERS, _.toUpper), (letter) =>
-            _.toLower(letter)
-          ),
-          '{bksp}': '⌫',
-        }}
-        onKeyPress={(key) => inputKey(key === '{bksp}' ? 'Backspace' : key)}
-        onKeyReleased={(key) =>
-          releaseKey(key === '{bksp}' ? 'Backspace' : key)
-        }
-      />
+      <div>
+        <ClueNavigator
+          selectedTilesState={selectedTilesState}
+          clues={clues}
+          selectNextAnswer={selectNextAnswer}
+          updateSelection={updateSelection}
+        />
+        <Keyboard
+          layout={{
+            default: [
+              'q w e r t y u i o p',
+              'a s d f g h j k l',
+              'z x c v b n m {bksp}',
+            ],
+          }}
+          display={{
+            ..._.keyBy(_.map(ALL_LETTERS, _.toUpper), (letter) =>
+              _.toLower(letter)
+            ),
+            '{bksp}': '⌫',
+          }}
+          onKeyPress={(key) => inputKey(key === '{bksp}' ? 'Backspace' : key)}
+          onKeyReleased={(key) =>
+            releaseKey(key === '{bksp}' ? 'Backspace' : key)
+          }
+        />
+      </div>
     </div>
   );
 }
