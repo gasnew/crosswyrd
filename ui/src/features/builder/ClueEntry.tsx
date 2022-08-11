@@ -1,8 +1,14 @@
 import _ from 'lodash';
 import { Input, List, ListItem, ListSubheader } from '@mui/material';
 import React, { useLayoutEffect, useMemo, useRef } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 
-import { CrosswordPuzzleType, TileType } from './builderSlice';
+import {
+  CrosswordPuzzleType,
+  selectClueGrid,
+  setClue,
+  TileType,
+} from './builderSlice';
 import { LocationType } from './CrosswordBuilder';
 import { DirectionType, SelectedTilesStateType } from './useTileSelection';
 
@@ -163,12 +169,16 @@ export function getFlattenedAnswers(
 function AnswerListItem({
   tileNumber,
   answer,
+  value,
+  onChange,
   selected,
   setSelected,
   selectNext,
 }: {
   tileNumber: number;
   answer: AnswerType;
+  value: string;
+  onChange: (event: any) => void;
   selected: boolean;
   setSelected: () => void;
   selectNext: () => void;
@@ -208,6 +218,8 @@ function AnswerListItem({
         inputRef={(ref) => {
           inputRef.current = ref;
         }}
+        value={value}
+        onChange={onChange}
         onFocus={() => !selected && setSelected()}
         onKeyPress={(event) => {
           if (event.key === 'Enter') {
@@ -235,15 +247,20 @@ function ClueEntry({
   updateSelection,
   selectedTilesState,
 }: Props) {
+  // TODO: Optimize this by not updating the answers if the black tiles haven't
+  // changed
   const flattenedAnswers: AnswerEntryType[] = useMemo(
     () => getFlattenedAnswers(puzzle),
     [puzzle]
   );
 
+  const dispatch = useDispatch();
+  const clueGrid = useSelector(selectClueGrid);
+
   const selectAnswer = (direction, row, column, answer) =>
     updateSelection({ row, column }, direction);
 
-  // replace onclick with onfocus?? also focus when clicked? also focus on tile selection change
+  if (!clueGrid) return null;
   return (
     <List
       sx={{
@@ -277,6 +294,17 @@ function ClueEntry({
                       key={`answer-${row}-${column}`}
                       tileNumber={tileNumbers[row][column] || 999}
                       answer={answer}
+                      value={clueGrid[row][column][currentDirection] || ''}
+                      onChange={(event) =>
+                        dispatch(
+                          setClue({
+                            row,
+                            column,
+                            direction: currentDirection,
+                            value: event.target.value,
+                          })
+                        )
+                      }
                       selected={
                         selectedTileLocations.length > 1 &&
                         currentDirection ===

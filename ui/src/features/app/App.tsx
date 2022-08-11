@@ -9,6 +9,7 @@ import {
 
 import { devMode } from '../../app/util';
 import Crosswyrd from './Crosswyrd';
+import CrosswordPlayer from '../player/CrosswordPlayer';
 
 function App() {
   return (
@@ -23,6 +24,9 @@ function App() {
         <Switch>
           <Route path="/builder">
             <Crosswyrd />
+          </Route>
+          <Route path="/player/:puzzleData">
+            <CrosswordPlayer />
           </Route>
           <Redirect to="/builder" />
         </Switch>

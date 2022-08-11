@@ -91,8 +91,21 @@
   + arrow key navigation
   + spacebar to advance one position
   + clearer location of cursor + feedback
-- Share link to play
-- Mobile version (player only, not builder)
+/ puzzle player
+  + display/navigate clues
+  + move to next clue when complete word
+  + backspace to previous clue
+  + prevent destruction
+  + fix portrait mode
+  + prevent selecting black tiles
+  + prevent deselecting
+  / share link to play
+  - desktop version (simple clues on right side, no virtual keyboard)
+  - completion screen w/ confetti
+  - banner and dropdown
+    - edit button
+    - share button
+  - fix font
 - include 10x10 and 5x5 boards
 - QoL pt2
   - "click to select down/across" tooltip/hint
