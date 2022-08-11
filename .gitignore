@@ -141,3 +141,6 @@ cython_debug/
 
 # JS stuff
 node_modules
+
+# Firebase stuff
+.firebase
