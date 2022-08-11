@@ -14,6 +14,9 @@
   flex-direction: column;
 }
 
+.hg-button > span {
+  transform: scale(1.4);
+}
 .hg-button-bksp {
   background-color: #e0e0e0 !important;
 }
@@ -40,8 +43,8 @@
   /*Place the clue navigator above the keyboard*/
   position: absolute;
   width: 100%;
-  height: 60px;
-  transform: translateY(-60px);
+  height: 70px;
+  transform: translateY(-70px);
 
   display: flex;
   padding-top: 8px;
@@ -56,9 +59,19 @@
 }
 
 .clue-nav-clue-box {
+  display: flex;
   border: 4px solid;
   border-radius: 8px;
   border-color: #1976d2;
   flex-grow: 1;
   overflow-y: auto;
+  padding: 8px;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  font-size: 16px;
+}
+
+.yo {
+  margin: auto;
+  margin-left: 0;
 }

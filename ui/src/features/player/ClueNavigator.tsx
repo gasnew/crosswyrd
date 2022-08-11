@@ -59,7 +59,7 @@ export default function ClueNavigator({
         <ArrowBackIosIcon />
       </IconButton>
       <div className="clue-nav-clue-box" onClick={handleClickClue}>
-        {clue?.clue}
+        <div className="yo">{clue?.clue}</div>
       </div>
       <IconButton
         color="inherit"

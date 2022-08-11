@@ -51,6 +51,33 @@ export function getBestNextElementSet(
   return prioritizedElementSets.length > 0 ? prioritizedElementSets[0] : null;
 }
 
+function determineLocations(
+  puzzle: CrosswordPuzzleType,
+  primaryLocation: LocationType,
+  dir: number[]
+): LocationType[] {
+  const { row, column } = primaryLocation;
+  if (puzzle.tiles[row][column].value === 'black') return [primaryLocation];
+  const tilesBehind =
+    _.takeWhile(
+      _.range(PUZZLE_SIZE),
+      (index) =>
+        (puzzle.tiles?.[row - index * dir[0]]?.[column - index * dir[1]]
+          ?.value || 'black') !== 'black'
+    ).length - 1;
+  const tilesInFront =
+    _.takeWhile(
+      _.range(PUZZLE_SIZE),
+      (index) =>
+        (puzzle.tiles?.[row + index * dir[0]]?.[column + index * dir[1]]
+          ?.value || 'black') !== 'black'
+    ).length - 1;
+  return _.map(_.range(-tilesBehind, tilesInFront + 1), (index) => ({
+    row: row + index * dir[0],
+    column: column + index * dir[1],
+  }));
+}
+
 interface ReturnType {
   onClick: (row: number, column: number) => void;
   updateSelection: (
@@ -68,7 +95,8 @@ export default function useTileSelection(
   puzzle: CrosswordPuzzleType,
   wave: WaveType | null,
   processingLastChange: boolean,
-  running: boolean
+  running: boolean,
+  playerMode: boolean = false
 ): ReturnType {
   const [primaryLocation, setPrimaryLocation] = useState<LocationType | null>(
     null
@@ -83,26 +111,7 @@ export default function useTileSelection(
   ]);
   const locations: LocationType[] = useMemo(() => {
     if (!primaryLocation) return [];
-    const { row, column } = primaryLocation;
-    if (puzzle.tiles[row][column].value === 'black') return [primaryLocation];
-    const tilesBehind =
-      _.takeWhile(
-        _.range(PUZZLE_SIZE),
-        (index) =>
-          (puzzle.tiles?.[row - index * dir[0]]?.[column - index * dir[1]]
-            ?.value || 'black') !== 'black'
-      ).length - 1;
-    const tilesInFront =
-      _.takeWhile(
-        _.range(PUZZLE_SIZE),
-        (index) =>
-          (puzzle.tiles?.[row + index * dir[0]]?.[column + index * dir[1]]
-            ?.value || 'black') !== 'black'
-      ).length - 1;
-    return _.map(_.range(-tilesBehind, tilesInFront + 1), (index) => ({
-      row: row + index * dir[0],
-      column: column + index * dir[1],
-    }));
+    return determineLocations(puzzle, primaryLocation, dir);
   }, [dir, primaryLocation, puzzle]);
 
   const updateSelection = useCallback(
@@ -259,6 +268,7 @@ export default function useTileSelection(
 
   const onClick = useCallback(
     (row, column) => {
+      if (playerMode && puzzle.tiles[row][column].value === 'black') return;
       // Toggle whether selection is across or down if we're clicking on the
       // primary selected tile
       const newDirection =
@@ -273,11 +283,11 @@ export default function useTileSelection(
       setPrimaryLocation({ row, column });
       if (newDirection !== direction) setDirection(newDirection);
     },
-    [direction, primaryLocation]
+    [direction, primaryLocation, playerMode, puzzle.tiles]
   );
 
   const selectNextAnswer = useCallback(
-    (forward: boolean) => {
+    (forward: boolean, endOfAnswer: boolean = false) => {
       if (locations.length === 0) return;
       const answers = getFlattenedAnswers(puzzle);
       const currentAnswerIndex = _.findIndex(
@@ -289,13 +299,17 @@ export default function useTileSelection(
       );
       if (currentAnswerIndex < 0) return;
 
-      const { direction: answerDirection, row, column } = answers[
-        (currentAnswerIndex + (forward ? 1 : -1) + answers.length) %
-          answers.length
-      ];
-      updateSelection({ row, column }, answerDirection);
+      const answer =
+        answers[
+          (currentAnswerIndex + (forward ? 1 : -1) + answers.length) %
+            answers.length
+        ];
+      const { row, column } = endOfAnswer
+        ? _.last(determineLocations(puzzle, answer, dir)) || answer
+        : answer;
+      updateSelection({ row, column }, answer.direction);
     },
-    [puzzle, locations, direction, updateSelection]
+    [puzzle, locations, direction, updateSelection, dir]
   );
 
   const selectedTilesState = useMemo(() => {

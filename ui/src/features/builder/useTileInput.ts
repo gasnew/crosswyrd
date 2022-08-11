@@ -67,8 +67,9 @@ export default function useTileInput(
   selectedTilesState: SelectedTilesStateType | null,
   updateSelectionWithPuzzle: UpdateSelectionWithPuzzleType,
   clearHoveredTile: () => void,
-  selectNextAnswer: (forward: boolean) => void,
-  selectBestNext: () => void
+  selectNextAnswer: (forward: boolean, endOfAnswer?: boolean) => void,
+  selectBestNext: () => void,
+  playerMode: boolean = false
 ): ReturnType {
   const dispatch = useDispatch();
   // A map of key states, used to prevent rapid-fire keypresses by olding keys
@@ -147,6 +148,7 @@ export default function useTileInput(
 
     let newPrimaryLocation = selectedTilesState.primaryLocation;
     let newDirection = selectedTilesState.direction;
+    let updateSelection = true;
     const tileUpdates: TileUpdateType[] = _.flatMap(
       cachedInputQueue.current,
       (key) => {
@@ -166,20 +168,42 @@ export default function useTileInput(
             };
           return { row, column };
         };
+        const tileAtLocation = (location) =>
+          puzzle.tiles[location.row][location.column];
 
         if (key === BACKSPACE) {
+          if (
+            playerMode &&
+            tileAtLocation(newPrimaryLocation).value === 'black'
+          )
+            // Do nothing if in player mode and on a black tile
+            return [];
+
           const previousLocation = shift(newPrimaryLocation, -1);
           const erasePrevious =
-            puzzle.tiles[newPrimaryLocation.row][newPrimaryLocation.column]
-              .value === 'empty' &&
+            tileAtLocation(newPrimaryLocation).value === 'empty' &&
             previousLocation.row >= 0 &&
             previousLocation.column >= 0;
+          if (
+            playerMode &&
+            erasePrevious &&
+            (tileAtLocation(previousLocation).value === 'black' ||
+              _.isEqual(previousLocation, newPrimaryLocation))
+          ) {
+            // In player mode, select the end of the previous answer instead of
+            // deleting a black tile
+            selectNextAnswer(false, true);
+            // Do not do the default mode of updating the selection since we're
+            // doing it manually here
+            updateSelection = false;
+            return [];
+          }
           const tileUpdate: TileUpdateType = {
             ...(erasePrevious ? previousLocation : newPrimaryLocation),
             value: 'empty',
           };
           const symmetricTileInfo =
-            puzzle.tiles[tileUpdate.row][tileUpdate.column].value === 'black'
+            tileAtLocation(tileUpdate).value === 'black'
               ? getSymmetricTile(puzzle, tileUpdate.row, tileUpdate.column)
               : null;
 
@@ -217,8 +241,13 @@ export default function useTileInput(
           newPrimaryLocation = shift(newPrimaryLocation, 1);
           return [];
         } else {
-          const tileAtLocation = (location) =>
-            puzzle.tiles[location.row][location.column];
+          if (
+            playerMode &&
+            tileAtLocation(newPrimaryLocation).value === 'black'
+          )
+            // Do nothing if in player mode and on a black tile
+            return [];
+
           const currentTile = tileAtLocation(newPrimaryLocation);
           const tileUpdate: TileUpdateType = {
             ...newPrimaryLocation,
@@ -253,14 +282,23 @@ export default function useTileInput(
             shift(newPrimaryLocation, nextNonLetterTileDistance);
           if (
             nextNonLetterLocation &&
-            tileAtLocation(nextNonLetterLocation).value === 'empty'
+            tileAtLocation(nextNonLetterLocation).value === 'empty' &&
+            !_.isEqual(nextNonLetterLocation, newPrimaryLocation)
           )
-            // The next non-letter tile is empty, so let's move there!
+            // The next non-letter tile is empty and is not the current
+            // location, so let's move there!
             newPrimaryLocation = nextNonLetterLocation;
           else if (!nextNonLetterTileDistance || nextNonLetterTileDistance > 1)
             // The next non-letter tile is black or is the edge of the board
             // but is far away, so let's advance one tile!
             newPrimaryLocation = shift(newPrimaryLocation, 1);
+          else if (playerMode) {
+            // Select the next answer when finishing a word in player mode
+            selectNextAnswer(true);
+            // Do not do the default mode of updating the selection since we're
+            // doing it manually here
+            updateSelection = false;
+          }
 
           return [
             tileUpdate,
@@ -285,11 +323,12 @@ export default function useTileInput(
 
     dispatch(setPuzzleTileValues(tileUpdates));
     // TODO: Just use updateSelection?
-    updateSelectionWithPuzzle(
-      withPuzzleTileUpdates(puzzle, tileUpdates),
-      newPrimaryLocation,
-      newDirection
-    );
+    if (updateSelection)
+      updateSelectionWithPuzzle(
+        withPuzzleTileUpdates(puzzle, tileUpdates),
+        newPrimaryLocation,
+        newDirection
+      );
   }, [
     dispatch,
     selectedTilesState,
@@ -299,6 +338,7 @@ export default function useTileInput(
     puzzle,
     selectNextAnswer,
     selectBestNext,
+    playerMode,
   ]);
 
   // Add and remove event listeners

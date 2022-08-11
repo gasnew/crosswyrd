@@ -92,20 +92,20 @@
   + spacebar to advance one position
   + clearer location of cursor + feedback
 / puzzle player
-  / share link to play
   + display/navigate clues
-  - move to next clue when complete word
-  - backspace to previous clue
-  - prevent destruction
+  + move to next clue when complete word
+  + backspace to previous clue
+  + prevent destruction
+  + fix portrait mode
+  + prevent selecting black tiles
+  + prevent deselecting
+  / share link to play
   - desktop version (simple clues on right side, no virtual keyboard)
-  - fix portrait mode
   - completion screen w/ confetti
   - banner and dropdown
     - edit button
     - share button
   - fix font
-  - prevent selecting black tiles
-  - prevent deselecting
 - include 10x10 and 5x5 boards
 - QoL pt2
   - "click to select down/across" tooltip/hint

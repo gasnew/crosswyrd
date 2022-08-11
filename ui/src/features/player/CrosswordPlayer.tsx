@@ -106,7 +106,7 @@ export default function CrosswordPlayer() {
     selectBestNext,
     selectNextAnswer,
     updateSelection,
-  } = useTileSelection(puzzle, null, false, false);
+  } = useTileSelection(puzzle, null, false, false, true);
   const clearHoveredTile = useCallback(() => setHoveredTile(null), [
     setHoveredTile,
   ]);
@@ -116,7 +116,8 @@ export default function CrosswordPlayer() {
     updateSelectionWithPuzzle,
     clearHoveredTile,
     selectNextAnswer,
-    selectBestNext
+    selectBestNext,
+    true
   );
 
   const { puzzleData } = useParams();
