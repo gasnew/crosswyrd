@@ -5,7 +5,7 @@ import { useParams } from 'react-router-dom';
 import Keyboard from 'react-simple-keyboard';
 import 'react-simple-keyboard/build/css/index.css';
 
-import { CompletePuzzleDataType } from '../app/Crosswyrd';
+import { CompletePuzzleDataType } from '../app/PublishDialog';
 import { selectPuzzle, setPuzzleState } from '../builder/builderSlice';
 import { ALL_LETTERS } from '../builder/constants';
 import { LocationType } from '../builder/CrosswordBuilder';

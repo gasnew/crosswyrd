@@ -29,6 +29,7 @@ interface BuilderState {
   currentTab: number;
   wordCount: number | null;
   fillAssistState: boolean;
+  letterEntryEnabled: boolean;
 }
 
 export const DEFAULT_TILES: TileType[][] = Array.from(Array(PUZZLE_SIZE), () =>
@@ -47,6 +48,7 @@ const initialState: BuilderState = {
   currentTab: 0,
   wordCount: null,
   fillAssistState: false,
+  letterEntryEnabled: true,
 };
 
 export function getSymmetricTile(
@@ -152,6 +154,9 @@ export const builderSlice = createSlice({
     setClueGrid: (state, action: PayloadAction<ClueGridType>) => {
       state.clueGrid = action.payload;
     },
+    setLetterEntryEnabled: (state, action: PayloadAction<boolean>) => {
+      state.letterEntryEnabled = action.payload;
+    },
   },
 });
 
@@ -168,6 +173,7 @@ export const {
   initClueGrid,
   setClue,
   setClueGrid,
+  setLetterEntryEnabled,
 } = builderSlice.actions;
 
 export const selectPuzzle = (state: RootState) => state.builder.puzzle;
@@ -178,5 +184,7 @@ export const selectFillAssistActive = (state: RootState) =>
   state.builder.fillAssistState;
 export const selectWordCount = (state: RootState) => state.builder.wordCount;
 export const selectClueGrid = (state: RootState) => state.builder.clueGrid;
+export const selectLetterEntryEnabled = (state: RootState) =>
+  state.builder.letterEntryEnabled;
 
 export default builderSlice.reducer;
