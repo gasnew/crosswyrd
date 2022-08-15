@@ -20,7 +20,7 @@ import {
   selectPuzzle,
   selectClueGrid,
 } from '../builder/builderSlice';
-import { db } from '../../firebase';
+import { db, logEvent } from '../../firebase';
 
 const CopyAlertSnackbar = React.memo(
   ({ open, onClose }: { open: boolean; onClose: () => void }) => {
@@ -92,6 +92,7 @@ export default function PublishDialog({ open, onClose }: Props) {
 
     setId(id);
     setState('published');
+    logEvent('puzzle_published', { title, author });
   };
 
   const copyLink = () => {
