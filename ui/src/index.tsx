@@ -5,6 +5,7 @@ import { Provider } from 'react-redux';
 
 import App from './features/app/App';
 import { store } from './app/store';
+import './firebase';
 import './index.css';
 
 ReactDOM.render(

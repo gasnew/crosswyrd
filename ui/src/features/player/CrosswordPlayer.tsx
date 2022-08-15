@@ -1,12 +1,18 @@
+import { doc, getDoc } from 'firebase/firestore';
 import _ from 'lodash';
+import { Alert } from '@mui/material';
 import React, { useCallback, useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useParams } from 'react-router-dom';
 import Keyboard from 'react-simple-keyboard';
 import 'react-simple-keyboard/build/css/index.css';
 
-import { CompletePuzzleDataType } from '../app/Crosswyrd';
-import { selectPuzzle, setPuzzleState } from '../builder/builderSlice';
+import { CompletePuzzleDataType } from '../app/PublishDialog';
+import {
+  CrosswordPuzzleType,
+  selectPuzzle,
+  setPuzzleState,
+} from '../builder/builderSlice';
 import { ALL_LETTERS } from '../builder/constants';
 import { LocationType } from '../builder/CrosswordBuilder';
 import { getFlattenedAnswers, useClueData } from '../builder/ClueEntry';
@@ -14,6 +20,8 @@ import Tiles from '../builder/Tiles';
 import useTileInput from '../builder/useTileInput';
 import useTileSelection, { DirectionType } from '../builder/useTileSelection';
 import ClueNavigator from './ClueNavigator';
+import CompletePuzzleDialog from './CompletePuzzleDialog';
+import { db } from '../../firebase';
 
 import './CrosswordPlayer.css';
 
@@ -25,53 +33,102 @@ export interface PlayerClueType {
   answer: string;
 }
 
+export interface PuzzleMetadataType {
+  title: string;
+  author: string;
+}
+interface PuzzleDataReturnType {
+  puzzleKey: CrosswordPuzzleType | null;
+  puzzleMetadata: PuzzleMetadataType | null;
+  failed: boolean;
+}
 function usePuzzleData(
-  puzzleData: string,
+  puzzleId: string,
   setClues: (clues: PlayerClueType[]) => void
-) {
+): PuzzleDataReturnType {
+  const [failed, setFailed] = useState(false);
+  const [puzzleKey, setPuzzleKey] = useState<CrosswordPuzzleType | null>(null);
+  const [
+    puzzleMetadata,
+    setPuzzleMetadata,
+  ] = useState<PuzzleMetadataType | null>(null);
+
   const dispatch = useDispatch();
 
-  // Decode and load puzzle data
+  // Fetch, decode, and load puzzle data
   useEffect(() => {
-    var codec = require('json-url')('lzma');
-    codec
-      .decompress(puzzleData)
-      .then(({ puzzle, clueGrid }: CompletePuzzleDataType) => {
-        // Set a puzzle with empty tiles
-        dispatch(
-          setPuzzleState({
-            ...puzzle,
-            tiles: _.map(puzzle.tiles, (row) =>
-              _.map(row, (tile) => ({
-                ...tile,
-                value: tile.value === 'black' ? 'black' : 'empty',
-              }))
-            ),
+    const fetchPuzzle = async () => {
+      // Fetch the puzzle data
+      const remotePuzzle = await getDoc(doc(db, 'puzzles', puzzleId));
+      if (!remotePuzzle.exists()) {
+        setFailed(true);
+        return;
+      }
+      const remoteData = remotePuzzle.data();
+
+      // Decode the puzzle data
+      var codec = require('json-url')('lzma');
+      const { puzzle, clueGrid } = (await codec.decompress(
+        remoteData.dataLzma
+      )) as CompletePuzzleDataType;
+
+      // Set a puzzle with empty tiles
+      dispatch(
+        setPuzzleState({
+          ...puzzle,
+          tiles: _.map(puzzle.tiles, (row) =>
+            _.map(row, (tile) => ({
+              ...tile,
+              value: tile.value === 'black' ? 'black' : 'empty',
+            }))
+          ),
+        })
+      );
+      // Set a list of clues in the order of flattened answers
+      setClues(
+        _.map(
+          getFlattenedAnswers(puzzle),
+          ({ row, column, direction, answer }) => ({
+            row,
+            column,
+            direction,
+            answer: answer.word,
+            clue: clueGrid[row][column][direction] || '',
           })
-        );
-        // Set a list of clues in the order of flattened answers
-        setClues(
-          _.map(
-            getFlattenedAnswers(puzzle),
-            ({ row, column, direction, answer }) => ({
-              row,
-              column,
-              direction,
-              answer: answer.word,
-              clue: clueGrid[row][column][direction] || '',
-            })
-          )
-        );
-      });
-  }, [dispatch, puzzleData, setClues]);
+        )
+      );
+      // Set the puzzle key and metadata
+      setPuzzleKey(puzzle);
+      setPuzzleMetadata({ title: remoteData.title, author: remoteData.author });
+    };
+
+    fetchPuzzle();
+  }, [dispatch, puzzleId, setClues]);
+
+  return { puzzleKey, puzzleMetadata, failed };
 }
 
-function usePuzzleScaleToFit(puzzleRef: HTMLElement | null): number {
-  const [scale, setScale] = useState(1);
+interface ScaleDataType {
+  scale: number;
+  limitingDimension: 'horizontal' | 'vertical';
+}
+function usePuzzleScaleToFit(puzzleRef: HTMLElement | null): ScaleDataType {
+  const [scaleData, setScaleData] = useState<ScaleDataType>({
+    scale: 1,
+    limitingDimension: 'horizontal',
+  });
 
   const onResize = useCallback(() => {
     if (!puzzleRef) return;
-    setScale(window.innerWidth / puzzleRef.clientWidth);
+    const horizontalScale = window.innerWidth / puzzleRef.clientWidth;
+    // Scale vertically with some buffer for the keyboard
+    const verticalScale = (window.innerHeight - 220) / puzzleRef.clientHeight;
+    setScaleData({
+      // Scale by whichever dimension is more limiting
+      scale: Math.min(horizontalScale, verticalScale),
+      limitingDimension:
+        horizontalScale < verticalScale ? 'horizontal' : 'vertical',
+    });
   }, [puzzleRef]);
 
   // Scale on load
@@ -88,7 +145,7 @@ function usePuzzleScaleToFit(puzzleRef: HTMLElement | null): number {
     };
   }, [onResize]);
 
-  return scale;
+  return scaleData;
 }
 
 export default function CrosswordPlayer() {
@@ -120,10 +177,13 @@ export default function CrosswordPlayer() {
     true
   );
 
-  const { puzzleData } = useParams();
-  usePuzzleData(puzzleData, setClues);
-
-  const puzzleScale = usePuzzleScaleToFit(puzzleRef);
+  const { puzzleId } = useParams();
+  const {
+    puzzleKey,
+    puzzleMetadata,
+    failed: puzzleFetchFailed,
+  } = usePuzzleData(puzzleId, setClues);
+  const { scale: puzzleScale } = usePuzzleScaleToFit(puzzleRef);
 
   // Default the selection to the first clue
   useEffect(() => {
@@ -144,15 +204,24 @@ export default function CrosswordPlayer() {
     [onClick]
   );
 
+  if (puzzleFetchFailed)
+    return (
+      <div style={{ display: 'flex', height: '100%', width: '100%' }}>
+        <Alert severity="error" style={{ margin: 'auto' }}>
+          No puzzle "{puzzleId}" found!
+        </Alert>
+      </div>
+    );
   if (!clues) return null;
   return (
     <div className="puzzle-player-content-container">
       <div
         className="puzzle-player-container"
         style={{
-          transform: `scale(${puzzleScale})`,
-          // Transform from center left when scaling down
-          transformOrigin: puzzleScale <= 1 ? 'center left' : 'initial',
+          position: 'relative',
+          left: '50%',
+          transform: `translateX(-50%) scale(${puzzleScale})`,
+          transformOrigin: 'top center',
         }}
         ref={setPuzzleRef}
       >
@@ -171,7 +240,7 @@ export default function CrosswordPlayer() {
           />
         </div>
       </div>
-      <div>
+      <div className="puzzle-player-input-container">
         <ClueNavigator
           selectedTilesState={selectedTilesState}
           clues={clues}
@@ -198,6 +267,13 @@ export default function CrosswordPlayer() {
           }
         />
       </div>
+      {puzzleKey && puzzleMetadata && (
+        <CompletePuzzleDialog
+          puzzle={puzzle}
+          puzzleKey={puzzleKey}
+          puzzleMetadata={puzzleMetadata}
+        />
+      )}
     </div>
   );
 }

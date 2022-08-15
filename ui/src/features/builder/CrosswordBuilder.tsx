@@ -117,7 +117,7 @@ export default function CrosswordBuilder({ grid }: Props) {
     updateSelectionWithPuzzle,
     clearHoveredTile,
     selectNextAnswer,
-    selectBestNext,
+    selectBestNext
   );
 
   const dispatch = useDispatch();

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useSelector } from 'react-redux';
+import { useDispatch } from 'react-redux';
 import AddIcon from '@mui/icons-material/Add';
 import AppBar from '@mui/material/AppBar';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
@@ -7,7 +7,6 @@ import Box from '@mui/material/Box';
 import CssBaseline from '@mui/material/CssBaseline';
 import Divider from '@mui/material/Divider';
 import Drawer from '@mui/material/Drawer';
-import FileOpenIcon from '@mui/icons-material/FileOpen';
 import IconButton from '@mui/material/IconButton';
 import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
@@ -17,58 +16,33 @@ import ListItemText from '@mui/material/ListItemText';
 import MenuIcon from '@mui/icons-material/Menu';
 import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
-import ShareIcon from '@mui/icons-material/Share';
+import NewspaperIcon from '@mui/icons-material/Newspaper';
 
 import { devMode, randomId } from '../../app/util';
-import {
-  CrosswordPuzzleType,
-  ClueGridType,
-  selectPuzzle,
-  selectClueGrid,
-} from '../builder/builderSlice';
+import { setLetterEntryEnabled } from '../builder/builderSlice';
 import CrosswordBuilder from '../builder/CrosswordBuilder';
 import GridsDialog, { BLANK_GRID } from './GridsDialog';
+import PublishDialog from './PublishDialog';
 import useGrids, { GridType } from './useGrids';
 
 const drawerWidth = 200;
 
-export interface CompletePuzzleDataType {
-  puzzle: CrosswordPuzzleType;
-  clueGrid: ClueGridType;
-}
 function DrawerControls({ handleDrawerToggle, setGridDialogState }) {
-  const puzzle = useSelector(selectPuzzle);
-  const clueGrid = useSelector(selectClueGrid);
+  const [publishDialogOpen, setPublishDialogOpen] = useState(false);
 
-  const handleSharePuzzle = () => {
-    if (!clueGrid) return;
-    // TODO optimize size by simplifying data structures
-    const completePuzzleData: CompletePuzzleDataType = {
-      puzzle,
-      clueGrid,
-    };
-    //console.log(completePuzzleData);
-    //const puz = _.join(
-    //  _.flatMap(puzzle.tiles, (row) =>
-    //    _.flatMap(row, (tile) => (tile.value === 'black' ? '.' : tile.value))
-    //  ),
-    //  ''
-    //);
-    //console.log(puz);
-    //const cl = _.compact(
-    //  _.flatMap(clueGrid, (row) =>
-    //    _.flatMap(row, (clue) => [clue.across, clue.down])
-    //  )
-    //);
-    //console.log(cl);
-    //console.log(btoa(JSON.stringify(completePuzzleData)));
-    var codec = require('json-url')('lzma');
-    codec.compress(completePuzzleData).then((result) => {
-      console.log(result.length, result);
-    });
-    //codec.compress({ puz, cl }).then((result) => {
-    //  console.log(result.length, result);
-    //});
+  const dispatch = useDispatch();
+
+  const handlePublishPuzzle = () => {
+    setPublishDialogOpen(true);
+    // Disable letter entry in the puzzle while the dialog is open.
+    dispatch(setLetterEntryEnabled(false));
+  };
+
+  const handleClosePublishDialog = () => {
+    setPublishDialogOpen(false);
+    handleDrawerToggle();
+    // Re-enable letter entry in the puzzle.
+    dispatch(setLetterEntryEnabled(true));
   };
 
   return (
@@ -101,23 +75,19 @@ function DrawerControls({ handleDrawerToggle, setGridDialogState }) {
             </ListItemButton>
           </ListItem>
           <ListItem disablePadding>
-            <ListItemButton>
+            <ListItemButton onClick={handlePublishPuzzle}>
               <ListItemIcon>
-                <FileOpenIcon />
+                <NewspaperIcon />
               </ListItemIcon>
-              <ListItemText primary="Open" />
-            </ListItemButton>
-          </ListItem>
-          <ListItem disablePadding>
-            <ListItemButton onClick={handleSharePuzzle}>
-              <ListItemIcon>
-                <ShareIcon />
-              </ListItemIcon>
-              <ListItemText primary="Share" />
+              <ListItemText primary="Publish" />
             </ListItemButton>
           </ListItem>
         </List>
       </Box>
+      <PublishDialog
+        open={publishDialogOpen}
+        onClose={handleClosePublishDialog}
+      />
     </div>
   );
 }

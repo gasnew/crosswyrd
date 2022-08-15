@@ -8,6 +8,7 @@ import {
   getSymmetricTile,
   LetterType,
   selectCurrentTab,
+  selectLetterEntryEnabled,
   setPuzzleTileValues,
   TileValueType,
 } from './builderSlice';
@@ -81,10 +82,13 @@ export default function useTileInput(
   const [inputQueue, setInputQueue] = useState<string[]>([]);
 
   const currentTab = useSelector(selectCurrentTab);
+  const letterEntryEnabled = useSelector(selectLetterEntryEnabled);
 
   const inputKey = useCallback(
     (key: SupportedKeysType, shift?: boolean) => {
       if (!_.includes(SUPPORTED_KEYS, key)) return;
+      // PERIOD is not supported in player mode
+      if (playerMode && key === PERIOD) return;
       clearHoveredTile();
       if (keyStates.current[key] === 'down') return;
       keyStates.current[key] = 'down';
@@ -94,7 +98,7 @@ export default function useTileInput(
       cachedInputQueue.current.push(trueKey);
       setInputQueue(cachedInputQueue.current);
     },
-    [clearHoveredTile]
+    [clearHoveredTile, playerMode]
   );
   const releaseKey = useCallback((key: SupportedKeysType) => {
     keyStates.current[key] = 'up';
@@ -343,7 +347,7 @@ export default function useTileInput(
 
   // Add and remove event listeners
   useEffect(() => {
-    if (currentTab === 0) {
+    if (currentTab === 0 && letterEntryEnabled) {
       document.addEventListener('keydown', onKeyDown);
       document.addEventListener('keyup', onKeyUp);
     }
@@ -351,7 +355,7 @@ export default function useTileInput(
       document.removeEventListener('keydown', onKeyDown);
       document.removeEventListener('keyup', onKeyUp);
     };
-  }, [onKeyDown, onKeyUp, currentTab]);
+  }, [onKeyDown, onKeyUp, currentTab, letterEntryEnabled]);
 
   return { inputKey, releaseKey };
 }

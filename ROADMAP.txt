@@ -91,34 +91,36 @@
   + arrow key navigation
   + spacebar to advance one position
   + clearer location of cursor + feedback
-/ puzzle player
++ Share puzzle at completion?
++ puzzle player
   + display/navigate clues
   + move to next clue when complete word
   + backspace to previous clue
   + prevent destruction
-  + fix portrait mode
   + prevent selecting black tiles
   + prevent deselecting
-  / share link to play
-  - desktop version (simple clues on right side, no virtual keyboard)
-  - completion screen w/ confetti
-  - banner and dropdown
-    - edit button
-    - share button
-  - fix font
+  + publish puzzles to firebase
+  + share link to play
+  + completion screen w/ confetti
+  + scale puzzle correctly for various screen sizes
 - include 10x10 and 5x5 boards
-- QoL pt2
-  - "click to select down/across" tooltip/hint
-  - fix styling
-  - persist puzzle builder state in local storage
-- Share puzzle at completion?
-- add license
 - Ko-Fi for donations
   - input code to unlock feature (color themes)!
   - when code input, donation button says "Thank you!" and has stars
+- QoL pt2
+  - "click to select down/across" tooltip/hint
+  - fix styling
+  - persist puzzle builder and player state in local storage
+  - add explainer and info button for builder
+  - start next clue from first empty tile
+  - banner and dropdown
+    - build button
+  - fix font
+- add license
 
 - INITIAL RELEASE!
 
+- player desktop version (simple clues on right side, no virtual keyboard)
 Variable board size
 ingest files as dictionaries
 sell custom dictionaries?
@@ -127,6 +129,7 @@ BEEG BOARD
 juicy animations
 
 - pro features
+  - use stripe for payment?
   - download as XML variant
   - edit from play link
   - custom dictionary (including ingesting a file)
@@ -134,6 +137,8 @@ juicy animations
   - toggle enforce NYT rules
   - show counts of 3-letter words
   - load word bank
+  - see all puzzles in one place--update published puzzles
+  - custom previews for puzzles
 
 - possible future features
   - heatmap for failures: count up contradictions per tile somehow?
