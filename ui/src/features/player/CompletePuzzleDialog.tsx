@@ -22,6 +22,10 @@ import BuildIcon from '@mui/icons-material/Build';
 import { CrosswordPuzzleType } from '../builder/builderSlice';
 import { PuzzleMetadataType } from './CrosswordPlayer';
 
+// Wait half a second before the dialog can be closed again. This is because
+// tap events close the dialog immediately after it is opened.
+const DIALOG_CLOSE_DELAY_MS = 200;
+
 interface Props {
   puzzle: CrosswordPuzzleType;
   puzzleKey: CrosswordPuzzleType;
@@ -33,7 +37,10 @@ export default function CompletePuzzleDialog({
   puzzle,
   puzzleMetadata,
 }: Props) {
-  const [open, setOpen] = useState(false);
+  const [openState, setOpenState] = useState<{ open: boolean; date: number }>({
+    open: false,
+    date: Date.now(),
+  });
 
   // Open the dialog when the puzzle is completed
   useEffect(() => {
@@ -46,26 +53,31 @@ export default function CompletePuzzleDialog({
         )
       )
     )
-      setOpen(true);
+      setOpenState({ open: true, date: Date.now() });
   }, [puzzle, puzzleKey]);
 
+  console.log(openState);
   useEffect(() => {
-    if (open)
+    if (openState.open)
       confetti({
         particleCount: 100,
         spread: 70,
         startVelocity: 35,
         zIndex: 2000,
       });
-  }, [open]);
+  }, [openState.open]);
 
   const shareUrl = window.location.href;
   const shareTitle = `I solved "${puzzleMetadata.title}" by "${puzzleMetadata.author}" on Crosswyrd! Check it out:`;
+  const shareHashtag = 'crosswyrd';
 
   return (
     <Dialog
-      open={open}
-      onClose={() => setOpen(false)}
+      open={openState.open}
+      onClose={(_, reason) => {
+        if (Date.now() - openState.date > DIALOG_CLOSE_DELAY_MS)
+          setOpenState({ open: false, date: Date.now() });
+      }}
       PaperProps={{ style: { backgroundColor: '#fafbfb' } }}
     >
       <DialogTitle>Complete</DialogTitle>
@@ -85,13 +97,15 @@ export default function CompletePuzzleDialog({
                 <TwitterShareButton
                   url={shareUrl}
                   title={shareTitle}
+                  hashtags={[shareHashtag]}
                   className="share-button"
                 >
                   <TwitterIcon size={32} round />
                 </TwitterShareButton>
                 <FacebookShareButton
-                  url={shareUrl}
+                  url={'http://gogole.com'}
                   quote={shareTitle}
+                  hashtag={`#${shareHashtag}`}
                   className="share-button"
                 >
                   <FacebookIcon size={32} round />
@@ -99,17 +113,11 @@ export default function CompletePuzzleDialog({
                 <RedditShareButton
                   url={shareUrl}
                   title={shareTitle}
-                  windowWidth={660}
-                  windowHeight={460}
                   className="share-button"
                 >
                   <RedditIcon size={32} round />
                 </RedditShareButton>
-                <EmailShareButton
-                  url={shareUrl}
-                  subject={shareTitle}
-                  body="body"
-                >
+                <EmailShareButton url={shareUrl} subject={shareTitle}>
                   <EmailIcon size={32} round />
                 </EmailShareButton>
               </div>

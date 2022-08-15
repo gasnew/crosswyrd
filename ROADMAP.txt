@@ -101,7 +101,7 @@
   + publish puzzles to firebase
   + share link to play
   + completion screen w/ confetti
-  - fix portrait mode
+  + scale puzzle correctly for various screen sizes
   - desktop version (simple clues on right side, no virtual keyboard)
   - banner and dropdown
     - edit button

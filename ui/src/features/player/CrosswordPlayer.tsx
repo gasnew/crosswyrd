@@ -108,12 +108,27 @@ function usePuzzleData(
   return { puzzleKey, puzzleMetadata, failed };
 }
 
-function usePuzzleScaleToFit(puzzleRef: HTMLElement | null): number {
-  const [scale, setScale] = useState(1);
+interface ScaleDataType {
+  scale: number;
+  limitingDimension: 'horizontal' | 'vertical';
+}
+function usePuzzleScaleToFit(puzzleRef: HTMLElement | null): ScaleDataType {
+  const [scaleData, setScaleData] = useState<ScaleDataType>({
+    scale: 1,
+    limitingDimension: 'horizontal',
+  });
 
   const onResize = useCallback(() => {
     if (!puzzleRef) return;
-    setScale(window.innerWidth / puzzleRef.clientWidth);
+    const horizontalScale = window.innerWidth / puzzleRef.clientWidth;
+    // Scale vertically with some buffer for the keyboard
+    const verticalScale = (window.innerHeight - 220) / puzzleRef.clientHeight;
+    setScaleData({
+      // Scale by whichever dimension is more limiting
+      scale: Math.min(horizontalScale, verticalScale),
+      limitingDimension:
+        horizontalScale < verticalScale ? 'horizontal' : 'vertical',
+    });
   }, [puzzleRef]);
 
   // Scale on load
@@ -130,7 +145,7 @@ function usePuzzleScaleToFit(puzzleRef: HTMLElement | null): number {
     };
   }, [onResize]);
 
-  return scale;
+  return scaleData;
 }
 
 export default function CrosswordPlayer() {
@@ -168,7 +183,7 @@ export default function CrosswordPlayer() {
     puzzleMetadata,
     failed: puzzleFetchFailed,
   } = usePuzzleData(puzzleId, setClues);
-  const puzzleScale = usePuzzleScaleToFit(puzzleRef);
+  const { scale: puzzleScale } = usePuzzleScaleToFit(puzzleRef);
 
   // Default the selection to the first clue
   useEffect(() => {
@@ -203,9 +218,10 @@ export default function CrosswordPlayer() {
       <div
         className="puzzle-player-container"
         style={{
-          transform: `scale(${puzzleScale})`,
-          // Transform from center left when scaling down
-          transformOrigin: puzzleScale <= 1 ? 'center left' : 'initial',
+          position: 'relative',
+          left: '50%',
+          transform: `translateX(-50%) scale(${puzzleScale})`,
+          transformOrigin: 'top center',
         }}
         ref={setPuzzleRef}
       >
@@ -224,7 +240,7 @@ export default function CrosswordPlayer() {
           />
         </div>
       </div>
-      <div>
+      <div className="puzzle-player-input-container">
         <ClueNavigator
           selectedTilesState={selectedTilesState}
           clues={clues}

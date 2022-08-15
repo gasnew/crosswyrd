@@ -67,7 +67,7 @@ export default function PublishDialog({ open, onClose }: Props) {
 
   const fieldsFilled = !!title && !!author;
   const puzzleLink = id
-    ? `${window.location.origin}/puzzles/${id}/player`
+    ? `${window.location.origin}/puzzles/${id}`
     : 'No ID found';
 
   const handlePublish = async () => {

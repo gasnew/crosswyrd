@@ -9,9 +9,18 @@
 }
 
 .puzzle-player-container {
-  margin: auto;
+  margin: 0;
   display: flex;
   flex-direction: column;
+  /* Set these manually to make scaling easier */
+  height: 559px;
+  width: 559px;
+}
+
+.puzzle-player-input-container {
+  position: absolute;
+  width: 100%;
+  bottom: 0;
 }
 
 .hg-button > span {
@@ -138,6 +147,7 @@
 .share-buttons {
   display: flex;
   flex-direction: row;
+  margin: auto;
 }
 
 .share-button {
