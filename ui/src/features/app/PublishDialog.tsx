@@ -67,7 +67,7 @@ export default function PublishDialog({ open, onClose }: Props) {
 
   const fieldsFilled = !!title && !!author;
   const puzzleLink = id
-    ? `${window.location.origin}/puzzles/${id}`
+    ? `${window.location.origin}/puzzles/${id}/player`
     : 'No ID found';
 
   const handlePublish = async () => {
@@ -119,7 +119,6 @@ export default function PublishDialog({ open, onClose }: Props) {
               </p>
               <TextField
                 autoFocus
-                id="title"
                 label="Title"
                 variant="standard"
                 style={{ margin: 'auto', marginTop: 12 }}
@@ -133,7 +132,6 @@ export default function PublishDialog({ open, onClose }: Props) {
                 }}
               />
               <TextField
-                id="author"
                 label="Author"
                 variant="standard"
                 style={{ margin: 'auto', marginTop: 12 }}
@@ -187,22 +185,19 @@ export default function PublishDialog({ open, onClose }: Props) {
                 puzzle again.
               </p>
               <div style={{ display: 'flex', flexDirection: 'row' }}>
-                <div>
-                  <Button
-                    component="span"
-                    style={{
-                      margin: 'auto',
-                      marginLeft: 0,
-                      marginRight: 8,
-                      minWidth: 125,
-                    }}
-                    onClick={copyLink}
-                    variant="contained"
-                    endIcon={<LinkIcon />}
-                  >
-                    Copy&nbsp;Link
-                  </Button>
-                </div>
+                <Button
+                  style={{
+                    margin: 'auto',
+                    marginLeft: 0,
+                    marginRight: 8,
+                    minWidth: 125,
+                  }}
+                  onClick={copyLink}
+                  variant="contained"
+                  endIcon={<LinkIcon />}
+                >
+                  Copy&nbsp;Link
+                </Button>
                 <pre
                   className="sheet"
                   style={{

@@ -1,4 +1,6 @@
+import { doc, getDoc } from 'firebase/firestore';
 import _ from 'lodash';
+import { Alert } from '@mui/material';
 import React, { useCallback, useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useParams } from 'react-router-dom';
@@ -14,6 +16,7 @@ import Tiles from '../builder/Tiles';
 import useTileInput from '../builder/useTileInput';
 import useTileSelection, { DirectionType } from '../builder/useTileSelection';
 import ClueNavigator from './ClueNavigator';
+import { db } from '../../firebase';
 
 import './CrosswordPlayer.css';
 
@@ -26,44 +29,60 @@ export interface PlayerClueType {
 }
 
 function usePuzzleData(
-  puzzleData: string,
+  puzzleId: string,
   setClues: (clues: PlayerClueType[]) => void
-) {
+): boolean {
+  const [failed, setFailed] = useState(false);
+
   const dispatch = useDispatch();
 
-  // Decode and load puzzle data
+  // Fetch, decode, and load puzzle data
   useEffect(() => {
-    var codec = require('json-url')('lzma');
-    codec
-      .decompress(puzzleData)
-      .then(({ puzzle, clueGrid }: CompletePuzzleDataType) => {
-        // Set a puzzle with empty tiles
-        dispatch(
-          setPuzzleState({
-            ...puzzle,
-            tiles: _.map(puzzle.tiles, (row) =>
-              _.map(row, (tile) => ({
-                ...tile,
-                value: tile.value === 'black' ? 'black' : 'empty',
-              }))
-            ),
+    const fetchPuzzle = async () => {
+      // Fetch the puzzle data
+      const remotePuzzle = await getDoc(doc(db, 'puzzles', puzzleId));
+      if (!remotePuzzle.exists()) {
+        setFailed(true);
+        return;
+      }
+
+      // Decode the puzzle data
+      var codec = require('json-url')('lzma');
+      const { puzzle, clueGrid } = (await codec.decompress(
+        remotePuzzle.data().dataLzma
+      )) as CompletePuzzleDataType;
+
+      // Set a puzzle with empty tiles
+      dispatch(
+        setPuzzleState({
+          ...puzzle,
+          tiles: _.map(puzzle.tiles, (row) =>
+            _.map(row, (tile) => ({
+              ...tile,
+              value: tile.value === 'black' ? 'black' : 'empty',
+            }))
+          ),
+        })
+      );
+      // Set a list of clues in the order of flattened answers
+      setClues(
+        _.map(
+          getFlattenedAnswers(puzzle),
+          ({ row, column, direction, answer }) => ({
+            row,
+            column,
+            direction,
+            answer: answer.word,
+            clue: clueGrid[row][column][direction] || '',
           })
-        );
-        // Set a list of clues in the order of flattened answers
-        setClues(
-          _.map(
-            getFlattenedAnswers(puzzle),
-            ({ row, column, direction, answer }) => ({
-              row,
-              column,
-              direction,
-              answer: answer.word,
-              clue: clueGrid[row][column][direction] || '',
-            })
-          )
-        );
-      });
-  }, [dispatch, puzzleData, setClues]);
+        )
+      );
+    };
+
+    fetchPuzzle();
+  }, [dispatch, puzzleId, setClues]);
+
+  return failed;
 }
 
 function usePuzzleScaleToFit(puzzleRef: HTMLElement | null): number {
@@ -120,9 +139,8 @@ export default function CrosswordPlayer() {
     true
   );
 
-  const { puzzleData } = useParams();
-  usePuzzleData(puzzleData, setClues);
-
+  const { puzzleId } = useParams();
+  const puzzleFetchFailed = usePuzzleData(puzzleId, setClues);
   const puzzleScale = usePuzzleScaleToFit(puzzleRef);
 
   // Default the selection to the first clue
@@ -144,6 +162,14 @@ export default function CrosswordPlayer() {
     [onClick]
   );
 
+  if (puzzleFetchFailed)
+    return (
+      <div style={{ display: 'flex', height: '100%', width: '100%' }}>
+        <Alert severity="error" style={{ margin: 'auto' }}>
+          No puzzle "{puzzleId}" found!
+        </Alert>
+      </div>
+    );
   if (!clues) return null;
   return (
     <div className="puzzle-player-content-container">
