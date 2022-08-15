@@ -71,7 +71,47 @@
   font-size: 16px;
 }
 
-.yo {
+.clue-nav-clue {
   margin: auto;
   margin-left: 0;
+}
+
+.publish-dialog-container {
+  position: relative;
+  padding: 15px;
+  display: flex;
+  flex-direction: column;
+}
+
+.publish-dialog-prepublish-container {
+  transition: opacity 200ms ease-out;
+}
+
+.publish-dialog-publishing {
+  margin: auto;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.publish-dialog-publishing-progress {
+  position: relative;
+  top: 3px;
+  left: 2px;
+}
+
+.publish-dialog-copy-link {
+  margin: auto !important;
+  margin-left: 0px !important;
+  margin-right: 8px !important;
+  min-width: 125px !important;
+}
+
+.publish-dialog-link {
+  margin: auto;
+  margin-left: 0px;
+  margin-right: 8px;
+  padding: 8px;
+  overflow-x: auto;
 }

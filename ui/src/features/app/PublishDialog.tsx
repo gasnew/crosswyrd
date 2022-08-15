@@ -108,11 +108,20 @@ export default function PublishDialog({ open, onClose }: Props) {
       <DialogTitle>Publish Your Puzzle!</DialogTitle>
       <DialogContent>
         <div
-          style={{ padding: 15, display: 'flex', flexDirection: 'column' }}
-          className="sheet"
+          style={{
+            pointerEvents: state === 'publishing' ? 'none' : 'initial',
+          }}
+          className="sheet publish-dialog-container"
         >
-          {state === 'prePublish' ? (
-            <>
+          {(state === 'prePublish' || state === 'publishing') && (
+            <div
+              className="publish-dialog-prepublish-container"
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                opacity: state === 'publishing' ? 0.35 : 1,
+              }}
+            >
               <p>
                 Give your puzzle a title and author, then share it with the
                 world!
@@ -153,21 +162,17 @@ export default function PublishDialog({ open, onClose }: Props) {
               >
                 Publish
               </Button>
-            </>
-          ) : state === 'publishing' ? (
-            <div style={{ margin: 'auto' }}>
-              <span
-                style={{
-                  position: 'relative',
-                  top: 3,
-                  left: 2,
-                }}
-              >
+            </div>
+          )}
+          {state === 'publishing' && (
+            <div className="publish-dialog-publishing">
+              <span className="publish-dialog-publishing-progress">
                 <CircularProgress size={20} thickness={5} />
               </span>
               <span>&nbsp;&nbsp;Publishing...</span>
             </div>
-          ) : (
+          )}
+          {state === 'published' && (
             <>
               <Alert severity="success" style={{ marginBottom: 12 }}>
                 <span style={{ fontWeight: 'bold' }}>{title}</span> has been
@@ -186,12 +191,7 @@ export default function PublishDialog({ open, onClose }: Props) {
               </p>
               <div style={{ display: 'flex', flexDirection: 'row' }}>
                 <Button
-                  style={{
-                    margin: 'auto',
-                    marginLeft: 0,
-                    marginRight: 8,
-                    minWidth: 125,
-                  }}
+                  className="publish-dialog-copy-link"
                   onClick={copyLink}
                   variant="contained"
                   endIcon={<LinkIcon />}
@@ -199,14 +199,9 @@ export default function PublishDialog({ open, onClose }: Props) {
                   Copy&nbsp;Link
                 </Button>
                 <pre
-                  className="sheet"
+                  className="sheet publish-dialog-link"
                   style={{
                     backgroundColor: colors.grey[100],
-                    margin: 'auto',
-                    marginLeft: 0,
-                    marginRight: 8,
-                    padding: 8,
-                    overflowX: 'auto',
                   }}
                 >
                   {puzzleLink}

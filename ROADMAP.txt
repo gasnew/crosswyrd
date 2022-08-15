@@ -99,7 +99,7 @@
   + prevent selecting black tiles
   + prevent deselecting
   + publish puzzles to firebase
-  / share link to play
+  + share link to play
   - fix portrait mode
   - desktop version (simple clues on right side, no virtual keyboard)
   - completion screen w/ confetti
