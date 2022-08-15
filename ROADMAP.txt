@@ -100,9 +100,9 @@
   + prevent deselecting
   + publish puzzles to firebase
   + share link to play
+  + completion screen w/ confetti
   - fix portrait mode
   - desktop version (simple clues on right side, no virtual keyboard)
-  - completion screen w/ confetti
   - banner and dropdown
     - edit button
     - share button

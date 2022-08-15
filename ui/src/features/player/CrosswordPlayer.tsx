@@ -8,7 +8,11 @@ import Keyboard from 'react-simple-keyboard';
 import 'react-simple-keyboard/build/css/index.css';
 
 import { CompletePuzzleDataType } from '../app/PublishDialog';
-import { selectPuzzle, setPuzzleState } from '../builder/builderSlice';
+import {
+  CrosswordPuzzleType,
+  selectPuzzle,
+  setPuzzleState,
+} from '../builder/builderSlice';
 import { ALL_LETTERS } from '../builder/constants';
 import { LocationType } from '../builder/CrosswordBuilder';
 import { getFlattenedAnswers, useClueData } from '../builder/ClueEntry';
@@ -16,6 +20,7 @@ import Tiles from '../builder/Tiles';
 import useTileInput from '../builder/useTileInput';
 import useTileSelection, { DirectionType } from '../builder/useTileSelection';
 import ClueNavigator from './ClueNavigator';
+import CompletePuzzleDialog from './CompletePuzzleDialog';
 import { db } from '../../firebase';
 
 import './CrosswordPlayer.css';
@@ -28,11 +33,25 @@ export interface PlayerClueType {
   answer: string;
 }
 
+export interface PuzzleMetadataType {
+  title: string;
+  author: string;
+}
+interface PuzzleDataReturnType {
+  puzzleKey: CrosswordPuzzleType | null;
+  puzzleMetadata: PuzzleMetadataType | null;
+  failed: boolean;
+}
 function usePuzzleData(
   puzzleId: string,
   setClues: (clues: PlayerClueType[]) => void
-): boolean {
+): PuzzleDataReturnType {
   const [failed, setFailed] = useState(false);
+  const [puzzleKey, setPuzzleKey] = useState<CrosswordPuzzleType | null>(null);
+  const [
+    puzzleMetadata,
+    setPuzzleMetadata,
+  ] = useState<PuzzleMetadataType | null>(null);
 
   const dispatch = useDispatch();
 
@@ -45,11 +64,12 @@ function usePuzzleData(
         setFailed(true);
         return;
       }
+      const remoteData = remotePuzzle.data();
 
       // Decode the puzzle data
       var codec = require('json-url')('lzma');
       const { puzzle, clueGrid } = (await codec.decompress(
-        remotePuzzle.data().dataLzma
+        remoteData.dataLzma
       )) as CompletePuzzleDataType;
 
       // Set a puzzle with empty tiles
@@ -77,12 +97,15 @@ function usePuzzleData(
           })
         )
       );
+      // Set the puzzle key and metadata
+      setPuzzleKey(puzzle);
+      setPuzzleMetadata({ title: remoteData.title, author: remoteData.author });
     };
 
     fetchPuzzle();
   }, [dispatch, puzzleId, setClues]);
 
-  return failed;
+  return { puzzleKey, puzzleMetadata, failed };
 }
 
 function usePuzzleScaleToFit(puzzleRef: HTMLElement | null): number {
@@ -140,7 +163,11 @@ export default function CrosswordPlayer() {
   );
 
   const { puzzleId } = useParams();
-  const puzzleFetchFailed = usePuzzleData(puzzleId, setClues);
+  const {
+    puzzleKey,
+    puzzleMetadata,
+    failed: puzzleFetchFailed,
+  } = usePuzzleData(puzzleId, setClues);
   const puzzleScale = usePuzzleScaleToFit(puzzleRef);
 
   // Default the selection to the first clue
@@ -224,6 +251,13 @@ export default function CrosswordPlayer() {
           }
         />
       </div>
+      {puzzleKey && puzzleMetadata && (
+        <CompletePuzzleDialog
+          puzzle={puzzle}
+          puzzleKey={puzzleKey}
+          puzzleMetadata={puzzleMetadata}
+        />
+      )}
     </div>
   );
 }

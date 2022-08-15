@@ -115,3 +115,31 @@
   padding: 8px;
   overflow-x: auto;
 }
+
+.share-dialog-text {
+  text-align: justify;
+}
+
+.share-dialog {
+  display: flex;
+  flex-direction: column;
+}
+
+.share-container {
+  margin: auto;
+  margin-top: 20px;
+}
+
+.share-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.share-buttons {
+  display: flex;
+  flex-direction: row;
+}
+
+.share-button {
+  margin-right: 6px;
+}
