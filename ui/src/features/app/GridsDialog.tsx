@@ -15,6 +15,7 @@ import { FixedSizeList } from 'react-window';
 
 import { initClueGrid, setFillAssistActive } from '../builder/builderSlice';
 import { PUZZLE_SIZE } from '../builder/constants';
+import { logEvent } from '../../firebase';
 import { GridType } from './useGrids';
 
 export const BLANK_GRID: GridType = {
@@ -213,6 +214,7 @@ export default function GridsDialog({
     (rowIndex: number, columnIndex: number, grid: GridType) => () => {
       if (selectedGridIndex) return;
       setSelectedGridIndex(gridIndex(rowIndex, columnIndex));
+      logEvent('new_grid_selected');
       // Wait a second before running the expensive selectGrid function so that
       // the animations can play out
       setTimeout(() => {

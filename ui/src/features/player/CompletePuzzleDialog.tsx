@@ -21,6 +21,7 @@ import BuildIcon from '@mui/icons-material/Build';
 
 import { CrosswordPuzzleType } from '../builder/builderSlice';
 import { PuzzleMetadataType } from './CrosswordPlayer';
+import { logEvent } from '../../firebase';
 
 // Wait half a second before the dialog can be closed again. This is because
 // tap events close the dialog immediately after it is opened.
@@ -52,9 +53,14 @@ export default function CompletePuzzleDialog({
             tile.value === puzzleKey.tiles[rowIndex][columnIndex].value
         )
       )
-    )
+    ) {
       setOpenState({ open: true, date: Date.now() });
-  }, [puzzle, puzzleKey]);
+      logEvent('puzzle_completed', {
+        title: puzzleMetadata.title,
+        author: puzzleMetadata.author,
+      });
+    }
+  }, [puzzle, puzzleKey, puzzleMetadata]);
 
   useEffect(() => {
     if (openState.open)
@@ -69,6 +75,13 @@ export default function CompletePuzzleDialog({
   const shareUrl = window.location.href;
   const shareTitle = `I solved "${puzzleMetadata.title}" by "${puzzleMetadata.author}" on Crosswyrd! Check it out:`;
   const shareHashtag = 'crosswyrd';
+  const mkHandleShareClick = (appName: string) => () => {
+    logEvent('puzzle_share_clicked', {
+      title: puzzleMetadata.title,
+      author: puzzleMetadata.author,
+      appName,
+    });
+  };
 
   return (
     <Dialog
@@ -98,14 +111,16 @@ export default function CompletePuzzleDialog({
                   title={shareTitle}
                   hashtags={[shareHashtag]}
                   className="share-button"
+                  onClick={mkHandleShareClick('twitter')}
                 >
                   <TwitterIcon size={32} round />
                 </TwitterShareButton>
                 <FacebookShareButton
-                  url={'http://gogole.com'}
+                  url={shareUrl}
                   quote={shareTitle}
                   hashtag={`#${shareHashtag}`}
                   className="share-button"
+                  onClick={mkHandleShareClick('facebook')}
                 >
                   <FacebookIcon size={32} round />
                 </FacebookShareButton>
@@ -113,10 +128,15 @@ export default function CompletePuzzleDialog({
                   url={shareUrl}
                   title={shareTitle}
                   className="share-button"
+                  onClick={mkHandleShareClick('reddit')}
                 >
                   <RedditIcon size={32} round />
                 </RedditShareButton>
-                <EmailShareButton url={shareUrl} subject={shareTitle}>
+                <EmailShareButton
+                  url={shareUrl}
+                  subject={shareTitle}
+                  onClick={mkHandleShareClick('email')}
+                >
                   <EmailIcon size={32} round />
                 </EmailShareButton>
               </div>
@@ -126,7 +146,11 @@ export default function CompletePuzzleDialog({
                 style={{ marginTop: 8, marginBottom: 8 }}
               />
               <Link to="/builder">
-                <Button variant="contained" endIcon={<BuildIcon />}>
+                <Button
+                  variant="contained"
+                  endIcon={<BuildIcon />}
+                  onClick={() => logEvent('build_puzzle_clicked')}
+                >
                   Build a Puzzle
                 </Button>
               </Link>

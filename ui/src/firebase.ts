@@ -1,5 +1,9 @@
 // Import the functions you need from the SDKs you need
-import { getAnalytics } from 'firebase/analytics';
+import {
+  Analytics,
+  getAnalytics,
+  logEvent as logAnalyticsEvent,
+} from 'firebase/analytics';
 import { initializeApp } from 'firebase/app';
 import { getFirestore } from 'firebase/firestore';
 // TODO: Add SDKs for Firebase products that you want to use
@@ -22,4 +26,8 @@ const firebaseConfig = {
 export const app = initializeApp(firebaseConfig);
 export const db = getFirestore(app);
 
-if (!devMode()) getAnalytics(app);
+let analytics: Analytics | null = null;
+if (!devMode()) analytics = getAnalytics(app);
+export function logEvent(eventName, data?) {
+  if (analytics) logAnalyticsEvent(analytics, eventName, data);
+}
