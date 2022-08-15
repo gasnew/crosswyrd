@@ -87,6 +87,8 @@ export default function useTileInput(
   const inputKey = useCallback(
     (key: SupportedKeysType, shift?: boolean) => {
       if (!_.includes(SUPPORTED_KEYS, key)) return;
+      // PERIOD is not supported in player mode
+      if (playerMode && key === PERIOD) return;
       clearHoveredTile();
       if (keyStates.current[key] === 'down') return;
       keyStates.current[key] = 'down';
@@ -96,7 +98,7 @@ export default function useTileInput(
       cachedInputQueue.current.push(trueKey);
       setInputQueue(cachedInputQueue.current);
     },
-    [clearHoveredTile]
+    [clearHoveredTile, playerMode]
   );
   const releaseKey = useCallback((key: SupportedKeysType) => {
     keyStates.current[key] = 'up';

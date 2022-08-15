@@ -56,7 +56,6 @@ export default function CompletePuzzleDialog({
       setOpenState({ open: true, date: Date.now() });
   }, [puzzle, puzzleKey]);
 
-  console.log(openState);
   useEffect(() => {
     if (openState.open)
       confetti({
