@@ -25,6 +25,7 @@ import {
 } from '../builder/builderSlice';
 import CrosswordBuilder from '../builder/CrosswordBuilder';
 import GridsDialog, { blankGrid } from './GridsDialog';
+import KoFiButton from './KoFiButton';
 import PublishDialog from './PublishDialog';
 import useGrids, { GridType } from './useGrids';
 
@@ -77,6 +78,12 @@ function DrawerControls({
               <ListItemText primary="Publish" />
             </ListItemButton>
           </ListItem>
+          <Divider />
+          <ListItem disablePadding>
+            <div style={{ margin: 'auto', marginTop: 8 }}>
+              <KoFiButton />
+            </div>
+          </ListItem>
         </List>
       </Box>
     </div>
@@ -126,6 +133,7 @@ export default function CrossWyrd() {
       <CssBaseline />
       <AppBar
         position="fixed"
+        color="transparent"
         sx={{
           width: { lg: `calc(100% - ${drawerWidth}px)` },
           ml: { lg: `${drawerWidth}px` },
