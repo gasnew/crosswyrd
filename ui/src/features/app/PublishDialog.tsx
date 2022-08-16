@@ -10,6 +10,7 @@ import TextField from '@mui/material/TextField';
 import Dialog from '@mui/material/Dialog';
 import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
+import Divider from '@mui/material/Divider';
 import NewspaperIcon from '@mui/icons-material/Newspaper';
 import LinkIcon from '@mui/icons-material/Link';
 import { v4 as uuidv4 } from 'uuid';
@@ -21,6 +22,7 @@ import {
   selectClueGrid,
 } from '../builder/builderSlice';
 import { db, logEvent } from '../../firebase';
+import KoFiButton from './KoFiButton';
 
 const CopyAlertSnackbar = React.memo(
   ({ open, onClose }: { open: boolean; onClose: () => void }) => {
@@ -208,6 +210,16 @@ export default function PublishDialog({ open, onClose }: Props) {
                 >
                   {puzzleLink}
                 </pre>
+              </div>
+              <Divider style={{ margin: 12 }} />
+              <p>
+                By the way, if you're enjoying Crosswyrd, it really helps me to
+                drop a donation! Your donations help me to develop and maintain
+                this passion project. Thank you.
+              </p>
+              <p>- Garrett </p>
+              <div style={{ display: 'flex', margin: 'auto' }}>
+                <KoFiButton />
               </div>
             </>
           )}
