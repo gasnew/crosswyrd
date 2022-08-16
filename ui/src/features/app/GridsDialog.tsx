@@ -225,8 +225,12 @@ function GridsTabPanel({
         dispatch(clearClueGrid());
         selectGrid(grid);
         dispatch(initClueGrid({ size: grid.tiles.length }));
-        // Activate fill assist for non-blank grids
-        dispatch(setFillAssistActive(!_.isEqual(grid, blankGrid(gridSize))));
+        // Activate fill assist for non-blank grids and for 5x5 grids
+        dispatch(
+          setFillAssistActive(
+            !_.isEqual(grid, blankGrid(gridSize)) || gridSize === 5
+          )
+        );
       }, 100);
     },
     [dispatch, selectedGridIndex, selectGrid, gridSize]

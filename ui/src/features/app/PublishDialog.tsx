@@ -216,7 +216,6 @@ export default function PublishDialog({ open, onClose }: Props) {
       <CopyAlertSnackbar
         open={copyAlertSnackbarOpen}
         onClose={() => {
-          console.log('yo');
           setCopyAlertSnackbarOpen(false);
         }}
       />

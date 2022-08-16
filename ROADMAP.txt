@@ -103,7 +103,7 @@
   + share link to play
   + completion screen w/ confetti
   + scale puzzle correctly for various screen sizes
-- include 10x10 and 5x5 boards
++ support 10x10 and 5x5 boards
 - Ko-Fi for donations
   - input code to unlock feature (color themes)!
   - when code input, donation button says "Thank you!" and has stars

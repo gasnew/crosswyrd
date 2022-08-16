@@ -4,7 +4,6 @@ import { useDispatch, useSelector } from 'react-redux';
 
 import {
   bumpPuzzleVersion,
-  DEFAULT_TILES,
   CrosswordPuzzleType,
   LetterType,
   selectFillAssistActive,
@@ -183,7 +182,12 @@ export default function useWaveFunctionCollapse(
       // puzzle so that we run a wave computation afresh.
       previousPuzzle.current = {
         ...puzzle,
-        tiles: DEFAULT_TILES,
+        tiles: _.map(puzzle.tiles, (row) =>
+          _.map(row, (tile) => ({
+            ...tile,
+            value: tile.value === 'black' ? 'black' : 'empty',
+          }))
+        ),
       };
       dispatch(bumpPuzzleVersion());
     }
