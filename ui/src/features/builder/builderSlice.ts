@@ -4,7 +4,7 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { RootState } from '../../app/store';
 import { ALL_LETTERS } from './constants';
 import { DirectionType } from './useTileSelection';
-import { TileUpdateType, WaveType } from './useWaveFunctionCollapse';
+import { TileUpdateType } from './useWaveFunctionCollapse';
 import { randomId } from '../../app/util';
 
 export type LetterType = typeof ALL_LETTERS[number];
@@ -90,28 +90,6 @@ export const builderSlice = createSlice({
       symmetricTile.value = newValue;
       state.puzzle.version = randomId();
     },
-    setPuzzleTilesToResolvedWaveElements: (
-      state,
-      action: PayloadAction<WaveType>
-    ) => {
-      _.forEach(action.payload.elements, (row, rowIndex) => {
-        _.forEach(row, (element, columnIndex) => {
-          const tile = state.puzzle.tiles[rowIndex][columnIndex];
-          // If tile is a letter... (old way)
-          //if (_.includes(ALL_LETTERS, tile.value)) {
-          //// If there are zero options, set to empty
-          //if (element.options.length === 0) tile.value = 'empty';
-          //// If there are multiple values, set to empty (i.e., we
-          //// backtracked)
-          //else if (element.options.length > 1) tile.value = 'empty';
-          //}
-          // If there is one option, set the value
-          if (tile.value === 'empty' && element.options.length === 1)
-            tile.value = element.options[0];
-        });
-      });
-      state.puzzle.version = randomId();
-    },
     setPuzzleTileValues: (state, action: PayloadAction<TileUpdateType[]>) => {
       _.forEach(action.payload, ({ row, column, value }) => {
         const tile = state.puzzle.tiles[row][column];
@@ -168,7 +146,6 @@ export const builderSlice = createSlice({
 });
 
 export const {
-  setPuzzleTilesToResolvedWaveElements,
   setPuzzleTileValues,
   bumpPuzzleVersion,
   toggleTileBlack,
