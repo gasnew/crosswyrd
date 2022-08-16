@@ -34,6 +34,7 @@ function pickWord(
       _.map(elementSet, (element) => element.options)
     )
   );
+  // Find a random word from the first 15 best words available
   const word = _.find(
     _.shuffle(_.take(sortedWordOptions, 15)),
     (word) => !_.includes(attemptedWords.current[puzzle.version] || [], word)

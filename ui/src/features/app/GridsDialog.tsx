@@ -2,27 +2,33 @@ import dayjs from 'dayjs';
 import _ from 'lodash';
 import CloseIcon from '@mui/icons-material/Close';
 import {
+  Box,
   Button,
   Chip,
   CircularProgress,
   Dialog,
   DialogTitle,
   IconButton,
+  Tabs,
+  Tab,
 } from '@mui/material';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { FixedSizeList } from 'react-window';
 
-import { initClueGrid, setFillAssistActive } from '../builder/builderSlice';
-import { PUZZLE_SIZE } from '../builder/constants';
+import {
+  clearClueGrid,
+  initClueGrid,
+  setFillAssistActive,
+} from '../builder/builderSlice';
 import { logEvent } from '../../firebase';
 import { GridType } from './useGrids';
 
-export const BLANK_GRID: GridType = {
-  tiles: _.times(PUZZLE_SIZE, (index) =>
-    _.times(PUZZLE_SIZE, (index) => false)
-  ),
-};
+export function blankGrid(gridSize: number): GridType {
+  return {
+    tiles: _.times(gridSize, (index) => _.times(gridSize, (index) => false)),
+  };
+}
 
 function getDifficulty(grid: GridType) {
   const day = dayjs(grid.date).day();
@@ -118,20 +124,24 @@ function GridButton({
           />
         </>
       ) : (
-        <span style={{ marginBottom: 29 }}>Blank Grid</span>
+        <span style={{ marginBottom: grid.tiles.length === 15 ? 29 : 0 }}>
+          Blank Grid
+        </span>
       )}
-      <div className="grid-display-tiles-container">
-        {_.map(grid.tiles, (row, rowIndex) => (
-          <div key={rowIndex} className="grid-display-tiles-row">
-            {_.map(row, (tile, columnIndex) => (
-              <div
-                key={columnIndex}
-                className="grid-display-tile"
-                style={{ backgroundColor: tile ? 'black' : 'white' }}
-              />
-            ))}
-          </div>
-        ))}
+      <div className="grid-display-container">
+        <div className="grid-display-tiles-container">
+          {_.map(grid.tiles, (row, rowIndex) => (
+            <div key={rowIndex} className="grid-display-tiles-row">
+              {_.map(row, (tile, columnIndex) => (
+                <div
+                  key={columnIndex}
+                  className="grid-display-tile"
+                  style={{ backgroundColor: tile ? 'black' : 'white' }}
+                />
+              ))}
+            </div>
+          ))}
+        </div>
       </div>
     </Button>
   );
@@ -175,8 +185,92 @@ function GridButtonRow({
   );
 }
 
+interface GridsTabPanelProps {
+  tab: number;
+  index: number;
+  grids: GridType[];
+  gridSize: number;
+  selectGrid: (grid: GridType) => void;
+  open: boolean;
+}
+
+function GridsTabPanel({
+  tab,
+  index,
+  grids,
+  gridSize,
+  selectGrid,
+  open,
+}: GridsTabPanelProps) {
+  const [selectedGridIndex, setSelectedGridIndex] = useState<string | null>(
+    null
+  );
+
+  const dispatch = useDispatch();
+
+  const chunkedGrids = useMemo(
+    () => _.chunk([blankGrid(gridSize), ..._.shuffle(grids)], 3),
+    [grids, gridSize]
+  );
+
+  const mkHandleClick = useCallback(
+    (rowIndex: number, columnIndex: number, grid: GridType) => () => {
+      if (selectedGridIndex) return;
+      setSelectedGridIndex(gridIndex(rowIndex, columnIndex));
+      logEvent('new_grid_selected');
+      // Wait a second before running the expensive selectGrid function so that
+      // the animations can play out
+      setTimeout(() => {
+        // Clear the clue grid first so that we avoid out-of-bounds exceptions.
+        dispatch(clearClueGrid());
+        selectGrid(grid);
+        dispatch(initClueGrid({ size: grid.tiles.length }));
+        // Activate fill assist for non-blank grids and for 5x5 grids
+        dispatch(
+          setFillAssistActive(
+            !_.isEqual(grid, blankGrid(gridSize)) || gridSize === 5
+          )
+        );
+      }, 100);
+    },
+    [dispatch, selectedGridIndex, selectGrid, gridSize]
+  );
+
+  return (
+    <div
+      role="tabpanel"
+      hidden={tab !== index}
+      id={`simple-tabpanel-${index}`}
+      aria-labelledby={`simple-tab-${index}`}
+    >
+      <Box
+        style={{
+          visibility: tab === index ? 'visible' : 'hidden',
+        }}
+      >
+        <FixedSizeList
+          height={601}
+          width={800}
+          itemData={{ chunkedGrids, mkHandleClick, selectedGridIndex }}
+          itemCount={chunkedGrids.length}
+          itemSize={265}
+          overscanCount={5}
+        >
+          {GridButtonRow}
+        </FixedSizeList>
+      </Box>
+    </div>
+  );
+}
+
 function gridIndex(rowIndex: number, columnIndex: number): string {
   return `r${rowIndex}c${columnIndex}`;
+}
+function a11yProps(index: number) {
+  return {
+    id: `simple-tab-${index}`,
+    'aria-controls': `simple-tabpanel-${index}`,
+  };
 }
 
 interface Props {
@@ -194,38 +288,11 @@ export default function GridsDialog({
   grids,
   selectGrid,
 }: Props) {
-  const [selectedGridIndex, setSelectedGridIndex] = useState<string | null>(
-    null
-  );
+  const [tab, setTab] = useState(0);
 
-  const dispatch = useDispatch();
-
-  useEffect(() => {
-    // Reset state 1 second after the dialog closes
-    if (!open) setTimeout(() => setSelectedGridIndex(null), 1000);
-  }, [open]);
-
-  const chunkedGrids = useMemo(
-    () => _.chunk([BLANK_GRID, ..._.shuffle(grids)], 3),
-    [grids]
-  );
-
-  const mkHandleClick = useCallback(
-    (rowIndex: number, columnIndex: number, grid: GridType) => () => {
-      if (selectedGridIndex) return;
-      setSelectedGridIndex(gridIndex(rowIndex, columnIndex));
-      logEvent('new_grid_selected');
-      // Wait a second before running the expensive selectGrid function so that
-      // the animations can play out
-      setTimeout(() => {
-        selectGrid(grid);
-        dispatch(initClueGrid({ size: grid.tiles.length }));
-        // Activate fill assist for non-blank grids
-        dispatch(setFillAssistActive(!_.isEqual(grid, BLANK_GRID)));
-      }, 20);
-    },
-    [dispatch, selectedGridIndex, selectGrid]
-  );
+  const handleTabChange = (event: React.SyntheticEvent, newTab: number) => {
+    setTab(newTab);
+  };
 
   return (
     <Dialog
@@ -259,16 +326,45 @@ export default function GridsDialog({
             thickness={3}
           />
         ) : (
-          <FixedSizeList
-            height={650}
-            width={800}
-            itemData={{ chunkedGrids, mkHandleClick, selectedGridIndex }}
-            itemCount={chunkedGrids.length}
-            itemSize={265}
-            overscanCount={5}
-          >
-            {GridButtonRow}
-          </FixedSizeList>
+          <Box sx={{ width: '100%' }}>
+            <Box
+              sx={{ borderBottom: 1, borderColor: 'divider', display: 'flex' }}
+            >
+              <Tabs
+                value={tab}
+                onChange={handleTabChange}
+                style={{ margin: 'auto' }}
+              >
+                <Tab label="15x15" {...a11yProps(0)} />
+                <Tab label="10x10" {...a11yProps(1)} />
+                <Tab label="5x5" {...a11yProps(1)} />
+              </Tabs>
+            </Box>
+            <GridsTabPanel
+              tab={tab}
+              index={0}
+              grids={grids}
+              gridSize={15}
+              selectGrid={selectGrid}
+              open={open}
+            />
+            <GridsTabPanel
+              tab={tab}
+              index={1}
+              grids={[]}
+              gridSize={10}
+              selectGrid={selectGrid}
+              open={open}
+            />
+            <GridsTabPanel
+              tab={tab}
+              index={2}
+              grids={[]}
+              gridSize={5}
+              selectGrid={selectGrid}
+              open={open}
+            />
+          </Box>
         )}
       </div>
     </Dialog>

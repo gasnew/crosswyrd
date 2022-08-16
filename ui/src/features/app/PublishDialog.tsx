@@ -98,6 +98,7 @@ export default function PublishDialog({ open, onClose }: Props) {
   const copyLink = () => {
     copy(puzzleLink);
     setCopyAlertSnackbarOpen(true);
+    logEvent('puzzle_link_copied', { title, author, puzzleLink });
   };
 
   return (
@@ -215,7 +216,6 @@ export default function PublishDialog({ open, onClose }: Props) {
       <CopyAlertSnackbar
         open={copyAlertSnackbarOpen}
         onClose={() => {
-          console.log('yo');
           setCopyAlertSnackbarOpen(false);
         }}
       />

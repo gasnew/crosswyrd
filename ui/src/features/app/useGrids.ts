@@ -2,7 +2,8 @@ import axios from 'axios';
 import _ from 'lodash';
 import { useEffect, useState } from 'react';
 
-import { PUZZLE_SIZE } from '../builder/constants';
+// All stored grids are 15x15
+const GRID_SIZE = 15;
 
 export interface GridType {
   tiles: boolean[][];
@@ -27,7 +28,7 @@ export default function useGrids(): ReturnType {
       const grids = _.map(gridsData, (gridData) => ({
         tiles: _.chunk(
           _.map(gridData.grid, (tile) => tile === '.'),
-          PUZZLE_SIZE
+          GRID_SIZE
         ),
         date: gridData.date,
       }));

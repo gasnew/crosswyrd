@@ -19,32 +19,22 @@ import Typography from '@mui/material/Typography';
 import NewspaperIcon from '@mui/icons-material/Newspaper';
 
 import { devMode, randomId } from '../../app/util';
-import { setLetterEntryEnabled } from '../builder/builderSlice';
+import {
+  DEFAULT_PUZZLE_SIZE,
+  setLetterEntryEnabled,
+} from '../builder/builderSlice';
 import CrosswordBuilder from '../builder/CrosswordBuilder';
-import GridsDialog, { BLANK_GRID } from './GridsDialog';
+import GridsDialog, { blankGrid } from './GridsDialog';
 import PublishDialog from './PublishDialog';
 import useGrids, { GridType } from './useGrids';
 
 const drawerWidth = 200;
 
-function DrawerControls({ handleDrawerToggle, setGridDialogState }) {
-  const [publishDialogOpen, setPublishDialogOpen] = useState(false);
-
-  const dispatch = useDispatch();
-
-  const handlePublishPuzzle = () => {
-    setPublishDialogOpen(true);
-    // Disable letter entry in the puzzle while the dialog is open.
-    dispatch(setLetterEntryEnabled(false));
-  };
-
-  const handleClosePublishDialog = () => {
-    setPublishDialogOpen(false);
-    handleDrawerToggle();
-    // Re-enable letter entry in the puzzle.
-    dispatch(setLetterEntryEnabled(true));
-  };
-
+function DrawerControls({
+  handleDrawerToggle,
+  setGridDialogState,
+  handlePublishPuzzle,
+}) {
   return (
     <div>
       <Toolbar>
@@ -75,7 +65,12 @@ function DrawerControls({ handleDrawerToggle, setGridDialogState }) {
             </ListItemButton>
           </ListItem>
           <ListItem disablePadding>
-            <ListItemButton onClick={handlePublishPuzzle}>
+            <ListItemButton
+              onClick={() => {
+                handleDrawerToggle();
+                handlePublishPuzzle();
+              }}
+            >
               <ListItemIcon>
                 <NewspaperIcon />
               </ListItemIcon>
@@ -84,10 +79,6 @@ function DrawerControls({ handleDrawerToggle, setGridDialogState }) {
           </ListItem>
         </List>
       </Box>
-      <PublishDialog
-        open={publishDialogOpen}
-        onClose={handleClosePublishDialog}
-      />
     </div>
   );
 }
@@ -105,11 +96,26 @@ export default function CrossWyrd() {
     canClose?: boolean;
   }>({ open: !devMode(), canClose: false });
   const [grid, setGrid] = useState<GridWithVersionType>({
-    ...BLANK_GRID,
+    ...blankGrid(DEFAULT_PUZZLE_SIZE),
     version: randomId(),
   });
 
   const { grids } = useGrids();
+
+  const dispatch = useDispatch();
+
+  // Publish dialog stuff
+  const [publishDialogOpen, setPublishDialogOpen] = useState(false);
+  const handlePublishPuzzle = () => {
+    setPublishDialogOpen(true);
+    // Disable letter entry in the puzzle while the dialog is open.
+    dispatch(setLetterEntryEnabled(false));
+  };
+  const handleClosePublishDialog = () => {
+    setPublishDialogOpen(false);
+    // Re-enable letter entry in the puzzle.
+    dispatch(setLetterEntryEnabled(true));
+  };
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
@@ -165,6 +171,7 @@ export default function CrossWyrd() {
           <DrawerControls
             handleDrawerToggle={handleDrawerToggle}
             setGridDialogState={setGridDialogState}
+            handlePublishPuzzle={handlePublishPuzzle}
           />
         </Drawer>
         <Drawer
@@ -181,6 +188,7 @@ export default function CrossWyrd() {
           <DrawerControls
             handleDrawerToggle={handleDrawerToggle}
             setGridDialogState={setGridDialogState}
+            handlePublishPuzzle={handlePublishPuzzle}
           />
         </Drawer>
       </Box>
@@ -196,6 +204,10 @@ export default function CrossWyrd() {
           setGrid({ ...grid, version: randomId() });
           setGridDialogState({ open: false });
         }}
+      />
+      <PublishDialog
+        open={publishDialogOpen}
+        onClose={handleClosePublishDialog}
       />
     </Box>
   );

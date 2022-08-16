@@ -40,8 +40,10 @@ export function useClueData(puzzle: CrosswordPuzzleType): ClueDataType {
     computeTileNumbers(puzzle)
   );
   const tileNumbers = useMemo(() => {
-    // Return if the black tiles haven't changed
+    // Return if the black tiles haven't changed (unless the puzzle has changed
+    // size)
     if (
+      cachedPuzzle.current.size === puzzle.size &&
       _.every(puzzle.tiles, (row, rowIndex) =>
         _.every(
           row,

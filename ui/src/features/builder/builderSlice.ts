@@ -2,9 +2,9 @@ import _ from 'lodash';
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
 import { RootState } from '../../app/store';
-import { ALL_LETTERS, PUZZLE_SIZE } from './constants';
+import { ALL_LETTERS } from './constants';
 import { DirectionType } from './useTileSelection';
-import { TileUpdateType, WaveType } from './useWaveFunctionCollapse';
+import { TileUpdateType } from './useWaveFunctionCollapse';
 import { randomId } from '../../app/util';
 
 export type LetterType = typeof ALL_LETTERS[number];
@@ -15,6 +15,7 @@ export interface TileType {
 }
 export interface CrosswordPuzzleType {
   tiles: TileType[][];
+  size: number;
   version: string;
 }
 export interface ClueGridCellType {
@@ -32,17 +33,20 @@ interface BuilderState {
   letterEntryEnabled: boolean;
 }
 
-export const DEFAULT_TILES: TileType[][] = Array.from(Array(PUZZLE_SIZE), () =>
-  new Array(PUZZLE_SIZE).fill({ value: 'empty' })
+export const DEFAULT_PUZZLE_SIZE = 15;
+export const DEFAULT_TILES: TileType[][] = Array.from(
+  Array(DEFAULT_PUZZLE_SIZE),
+  () => new Array(DEFAULT_PUZZLE_SIZE).fill({ value: 'empty' })
 );
 
 const initialState: BuilderState = {
   puzzle: {
     tiles: DEFAULT_TILES,
+    size: DEFAULT_PUZZLE_SIZE,
     version: randomId(),
   },
-  clueGrid: _.times(PUZZLE_SIZE, (index) =>
-    _.times(PUZZLE_SIZE, (index) => ({ across: null, down: null }))
+  clueGrid: _.times(DEFAULT_PUZZLE_SIZE, (index) =>
+    _.times(DEFAULT_PUZZLE_SIZE, (index) => ({ across: null, down: null }))
   ),
   draggedWord: null,
   currentTab: 0,
@@ -86,28 +90,6 @@ export const builderSlice = createSlice({
       symmetricTile.value = newValue;
       state.puzzle.version = randomId();
     },
-    setPuzzleTilesToResolvedWaveElements: (
-      state,
-      action: PayloadAction<WaveType>
-    ) => {
-      _.forEach(action.payload.elements, (row, rowIndex) => {
-        _.forEach(row, (element, columnIndex) => {
-          const tile = state.puzzle.tiles[rowIndex][columnIndex];
-          // If tile is a letter... (old way)
-          //if (_.includes(ALL_LETTERS, tile.value)) {
-          //// If there are zero options, set to empty
-          //if (element.options.length === 0) tile.value = 'empty';
-          //// If there are multiple values, set to empty (i.e., we
-          //// backtracked)
-          //else if (element.options.length > 1) tile.value = 'empty';
-          //}
-          // If there is one option, set the value
-          if (tile.value === 'empty' && element.options.length === 1)
-            tile.value = element.options[0];
-        });
-      });
-      state.puzzle.version = randomId();
-    },
     setPuzzleTileValues: (state, action: PayloadAction<TileUpdateType[]>) => {
       _.forEach(action.payload, ({ row, column, value }) => {
         const tile = state.puzzle.tiles[row][column];
@@ -138,6 +120,9 @@ export const builderSlice = createSlice({
         _.times(action.payload.size, (index) => ({ across: null, down: null }))
       );
     },
+    clearClueGrid: (state, action: PayloadAction<void>) => {
+      state.clueGrid = null;
+    },
     setClue: (
       state,
       action: PayloadAction<{
@@ -161,7 +146,6 @@ export const builderSlice = createSlice({
 });
 
 export const {
-  setPuzzleTilesToResolvedWaveElements,
   setPuzzleTileValues,
   bumpPuzzleVersion,
   toggleTileBlack,
@@ -171,6 +155,7 @@ export const {
   setFillAssistActive,
   setWordCount,
   initClueGrid,
+  clearClueGrid,
   setClue,
   setClueGrid,
   setLetterEntryEnabled,
