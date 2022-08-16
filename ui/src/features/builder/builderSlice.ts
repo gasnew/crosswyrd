@@ -2,7 +2,7 @@ import _ from 'lodash';
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
 import { RootState } from '../../app/store';
-import { ALL_LETTERS, PUZZLE_SIZE } from './constants';
+import { ALL_LETTERS } from './constants';
 import { DirectionType } from './useTileSelection';
 import { TileUpdateType, WaveType } from './useWaveFunctionCollapse';
 import { randomId } from '../../app/util';
@@ -15,6 +15,7 @@ export interface TileType {
 }
 export interface CrosswordPuzzleType {
   tiles: TileType[][];
+  size: number;
   version: string;
 }
 export interface ClueGridCellType {
@@ -32,17 +33,20 @@ interface BuilderState {
   letterEntryEnabled: boolean;
 }
 
-export const DEFAULT_TILES: TileType[][] = Array.from(Array(PUZZLE_SIZE), () =>
-  new Array(PUZZLE_SIZE).fill({ value: 'empty' })
+export const DEFAULT_PUZZLE_SIZE = 15;
+export const DEFAULT_TILES: TileType[][] = Array.from(
+  Array(DEFAULT_PUZZLE_SIZE),
+  () => new Array(DEFAULT_PUZZLE_SIZE).fill({ value: 'empty' })
 );
 
 const initialState: BuilderState = {
   puzzle: {
     tiles: DEFAULT_TILES,
+    size: DEFAULT_PUZZLE_SIZE,
     version: randomId(),
   },
-  clueGrid: _.times(PUZZLE_SIZE, (index) =>
-    _.times(PUZZLE_SIZE, (index) => ({ across: null, down: null }))
+  clueGrid: _.times(DEFAULT_PUZZLE_SIZE, (index) =>
+    _.times(DEFAULT_PUZZLE_SIZE, (index) => ({ across: null, down: null }))
   ),
   draggedWord: null,
   currentTab: 0,
@@ -138,6 +142,9 @@ export const builderSlice = createSlice({
         _.times(action.payload.size, (index) => ({ across: null, down: null }))
       );
     },
+    clearClueGrid: (state, action: PayloadAction<void>) => {
+      state.clueGrid = null;
+    },
     setClue: (
       state,
       action: PayloadAction<{
@@ -171,6 +178,7 @@ export const {
   setFillAssistActive,
   setWordCount,
   initClueGrid,
+  clearClueGrid,
   setClue,
   setClueGrid,
   setLetterEntryEnabled,

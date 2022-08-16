@@ -12,7 +12,7 @@ import {
   setPuzzleTileValues,
   TileValueType,
 } from './builderSlice';
-import { ALL_LETTERS, PUZZLE_SIZE } from './constants';
+import { ALL_LETTERS } from './constants';
 import {
   SelectedTilesStateType,
   UpdateSelectionWithPuzzleType,
@@ -152,7 +152,7 @@ export default function useTileInput(
 
     let newPrimaryLocation = selectedTilesState.primaryLocation;
     let newDirection = selectedTilesState.direction;
-    let updateSelection = true;
+    let shouldUpdateSelection = true;
     const tileUpdates: TileUpdateType[] = _.flatMap(
       cachedInputQueue.current,
       (key) => {
@@ -162,9 +162,9 @@ export default function useTileInput(
           const newColumn = column + step * dir[1];
           if (
             newRow >= 0 &&
-            newRow < PUZZLE_SIZE &&
+            newRow < puzzle.size &&
             newColumn >= 0 &&
-            newColumn < PUZZLE_SIZE
+            newColumn < puzzle.size
           )
             return {
               row: newRow,
@@ -199,7 +199,7 @@ export default function useTileInput(
             selectNextAnswer(false, true);
             // Do not do the default mode of updating the selection since we're
             // doing it manually here
-            updateSelection = false;
+            shouldUpdateSelection = false;
             return [];
           }
           const tileUpdate: TileUpdateType = {
@@ -274,7 +274,7 @@ export default function useTileInput(
           // Move to the next empty location, to the next letter if no empty
           // tile, or not at all if blocked by a black tile
           const nextNonLetterTileDistance = _.find(
-            _.range(1, PUZZLE_SIZE),
+            _.range(1, puzzle.size),
             (index) => {
               const nextLocation = shift(newPrimaryLocation, index);
               const nextTile = tileAtLocation(nextLocation);
@@ -301,7 +301,7 @@ export default function useTileInput(
             selectNextAnswer(true);
             // Do not do the default mode of updating the selection since we're
             // doing it manually here
-            updateSelection = false;
+            shouldUpdateSelection = false;
           }
 
           return [
@@ -325,9 +325,9 @@ export default function useTileInput(
     );
     cleanUp();
 
-    dispatch(setPuzzleTileValues(tileUpdates));
+    if (tileUpdates.length > 0) dispatch(setPuzzleTileValues(tileUpdates));
     // TODO: Just use updateSelection?
-    if (updateSelection)
+    if (shouldUpdateSelection)
       updateSelectionWithPuzzle(
         withPuzzleTileUpdates(puzzle, tileUpdates),
         newPrimaryLocation,

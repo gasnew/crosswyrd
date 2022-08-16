@@ -46,8 +46,13 @@ body,
   margin-top: -8px;
 }
 
+.tiles-scale-container {
+  height: 526px;
+  width: 525px;
+}
+
 .tiles-container {
-  display: flex;
+  display: inline-block;
   flex-direction: column;
   outline-style: solid;
   outline-color: black;
@@ -245,6 +250,7 @@ body,
   justify-content: space-between;
   padding-left: 15px;
   padding-right: 15px;
+  margin-top: 30px;
 }
 
 .grid-button {
@@ -269,7 +275,14 @@ body,
   transform: scale(1.05);
 }
 
+.grid-display-container {
+  display: flex;
+  height: 150px;
+  width: 150px;
+}
+
 .grid-display-tiles-container {
+  margin: auto;
   pointer-events: none;
   display: flex;
   flex-direction: column;

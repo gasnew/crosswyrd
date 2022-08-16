@@ -7,7 +7,6 @@ import {
   selectCurrentTab,
   selectFillAssistActive,
 } from './builderSlice';
-import { PUZZLE_SIZE } from './constants';
 import { getFlattenedAnswers } from './ClueEntry';
 import { LocationType } from './CrosswordBuilder';
 import { WaveAndPuzzleType } from './useWaveAndPuzzleHistory';
@@ -60,14 +59,14 @@ function determineLocations(
   if (puzzle.tiles[row][column].value === 'black') return [primaryLocation];
   const tilesBehind =
     _.takeWhile(
-      _.range(PUZZLE_SIZE),
+      _.range(puzzle.size),
       (index) =>
         (puzzle.tiles?.[row - index * dir[0]]?.[column - index * dir[1]]
           ?.value || 'black') !== 'black'
     ).length - 1;
   const tilesInFront =
     _.takeWhile(
-      _.range(PUZZLE_SIZE),
+      _.range(puzzle.size),
       (index) =>
         (puzzle.tiles?.[row + index * dir[0]]?.[column + index * dir[1]]
           ?.value || 'black') !== 'black'
@@ -133,64 +132,6 @@ export default function useTileSelection(
       newDirection: DirectionType
     ) => {
       if (!primaryLocation || locations.length < 1) return;
-
-      //if (
-      //_.every(
-      //locations,
-      //({ row, column }) => newPuzzle.tiles[row][column].value !== 'empty'
-      //)
-      //) {
-      //// Clear selection because we have reached the end of the word, and the
-      //// word is completely filled
-      //clearSelection();
-      //return;
-      //}
-
-      // TODO: Remove all this fancy jazz?
-      //if (
-      //newPuzzle.tiles[newPrimaryLocation.row][newPrimaryLocation.column]
-      //.value === 'empty'
-      //) {
-      //// Move backward to first non-empty tile
-      //while (
-      //newPuzzle.tiles[newPrimaryLocation.row - dir[0]]?.[
-      //newPrimaryLocation.column - dir[1]
-      //]?.value === 'empty'
-      //) {
-      //newPrimaryLocation = {
-      //row: newPrimaryLocation.row - dir[0],
-      //column: newPrimaryLocation.column - dir[1],
-      //};
-      //}
-      //} else {
-      //// Move forward to first empty tile
-      //const next = ({ row, column }) => ({
-      //row: row + dir[0],
-      //column: column + dir[1],
-      //});
-      //while (
-      //next(newPrimaryLocation).row < PUZZLE_SIZE &&
-      //next(newPrimaryLocation).column < PUZZLE_SIZE &&
-      //newPuzzle.tiles[newPrimaryLocation.row + dir[0]]?.[
-      //newPrimaryLocation.column + dir[1]
-      //]?.value !== 'empty'
-      //) {
-      //newPrimaryLocation = {
-      //row: newPrimaryLocation.row + dir[0],
-      //column: newPrimaryLocation.column + dir[1],
-      //};
-      //}
-      //if (
-      //newPrimaryLocation.row + dir[0] < PUZZLE_SIZE &&
-      //newPrimaryLocation.column + dir[1] < PUZZLE_SIZE
-      //)
-      //// Move it one more into the empty spot
-      //newPrimaryLocation = {
-      //row: newPrimaryLocation.row + dir[0],
-      //column: newPrimaryLocation.column + dir[1],
-      //};
-      //else newPrimaryLocation = primaryLocation;
-      //}
 
       setPrimaryLocation(newPrimaryLocation);
       setDirection(newDirection || direction);

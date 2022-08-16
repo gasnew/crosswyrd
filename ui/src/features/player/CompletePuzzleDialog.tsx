@@ -1,6 +1,6 @@
 import confetti from 'canvas-confetti';
 import _ from 'lodash';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   EmailIcon,
@@ -44,7 +44,11 @@ export default function CompletePuzzleDialog({
   });
 
   // Open the dialog when the puzzle is completed
+  const prevPuzzleVersion = useRef<string>(puzzle.version);
   useEffect(() => {
+    // If the puzzle's version hasn't changed, skip.
+    if (prevPuzzleVersion.current === puzzle.version) return;
+    prevPuzzleVersion.current = puzzle.version;
     if (
       _.every(puzzle.tiles, (row, rowIndex) =>
         _.every(
@@ -97,9 +101,11 @@ export default function CompletePuzzleDialog({
         <div className="sheet share-dialog">
           <div className="share-dialog-text">
             <p>
-              <span style={{ fontWeight: 'bold' }}>Great work!</span> Share "
-              {puzzleMetadata.title}" with your friends if you liked it, or try
-              your hand at building a puzzle of your own.
+              <span style={{ fontWeight: 'bold' }}>
+                You solved "{puzzleMetadata.title}"!
+              </span>{' '}
+              Great work. If you liked this puzzle, share it with your friends,
+              or try your hand at building a puzzle of your own.
             </p>
             <p>Thank you for playing on Crosswyrd.</p>
           </div>

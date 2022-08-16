@@ -120,9 +120,9 @@ function usePuzzleScaleToFit(puzzleRef: HTMLElement | null): ScaleDataType {
 
   const onResize = useCallback(() => {
     if (!puzzleRef) return;
-    const horizontalScale = window.innerWidth / puzzleRef.clientWidth;
+    const horizontalScale = (window.innerWidth - 16) / puzzleRef.clientWidth;
     // Scale vertically with some buffer for the keyboard
-    const verticalScale = (window.innerHeight - 220) / puzzleRef.clientHeight;
+    const verticalScale = (window.innerHeight - 228) / puzzleRef.clientHeight;
     setScaleData({
       // Scale by whichever dimension is more limiting
       scale: Math.min(horizontalScale, verticalScale),
@@ -220,7 +220,7 @@ export default function CrosswordPlayer() {
         style={{
           position: 'relative',
           left: '50%',
-          transform: `translateX(-50%) scale(${puzzleScale})`,
+          transform: `translate(-50%, 8px) scale(${puzzleScale})`,
           transformOrigin: 'top center',
         }}
         ref={setPuzzleRef}

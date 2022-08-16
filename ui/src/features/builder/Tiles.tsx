@@ -217,6 +217,7 @@ export default function Tiles({
         )
     );
   }, [wave, puzzle]);
+  const scale = puzzle.size === 15 ? 1 : puzzle.size === 10 ? 3 / 2 : 3;
 
   // Make special cases for handling clicking tiles so that we can make use of
   // memoizing the tile components (reduces render time from ~14ms to ~7ms)
@@ -231,42 +232,44 @@ export default function Tiles({
   );
 
   return (
-    <div className="tiles-container" onMouseOut={onMouseOut}>
-      {_.map(puzzle.tiles, (row, rowIndex) => (
-        <div key={rowIndex} className="puzzle-row">
-          {_.map(row, (tile, columnIndex) => (
-            <MemoizedTile
-              key={columnIndex}
-              wave={wave}
-              tileNumbers={tileNumbers}
-              selectedTilesState={selectedTilesState}
-              wordLocationsGrid={wordLocationsGrid}
-              hovered={
-                !!hoveredTile &&
-                hoveredTile.row === rowIndex &&
-                hoveredTile.column === columnIndex
-              }
-              draggedWord={draggedWord}
-              mkHandleClickTile={
-                !!hoveredTile &&
-                hoveredTile.row === rowIndex &&
-                hoveredTile.column === columnIndex
-                  ? mkHandleClickHoveredTile
-                  : mkHandleClickNormalTile
-              }
-              mkHandleMouseoverTile={mkHandleMouseoverTile}
-              draggedWordLetterIndex={_.findIndex(
-                hoveredTiles,
-                (tile) => tile.row === rowIndex && tile.column === columnIndex
-              )}
-              someWrongLetter={someWrongLetter}
-              tile={tile}
-              rowIndex={rowIndex}
-              columnIndex={columnIndex}
-            />
-          ))}
-        </div>
-      ))}
+    <div className="tiles-scale-container" style={{ transform: `scale(${scale})`, transformOrigin: 'top left' }}>
+      <div className="tiles-container" onMouseOut={onMouseOut}>
+        {_.map(puzzle.tiles, (row, rowIndex) => (
+          <div key={rowIndex} className="puzzle-row">
+            {_.map(row, (tile, columnIndex) => (
+              <MemoizedTile
+                key={columnIndex}
+                wave={wave}
+                tileNumbers={tileNumbers}
+                selectedTilesState={selectedTilesState}
+                wordLocationsGrid={wordLocationsGrid}
+                hovered={
+                  !!hoveredTile &&
+                  hoveredTile.row === rowIndex &&
+                  hoveredTile.column === columnIndex
+                }
+                draggedWord={draggedWord}
+                mkHandleClickTile={
+                  !!hoveredTile &&
+                  hoveredTile.row === rowIndex &&
+                  hoveredTile.column === columnIndex
+                    ? mkHandleClickHoveredTile
+                    : mkHandleClickNormalTile
+                }
+                mkHandleMouseoverTile={mkHandleMouseoverTile}
+                draggedWordLetterIndex={_.findIndex(
+                  hoveredTiles,
+                  (tile) => tile.row === rowIndex && tile.column === columnIndex
+                )}
+                someWrongLetter={someWrongLetter}
+                tile={tile}
+                rowIndex={rowIndex}
+                columnIndex={columnIndex}
+              />
+            ))}
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

@@ -55,5 +55,3 @@ export const LETTER_WEIGHTS = {
   y: 2,
   z: 1,
 };
-
-export const PUZZLE_SIZE = 15;
