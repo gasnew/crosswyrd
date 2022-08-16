@@ -17,7 +17,7 @@ export default function KoFiButton() {
       >
         <span className="kofi-text">
           <img
-            src="kofi-cup-border.webp"
+            src="/kofi-cup-border.webp"
             alt="Ko-fi donations"
             className="kofi-img"
           />

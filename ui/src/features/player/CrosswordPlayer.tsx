@@ -1,12 +1,19 @@
 import { doc, getDoc } from 'firebase/firestore';
 import _ from 'lodash';
-import { Alert } from '@mui/material';
+import { Alert, Divider } from '@mui/material';
+import List from '@mui/material/List';
+import ListItem from '@mui/material/ListItem';
+import ListItemButton from '@mui/material/ListItemButton';
+import ListItemIcon from '@mui/material/ListItemIcon';
+import ListItemText from '@mui/material/ListItemText';
+import BuildIcon from '@mui/icons-material/Build';
 import React, { useCallback, useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { useParams } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import Keyboard from 'react-simple-keyboard';
 import 'react-simple-keyboard/build/css/index.css';
 
+import KoFiButton from '../app/KoFiButton';
 import { CompletePuzzleDataType } from '../app/PublishDialog';
 import {
   CrosswordPuzzleType,
@@ -21,13 +28,40 @@ import useTileInput from '../builder/useTileInput';
 import useTileSelection, { DirectionType } from '../builder/useTileSelection';
 import ClueNavigator from './ClueNavigator';
 import CompletePuzzleDialog from './CompletePuzzleDialog';
-import { db } from '../../firebase';
+import { db, logEvent } from '../../firebase';
 import Navbar from '../app/Navbar';
 
 import './CrosswordPlayer.css';
 
 const UPPER_PUZZLE_MARGIN = 64;
 const LOWER_PUZZLE_MARGIN = 228;
+
+function DrawerContents() {
+  return (
+    <List>
+      <ListItem disablePadding>
+        <Link to="/builder" style={{ color: 'initial' }}>
+          <ListItemButton
+            onClick={() => {
+              logEvent('build_puzzle_clicked');
+            }}
+          >
+            <ListItemIcon>
+              <BuildIcon />
+            </ListItemIcon>
+            <ListItemText primary="Build" />
+          </ListItemButton>
+        </Link>
+      </ListItem>
+      <Divider />
+      <ListItem disablePadding>
+        <div style={{ margin: 'auto', marginTop: 8 }}>
+          <KoFiButton />
+        </div>
+      </ListItem>
+    </List>
+  );
+}
 
 export interface PlayerClueType {
   row: number;
@@ -221,7 +255,7 @@ export default function CrosswordPlayer() {
   if (!clues) return null;
   return (
     <div className="puzzle-player-content-container">
-      <Navbar>{(handleClose) => <div>hey</div>}</Navbar>
+      <Navbar>{(handleClose) => <DrawerContents />}</Navbar>
       <div
         className="puzzle-player-container"
         style={{

@@ -132,6 +132,7 @@
 .share-dialog {
   display: flex;
   flex-direction: column;
+  text-align: justify;
 }
 
 .share-container {
