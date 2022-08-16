@@ -22,8 +22,12 @@ import useTileSelection, { DirectionType } from '../builder/useTileSelection';
 import ClueNavigator from './ClueNavigator';
 import CompletePuzzleDialog from './CompletePuzzleDialog';
 import { db } from '../../firebase';
+import Navbar from '../app/Navbar';
 
 import './CrosswordPlayer.css';
+
+const UPPER_PUZZLE_MARGIN = 64;
+const LOWER_PUZZLE_MARGIN = 228;
 
 export interface PlayerClueType {
   row: number;
@@ -122,7 +126,9 @@ function usePuzzleScaleToFit(puzzleRef: HTMLElement | null): ScaleDataType {
     if (!puzzleRef) return;
     const horizontalScale = (window.innerWidth - 16) / puzzleRef.clientWidth;
     // Scale vertically with some buffer for the keyboard
-    const verticalScale = (window.innerHeight - 228) / puzzleRef.clientHeight;
+    const verticalScale =
+      (window.innerHeight - (UPPER_PUZZLE_MARGIN + LOWER_PUZZLE_MARGIN)) /
+      puzzleRef.clientHeight;
     setScaleData({
       // Scale by whichever dimension is more limiting
       scale: Math.min(horizontalScale, verticalScale),
@@ -215,12 +221,15 @@ export default function CrosswordPlayer() {
   if (!clues) return null;
   return (
     <div className="puzzle-player-content-container">
+      <Navbar>{(handleClose) => <div>hey</div>}</Navbar>
       <div
         className="puzzle-player-container"
         style={{
           position: 'relative',
           left: '50%',
-          transform: `translate(-50%, 8px) scale(${puzzleScale})`,
+          transform: `translate(-50%, ${
+            UPPER_PUZZLE_MARGIN + 8
+          }px) scale(${puzzleScale})`,
           transformOrigin: 'top center',
         }}
         ref={setPuzzleRef}
