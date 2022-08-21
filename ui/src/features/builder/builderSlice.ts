@@ -1,7 +1,7 @@
 import _ from 'lodash';
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
-import { RootState } from '../../app/store';
+import { RootState } from '../app/StateProvider';
 import { ALL_LETTERS } from './constants';
 import { DirectionType } from './useTileSelection';
 import { TileUpdateType } from './useWaveFunctionCollapse';

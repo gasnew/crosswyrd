@@ -108,7 +108,7 @@
 / QoL pt2
   + banner and dropdown
     + build button on player
-  - persist puzzle builder and player state in local storage
+  / persist puzzle builder and player state in local storage
   - remove blueprintjs
   - show two columns for clues on big-enough screens
   - "click to select down/across" tooltip/hint
