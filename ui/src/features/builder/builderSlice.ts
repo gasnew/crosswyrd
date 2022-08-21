@@ -4,7 +4,7 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { RootState } from '../app/StateProvider';
 import { ALL_LETTERS } from './constants';
 import { DirectionType } from './useTileSelection';
-import { TileUpdateType } from './useWaveFunctionCollapse';
+import { TileUpdateType, WaveType } from './useWaveFunctionCollapse';
 import { randomId } from '../../app/util';
 
 export type LetterType = typeof ALL_LETTERS[number];
@@ -25,6 +25,7 @@ export interface ClueGridCellType {
 export type ClueGridType = ClueGridCellType[][];
 interface BuilderState {
   puzzle: CrosswordPuzzleType;
+  wave: WaveType | null;
   clueGrid: ClueGridType | null;
   draggedWord: string | null;
   currentTab: number;
@@ -45,6 +46,7 @@ const initialState: BuilderState = {
     size: DEFAULT_PUZZLE_SIZE,
     version: randomId(),
   },
+  wave: null,
   clueGrid: _.times(DEFAULT_PUZZLE_SIZE, (index) =>
     _.times(DEFAULT_PUZZLE_SIZE, (index) => ({ across: null, down: null }))
   ),
@@ -103,6 +105,9 @@ export const builderSlice = createSlice({
     setPuzzleState: (state, action: PayloadAction<CrosswordPuzzleType>) => {
       state.puzzle = action.payload;
     },
+    setWaveState: (state, action: PayloadAction<WaveType | null>) => {
+      state.wave = action.payload;
+    },
     setDraggedWord: (state, action: PayloadAction<string | null>) => {
       state.draggedWord = action.payload;
     },
@@ -159,6 +164,7 @@ export const {
   setClue,
   setClueGrid,
   setLetterEntryEnabled,
+  setWaveState,
 } = builderSlice.actions;
 
 export const selectPuzzle = (state: RootState) => state.builder.puzzle;
@@ -171,5 +177,6 @@ export const selectWordCount = (state: RootState) => state.builder.wordCount;
 export const selectClueGrid = (state: RootState) => state.builder.clueGrid;
 export const selectLetterEntryEnabled = (state: RootState) =>
   state.builder.letterEntryEnabled;
+export const selectWave = (state: RootState) => state.builder.wave;
 
 export default builderSlice.reducer;

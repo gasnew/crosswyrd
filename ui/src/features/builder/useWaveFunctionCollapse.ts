@@ -7,6 +7,8 @@ import {
   CrosswordPuzzleType,
   LetterType,
   selectFillAssistActive,
+  selectWave,
+  setWaveState as reduxSetWaveState,
   TileValueType,
 } from './builderSlice';
 import { ALL_LETTERS } from './constants';
@@ -152,7 +154,6 @@ interface ReturnType {
 export default function useWaveFunctionCollapse(
   puzzle: CrosswordPuzzleType
 ): ReturnType {
-  const [wave, setWave] = useState<WaveType | null>(null);
   const WFCWorkerRef = useRef<Remote<WFCWorkerAPIType> | null>(null);
   // A nice boolean for clients to see if we are accepting new wave-update
   // requests
@@ -160,6 +161,7 @@ export default function useWaveFunctionCollapse(
   // The actual flag used for preventing simultaneous wave updates
   const computingWave = useRef(false);
 
+  const wave = useSelector(selectWave);
   const fillAssistActive = useSelector(selectFillAssistActive);
   const dispatch = useDispatch();
 
@@ -167,16 +169,16 @@ export default function useWaveFunctionCollapse(
   useEffect(() => {
     if (wave) return;
     // TODO: Request this from WFCWorker?
-    setWave(waveFromPuzzleWithLettersCollapsed(puzzle));
+    dispatch(reduxSetWaveState(waveFromPuzzleWithLettersCollapsed(puzzle)));
     previousPuzzle.current = puzzle;
-  }, [puzzle, wave]);
+  }, [dispatch, puzzle, wave]);
 
   // Activate and deactivate fill assist.
   const prevFillAssistActive = useRef(fillAssistActive);
   useEffect(() => {
     if (prevFillAssistActive.current && !fillAssistActive)
       // Reset the wave.
-      setWave(null);
+      dispatch(reduxSetWaveState(null));
     if (!prevFillAssistActive.current && fillAssistActive) {
       // Make ourselves think that the puzzle was just updated from a blank
       // puzzle so that we run a wave computation afresh.
@@ -224,17 +226,17 @@ export default function useWaveFunctionCollapse(
         ...newWave,
         puzzleVersion: newPuzzleVersion || newWave.puzzleVersion,
       };
-      setWave(newWaveWithVersion);
+      dispatch(reduxSetWaveState(newWaveWithVersion));
 
       computingWave.current = false;
       setBusy(false);
 
       return newWaveWithVersion;
     },
-    [puzzle, wave, fillAssistActive]
+    [dispatch, puzzle, wave, fillAssistActive]
   );
 
-  const previousPuzzle = useRef<CrosswordPuzzleType | null>(null);
+  const previousPuzzle = useRef<CrosswordPuzzleType | null>(puzzle);
   const updateWave = useCallback(
     async (
       dictionary: DictionaryType,
@@ -291,10 +293,10 @@ export default function useWaveFunctionCollapse(
 
   const setWaveState = useCallback(
     (wave: WaveType, puzzle: CrosswordPuzzleType) => {
-      setWave(wave);
+      dispatch(reduxSetWaveState(wave));
       previousPuzzle.current = puzzle;
     },
-    []
+    [dispatch]
   );
 
   return {
