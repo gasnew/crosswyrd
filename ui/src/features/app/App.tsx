@@ -8,16 +8,21 @@ import {
 
 import Crosswyrd from './Crosswyrd';
 import CrosswordPlayer from '../player/CrosswordPlayer';
+import StateProvider from './StateProvider';
 
 function App() {
   return (
     <Router>
       <Switch>
         <Route path="/builder">
-          <Crosswyrd />
+          <StateProvider stateKey="builder">
+            <Crosswyrd />
+          </StateProvider>
         </Route>
         <Route path="/puzzles/:puzzleId">
-          <CrosswordPlayer />
+          <StateProvider stateKey="player">
+            <CrosswordPlayer />
+          </StateProvider>
         </Route>
         <Redirect to="/builder" />
       </Switch>

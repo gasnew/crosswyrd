@@ -3,9 +3,10 @@
 // puzzle builder and player states separately.
 
 import storage from 'localforage';
-import _ from 'lodash';
-import React, { createContext, useEffect, useState } from 'react';
+import React, { useMemo } from 'react';
 import { Persistor, persistStore, persistReducer } from 'redux-persist';
+import { PersistGate } from 'redux-persist/integration/react';
+import { Provider } from 'react-redux';
 import {
   combineReducers,
   configureStore,
@@ -37,55 +38,37 @@ const ROOT_REDUCER = combineReducers({
 const tempStore = initStore(ROOT_REDUCER);
 export type RootState = ReturnType<typeof tempStore.getState>;
 
-interface StateContextType {
-  store: Store | null;
-  persistor: Persistor | null;
-}
-export const StateContext = createContext<StateContextType>({
-  store: null,
-  persistor: null,
-});
-
 // TODO: Optimize...?
 interface Props {
   children: React.ReactNode;
+  stateKey: 'builder' | 'player';
 }
-export default function StateProvider({ children }: Props) {
-  const [store, setStore] = useState<Store | null>(null);
-  const [persistor, setPersistor] = useState<Persistor | null>(null);
-
-  // Set the store and persistor given the URL pathname, keeping builder and
-  // player state separate.
-  useEffect(() => {
-    if (store && persistor) return;
-
-    // Key the persisted store off of whether we are using the builder or the
-    // player.
-    const key = _.includes(window.location.pathname, 'builder')
-      ? 'builder'
-      : 'player';
-    const newStore = initStore(
-      combineReducers({
-        ...ROOT_REDUCER,
-        builder: persistReducer(
-          {
-            key,
-            storage,
-            blacklist: ['draggedWord', 'currentTab', 'letterEntryEnabled'],
-          },
-          builderSliceReducer
-        ),
-      })
-    );
-
-    console.log('SET BASE STATE STUFF');
-    setStore(newStore);
-    setPersistor(persistStore(newStore, null, console.log));
-  }, [persistor, store]);
+export default function StateProvider({ children, stateKey }: Props) {
+  const store = useMemo<Store>(
+    () =>
+      initStore(
+        combineReducers({
+          ...ROOT_REDUCER,
+          builder: persistReducer(
+            {
+              key: stateKey,
+              storage,
+              blacklist: ['draggedWord', 'currentTab', 'letterEntryEnabled'],
+            },
+            builderSliceReducer
+          ),
+        })
+      ),
+    [stateKey]
+  );
+  const persistor = useMemo<Persistor>(
+    () => persistStore(store, null, console.log),
+    [store]
+  );
 
   return (
-    <StateContext.Provider value={{ store, persistor }}>
-      {children}
-    </StateContext.Provider>
+    <Provider store={store}>
+      <PersistGate persistor={persistor}>{children}</PersistGate>
+    </Provider>
   );
 }
