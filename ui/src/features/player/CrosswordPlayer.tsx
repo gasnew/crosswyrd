@@ -8,6 +8,7 @@ import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
 import BuildIcon from '@mui/icons-material/Build';
 import React, { useCallback, useEffect, useState } from 'react';
+import { Helmet } from 'react-helmet';
 import { useDispatch, useSelector } from 'react-redux';
 import { Link, useParams } from 'react-router-dom';
 import Keyboard from 'react-simple-keyboard';
@@ -255,6 +256,11 @@ export default function CrosswordPlayer() {
   if (!clues) return null;
   return (
     <div className="puzzle-player-content-container">
+      {puzzleMetadata && (
+        <Helmet>
+          <title>Crosswyrd - {puzzleMetadata.title}</title>
+        </Helmet>
+      )}
       <Navbar>{(handleClose) => <DrawerContents />}</Navbar>
       <div
         className="puzzle-player-container"

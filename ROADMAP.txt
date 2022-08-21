@@ -104,19 +104,30 @@
   + completion screen w/ confetti
   + scale puzzle correctly for various screen sizes
 + support 10x10 and 5x5 boards
-- Ko-Fi for donations
-  - input code to unlock feature (color themes)!
-  - when code input, donation button says "Thank you!" and has stars
-- QoL pt2
++ Ko-Fi for donations
+/ QoL pt2
+  + banner and dropdown
+    + build button on player
+  - persist puzzle builder and player state in local storage
+  - remove blueprintjs
+  - show two columns for clues on big-enough screens
   - "click to select down/across" tooltip/hint
   - fix styling
-  - persist puzzle builder and player state in local storage
   - add explainer and info button for builder
   - start next clue from first empty tile
-  - banner and dropdown
-    - build button
   - fix font
-- add license
+  - include share buttons when publishing a puzzle
+  - tooltips! tooltips everywhere!
+    - NYT <3-letter words rule
+    - Fill Assist
+    - Undo
+    - Redo
+    - Auto-Fill
+    - Clear
+    - Next
+  - auto-fill popup when it backtracks to beginning
+  - fix undoing to larger puzzle
+- add license?
 
 - INITIAL RELEASE!
 
@@ -152,3 +163,7 @@ juicy animations
   - check words in the possible words list in the background to see if they can
     be validly placed (probably use a separate WFC worker for this)
   - eliminate duplicate words
+  - advanced donations
+    - input code to unlock feature (color themes)!
+    - when code input, donation button says "Thank you!" and has stars
+  - button to clear word bank in one click
