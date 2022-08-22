@@ -90,7 +90,11 @@ function Tile({
   // Animate the tile when it becomes a letter from empty
   const [animating, setAnimating] = useState(false);
   const prevValue = useRef<TileValueType>('empty');
+  const initialMountTime = useRef<number>(Date.now());
   useEffect(() => {
+    // A hacky way to prevent tiles from animating when the puzzle is first
+    // loaded (there are some mutations that occur on load)
+    if (Date.now() - initialMountTime.current < 500) return;
     if (
       prevValue.current === 'empty' &&
       tile.value !== 'empty' &&
@@ -232,7 +236,10 @@ export default function Tiles({
   );
 
   return (
-    <div className="tiles-scale-container" style={{ transform: `scale(${scale})`, transformOrigin: 'top left' }}>
+    <div
+      className="tiles-scale-container"
+      style={{ transform: `scale(${scale})`, transformOrigin: 'top left' }}
+    >
       <div className="tiles-container" onMouseOut={onMouseOut}>
         {_.map(puzzle.tiles, (row, rowIndex) => (
           <div key={rowIndex} className="puzzle-row">
