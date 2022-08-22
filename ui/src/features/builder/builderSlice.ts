@@ -17,6 +17,7 @@ export interface CrosswordPuzzleType {
   tiles: TileType[][];
   size: number;
   version: string;
+  uuid?: string;
 }
 export interface ClueGridCellType {
   across: string | null;
@@ -103,7 +104,11 @@ export const builderSlice = createSlice({
       state.puzzle.version = randomId();
     },
     setPuzzleState: (state, action: PayloadAction<CrosswordPuzzleType>) => {
-      state.puzzle = action.payload;
+      // TODO: Rename to patch
+      state.puzzle = {
+        ...state.puzzle,
+        ...action.payload,
+      };
     },
     setWaveState: (state, action: PayloadAction<WaveType | null>) => {
       state.wave = action.payload;

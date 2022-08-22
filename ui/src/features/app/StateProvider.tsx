@@ -3,10 +3,11 @@
 // puzzle builder and player states separately.
 
 import storage from 'localforage';
-import React, { useMemo } from 'react';
+import React, { useLayoutEffect, useMemo, useState } from 'react';
 import { Persistor, persistStore, persistReducer } from 'redux-persist';
 import { PersistGate } from 'redux-persist/integration/react';
 import { Provider } from 'react-redux';
+import { useHistory } from 'react-router-dom';
 import {
   combineReducers,
   configureStore,
@@ -44,6 +45,11 @@ interface Props {
   stateKey: 'builder' | 'player';
 }
 export default function StateProvider({ children, stateKey }: Props) {
+  // Prevent rendering child components until/unless the redux state has been
+  // rehydrated
+  const [render, setRender] = useState(false);
+  const history = useHistory();
+
   const store = useMemo<Store>(
     () =>
       initStore(
@@ -62,10 +68,23 @@ export default function StateProvider({ children, stateKey }: Props) {
     [stateKey]
   );
   const persistor = useMemo<Persistor>(
-    () => persistStore(store, null, console.log),
+    () =>
+      persistStore(store, null, () =>
+        // Enable rendering after the rehydration has occurred--we don't want
+        // child components to accidentally overwrite our redux state.
+        setRender(true)
+      ),
     [store]
   );
 
+  // Prevent rendering if the history was just popped
+  useLayoutEffect(() => {
+    return history.listen(() => {
+      if (history.action === 'POP') setRender(false);
+    });
+  }, [history]);
+
+  if (!render) return null;
   return (
     <Provider store={store}>
       <PersistGate persistor={persistor}>{children}</PersistGate>
