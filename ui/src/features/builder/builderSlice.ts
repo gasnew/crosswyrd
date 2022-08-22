@@ -5,7 +5,7 @@ import { RootState } from '../app/StateProvider';
 import { ALL_LETTERS } from './constants';
 import { DirectionType } from './useTileSelection';
 import { TileUpdateType, WaveType } from './useWaveFunctionCollapse';
-import { randomId } from '../../app/util';
+import { devMode, randomId } from '../../app/util';
 
 export type LetterType = typeof ALL_LETTERS[number];
 
@@ -33,6 +33,7 @@ interface BuilderState {
   wordCount: number | null;
   fillAssistState: boolean;
   letterEntryEnabled: boolean;
+  defaultGridDialogOpen: boolean;
 }
 
 export const DEFAULT_PUZZLE_SIZE = 15;
@@ -56,6 +57,8 @@ const initialState: BuilderState = {
   wordCount: null,
   fillAssistState: false,
   letterEntryEnabled: true,
+  // Default grid dialog to open unless in development mode
+  defaultGridDialogOpen: !devMode(),
 };
 
 export function getSymmetricTile(
@@ -152,6 +155,9 @@ export const builderSlice = createSlice({
     setLetterEntryEnabled: (state, action: PayloadAction<boolean>) => {
       state.letterEntryEnabled = action.payload;
     },
+    setDefaultGridDialogOpen: (state, action: PayloadAction<boolean>) => {
+      state.defaultGridDialogOpen = action.payload;
+    },
   },
 });
 
@@ -170,6 +176,7 @@ export const {
   setClueGrid,
   setLetterEntryEnabled,
   setWaveState,
+  setDefaultGridDialogOpen,
 } = builderSlice.actions;
 
 export const selectPuzzle = (state: RootState) => state.builder.puzzle;
@@ -183,5 +190,7 @@ export const selectClueGrid = (state: RootState) => state.builder.clueGrid;
 export const selectLetterEntryEnabled = (state: RootState) =>
   state.builder.letterEntryEnabled;
 export const selectWave = (state: RootState) => state.builder.wave;
+export const selectDefaultGridDialogOpen = (state: RootState) =>
+  state.builder.defaultGridDialogOpen;
 
 export default builderSlice.reducer;

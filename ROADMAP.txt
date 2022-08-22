@@ -108,12 +108,13 @@
 / QoL pt2
   + banner and dropdown
     + build button on player
-  / state persistence
+  + state persistence
     + persist puzzle builder and player state in local storage
     + confirm state persist works when clicking "Build" button and works
       between different puzzles you play
-    - ensure persist does not degrade performance
-  - remove blueprintjs
+    + ensure persist does not degrade performance
+  x remove blueprintjs (removing it killed styling for the player, and I'm too
+  lazy to fix right now)
   - show two columns for clues on big-enough screens
   - "click to select down/across" tooltip/hint
   - fix styling
