@@ -10,23 +10,27 @@ import {
 import { devMode } from '../../app/util';
 import Crosswyrd from './Crosswyrd';
 import CrosswordPlayer from '../player/CrosswordPlayer';
+import StateProvider from './StateProvider';
 
 function App() {
   return (
     <>
       {devMode() && (
         <Helmet>
-          <title>LOCAL - Crosswyrd</title>
           <link rel="icon" href={`${process.env.PUBLIC_URL}/favicon-dev.ico`} />
         </Helmet>
       )}
       <Router>
         <Switch>
           <Route path="/builder">
-            <Crosswyrd />
+            <StateProvider stateKey="builder">
+              <Crosswyrd />
+            </StateProvider>
           </Route>
           <Route path="/puzzles/:puzzleId">
-            <CrosswordPlayer />
+            <StateProvider stateKey="player">
+              <CrosswordPlayer />
+            </StateProvider>
           </Route>
           <Redirect to="/builder" />
         </Switch>

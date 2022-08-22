@@ -8,6 +8,7 @@ import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
 import BuildIcon from '@mui/icons-material/Build';
 import React, { useCallback, useEffect, useState } from 'react';
+import { Helmet } from 'react-helmet';
 import { useDispatch, useSelector } from 'react-redux';
 import { Link, useParams } from 'react-router-dom';
 import Keyboard from 'react-simple-keyboard';
@@ -40,7 +41,10 @@ function DrawerContents() {
   return (
     <List>
       <ListItem disablePadding>
-        <Link to="/builder" style={{ color: 'initial' }}>
+        <Link
+          to="/builder"
+          style={{ color: 'initial', width: '100%', textDecoration: 'none' }}
+        >
           <ListItemButton
             onClick={() => {
               logEvent('build_puzzle_clicked');
@@ -82,7 +86,8 @@ interface PuzzleDataReturnType {
 }
 function usePuzzleData(
   puzzleId: string,
-  setClues: (clues: PlayerClueType[]) => void
+  setClues: (clues: PlayerClueType[]) => void,
+  puzzlePreloaded: boolean
 ): PuzzleDataReturnType {
   const [failed, setFailed] = useState(false);
   const [puzzleKey, setPuzzleKey] = useState<CrosswordPuzzleType | null>(null);
@@ -110,18 +115,21 @@ function usePuzzleData(
         remoteData.dataLzma
       )) as CompletePuzzleDataType;
 
-      // Set a puzzle with empty tiles
-      dispatch(
-        setPuzzleState({
-          ...puzzle,
-          tiles: _.map(puzzle.tiles, (row) =>
-            _.map(row, (tile) => ({
-              ...tile,
-              value: tile.value === 'black' ? 'black' : 'empty',
-            }))
-          ),
-        })
-      );
+      // Set a puzzle with empty tiles (if this puzzle hasn't been preloaded
+      // with redux-persist)
+      if (!puzzlePreloaded)
+        dispatch(
+          setPuzzleState({
+            ...puzzle,
+            tiles: _.map(puzzle.tiles, (row) =>
+              _.map(row, (tile) => ({
+                ...tile,
+                value: tile.value === 'black' ? 'black' : 'empty',
+              }))
+            ),
+            uuid: puzzleId,
+          })
+        );
       // Set a list of clues in the order of flattened answers
       setClues(
         _.map(
@@ -141,7 +149,7 @@ function usePuzzleData(
     };
 
     fetchPuzzle();
-  }, [dispatch, puzzleId, setClues]);
+  }, [dispatch, puzzleId, setClues, puzzlePreloaded]);
 
   return { puzzleKey, puzzleMetadata, failed };
 }
@@ -222,7 +230,7 @@ export default function CrosswordPlayer() {
     puzzleKey,
     puzzleMetadata,
     failed: puzzleFetchFailed,
-  } = usePuzzleData(puzzleId, setClues);
+  } = usePuzzleData(puzzleId, setClues, puzzleId === puzzle.uuid);
   const { scale: puzzleScale } = usePuzzleScaleToFit(puzzleRef);
 
   // Default the selection to the first clue
@@ -255,6 +263,11 @@ export default function CrosswordPlayer() {
   if (!clues) return null;
   return (
     <div className="puzzle-player-content-container">
+      {puzzleMetadata && (
+        <Helmet>
+          <title>Crosswyrd - {puzzleMetadata.title}</title>
+        </Helmet>
+      )}
       <Navbar>{(handleClose) => <DrawerContents />}</Navbar>
       <div
         className="puzzle-player-container"

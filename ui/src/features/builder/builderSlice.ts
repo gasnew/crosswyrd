@@ -1,11 +1,11 @@
 import _ from 'lodash';
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
-import { RootState } from '../../app/store';
+import { RootState } from '../app/StateProvider';
 import { ALL_LETTERS } from './constants';
 import { DirectionType } from './useTileSelection';
-import { TileUpdateType } from './useWaveFunctionCollapse';
-import { randomId } from '../../app/util';
+import { TileUpdateType, WaveType } from './useWaveFunctionCollapse';
+import { devMode, randomId } from '../../app/util';
 
 export type LetterType = typeof ALL_LETTERS[number];
 
@@ -17,6 +17,7 @@ export interface CrosswordPuzzleType {
   tiles: TileType[][];
   size: number;
   version: string;
+  uuid?: string;
 }
 export interface ClueGridCellType {
   across: string | null;
@@ -25,12 +26,14 @@ export interface ClueGridCellType {
 export type ClueGridType = ClueGridCellType[][];
 interface BuilderState {
   puzzle: CrosswordPuzzleType;
+  wave: WaveType | null;
   clueGrid: ClueGridType | null;
   draggedWord: string | null;
   currentTab: number;
   wordCount: number | null;
   fillAssistState: boolean;
   letterEntryEnabled: boolean;
+  defaultGridDialogOpen: boolean;
 }
 
 export const DEFAULT_PUZZLE_SIZE = 15;
@@ -45,6 +48,7 @@ const initialState: BuilderState = {
     size: DEFAULT_PUZZLE_SIZE,
     version: randomId(),
   },
+  wave: null,
   clueGrid: _.times(DEFAULT_PUZZLE_SIZE, (index) =>
     _.times(DEFAULT_PUZZLE_SIZE, (index) => ({ across: null, down: null }))
   ),
@@ -53,6 +57,8 @@ const initialState: BuilderState = {
   wordCount: null,
   fillAssistState: false,
   letterEntryEnabled: true,
+  // Default grid dialog to open unless in development mode
+  defaultGridDialogOpen: !devMode(),
 };
 
 export function getSymmetricTile(
@@ -101,7 +107,14 @@ export const builderSlice = createSlice({
       state.puzzle.version = randomId();
     },
     setPuzzleState: (state, action: PayloadAction<CrosswordPuzzleType>) => {
-      state.puzzle = action.payload;
+      // TODO: Rename to patch
+      state.puzzle = {
+        ...state.puzzle,
+        ...action.payload,
+      };
+    },
+    setWaveState: (state, action: PayloadAction<WaveType | null>) => {
+      state.wave = action.payload;
     },
     setDraggedWord: (state, action: PayloadAction<string | null>) => {
       state.draggedWord = action.payload;
@@ -142,6 +155,9 @@ export const builderSlice = createSlice({
     setLetterEntryEnabled: (state, action: PayloadAction<boolean>) => {
       state.letterEntryEnabled = action.payload;
     },
+    setDefaultGridDialogOpen: (state, action: PayloadAction<boolean>) => {
+      state.defaultGridDialogOpen = action.payload;
+    },
   },
 });
 
@@ -159,6 +175,8 @@ export const {
   setClue,
   setClueGrid,
   setLetterEntryEnabled,
+  setWaveState,
+  setDefaultGridDialogOpen,
 } = builderSlice.actions;
 
 export const selectPuzzle = (state: RootState) => state.builder.puzzle;
@@ -171,5 +189,8 @@ export const selectWordCount = (state: RootState) => state.builder.wordCount;
 export const selectClueGrid = (state: RootState) => state.builder.clueGrid;
 export const selectLetterEntryEnabled = (state: RootState) =>
   state.builder.letterEntryEnabled;
+export const selectWave = (state: RootState) => state.builder.wave;
+export const selectDefaultGridDialogOpen = (state: RootState) =>
+  state.builder.defaultGridDialogOpen;
 
 export default builderSlice.reducer;

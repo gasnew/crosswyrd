@@ -214,8 +214,8 @@ export default function PublishDialog({ open, onClose }: Props) {
               <Divider style={{ margin: 12 }} />
               <p>
                 By the way, if you're enjoying Crosswyrd, it really helps me to
-                drop a donation! Your donations help me to develop and maintain
-                this passion project. Thank you.
+                drop a donation! Your donations make it possible for me to
+                develop and maintain this passion project. Thank you.
               </p>
               <p>- Garrett </p>
               <div style={{ display: 'flex', margin: 'auto' }}>

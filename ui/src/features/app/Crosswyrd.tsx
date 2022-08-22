@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import AddIcon from '@mui/icons-material/Add';
 import Box from '@mui/material/Box';
 import CssBaseline from '@mui/material/CssBaseline';
@@ -11,10 +11,12 @@ import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
 import NewspaperIcon from '@mui/icons-material/Newspaper';
 
-import { devMode, randomId } from '../../app/util';
+import { randomId } from '../../app/util';
 import {
   DEFAULT_PUZZLE_SIZE,
+  setDefaultGridDialogOpen,
   setLetterEntryEnabled,
+  selectDefaultGridDialogOpen,
 } from '../builder/builderSlice';
 import CrosswordBuilder from '../builder/CrosswordBuilder';
 import GridsDialog, { blankGrid } from './GridsDialog';
@@ -71,11 +73,11 @@ export interface GridWithVersionType extends GridType {
 }
 
 export default function CrossWyrd() {
-  // Default grid dialog to open unless in development mode
+  const defaultGridDialogOpen = useSelector(selectDefaultGridDialogOpen);
   const [gridDialogState, setGridDialogState] = useState<{
     open: boolean;
     canClose?: boolean;
-  }>({ open: !devMode(), canClose: false });
+  }>({ open: defaultGridDialogOpen, canClose: false });
   const [grid, setGrid] = useState<GridWithVersionType>({
     ...blankGrid(DEFAULT_PUZZLE_SIZE),
     version: randomId(),
@@ -121,6 +123,9 @@ export default function CrossWyrd() {
         selectGrid={(grid: GridType) => {
           setGrid({ ...grid, version: randomId() });
           setGridDialogState({ open: false });
+          // Now that we've selected a grid, we no longer need the dialog to be
+          // open by default
+          dispatch(setDefaultGridDialogOpen(false));
         }}
       />
       <PublishDialog
