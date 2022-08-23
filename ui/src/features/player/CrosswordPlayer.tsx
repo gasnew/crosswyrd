@@ -28,6 +28,7 @@ import Tiles from '../builder/Tiles';
 import useTileInput from '../builder/useTileInput';
 import useTileSelection, { DirectionType } from '../builder/useTileSelection';
 import ClueNavigator from './ClueNavigator';
+import CluesSidebar from './CluesSidebar';
 import CompletePuzzleDialog from './CompletePuzzleDialog';
 import { db, logEvent } from '../../firebase';
 import Navbar from '../app/Navbar';
@@ -270,7 +271,8 @@ export default function CrosswordPlayer() {
       )}
       <Navbar>{(handleClose) => <DrawerContents />}</Navbar>
       <div
-        className="puzzle-player-container"
+        className="puzzle-player-sheets-container"
+        ref={setPuzzleRef}
         style={{
           position: 'relative',
           left: '50%',
@@ -279,20 +281,37 @@ export default function CrosswordPlayer() {
           }px) scale(${puzzleScale})`,
           transformOrigin: 'top center',
         }}
-        ref={setPuzzleRef}
       >
-        <div className="puzzle-container sheet">
-          <Tiles
-            puzzle={puzzle}
-            wave={null}
+        <div className="puzzle-player-container">
+          <div className="puzzle-container sheet">
+            <Tiles
+              puzzle={puzzle}
+              wave={null}
+              tileNumbers={tileNumbers}
+              selectedTilesState={selectedTilesState}
+              wordLocationsGrid={null}
+              hoveredTile={hoveredTile}
+              draggedWord={null}
+              mkHandleClickTile={mkHandleClickTile}
+              mkHandleMouseoverTile={mkHandleMouseoverTile}
+              onMouseOut={onTilesMouseOut}
+            />
+          </div>
+        </div>
+        <div
+          className="sheet clues-sidebar"
+          style={{
+            position: 'relative',
+            transform: `scale(${1 / puzzleScale})`,
+            transformOrigin: 'top left',
+            height: 559 * puzzleScale,
+          }}
+        >
+          <CluesSidebar
+            clues={clues}
             tileNumbers={tileNumbers}
+            updateSelection={updateSelection}
             selectedTilesState={selectedTilesState}
-            wordLocationsGrid={null}
-            hoveredTile={hoveredTile}
-            draggedWord={null}
-            mkHandleClickTile={mkHandleClickTile}
-            mkHandleMouseoverTile={mkHandleMouseoverTile}
-            onMouseOut={onTilesMouseOut}
           />
         </div>
       </div>

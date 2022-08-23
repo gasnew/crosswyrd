@@ -115,12 +115,12 @@
     + ensure persist does not degrade performance
   x remove blueprintjs (removing it killed styling for the player, and I'm too
   lazy to fix right now)
+  + fix font
   - show two columns for clues on big-enough screens
   - "click to select down/across" tooltip/hint
   - fix styling
   - add explainer and info button for builder
   - start next clue from first empty tile
-  - fix font
   - include share buttons when publishing a puzzle
   - tooltips! tooltips everywhere!
     - NYT <3-letter words rule

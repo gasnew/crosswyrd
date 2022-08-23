@@ -4,8 +4,6 @@
   height: 100%;
   width: 100%;
   overflow: hidden;
-  display: flex;
-  flex-direction: column;
 }
 
 .puzzle-player-container {
@@ -15,6 +13,51 @@
   /* Set these manually to make scaling easier */
   height: 559px;
   width: 559px;
+}
+
+.puzzle-player-sheets-container {
+  display: flex;
+  flex-direction: row;
+  float: left;
+  /* Set this manually to make scaling easier */
+  height: 559px;
+}
+
+.clues-sidebar {
+  margin-left: 12px;
+  height: 100%;
+  display: flex;
+  flex-direction: row;
+}
+
+.clues-sidebar-list-container {
+  height: 100%;
+  width: 160px;
+  display: flex;
+  flex-direction: column;
+}
+.clues-sidebar-list-container:nth-child(1) {
+  margin-right: 12px;
+}
+
+.clues-sidebar-list {
+  /*height: 100%;*/
+  overflow-y: auto;
+  overflow-x: hidden;
+  overflow-wrap: break-word;
+  padding: 0 !important;
+}
+
+.clue-list-entry {
+  padding: 8px !important;
+  display: inline-block !important;
+  margin: 4px !important;
+}
+
+.clue-list-entry--selected {
+  outline: 4px solid !important;
+  border-radius: 8px !important;
+  outline-color: #1976d2 !important;
 }
 
 .puzzle-player-input-container {
