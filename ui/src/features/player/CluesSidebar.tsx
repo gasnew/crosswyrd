@@ -6,7 +6,7 @@ import {
   ListItemButton,
   ListSubheader,
 } from '@mui/material';
-import React from 'react';
+import React, { useEffect, useMemo, useRef } from 'react';
 
 import {
   DirectionType,
@@ -16,14 +16,16 @@ import { TileNumbersType } from '../builder/ClueEntry';
 import { LocationType } from '../builder/CrosswordBuilder';
 import { PlayerClueType } from './CrosswordPlayer';
 
-function ClueListEntry({ tileNumber, clue, selected }) {
+function ClueListEntry({ entryRef, tileNumber, clue, selected, onClick }) {
   return (
     <ListItemButton
       className={
         'clue-list-entry' + (selected ? ' clue-list-entry--selected' : '')
       }
+      onClick={onClick}
     >
       <span
+        ref={entryRef}
         style={{
           width: 20,
           textAlign: 'right',
@@ -54,7 +56,35 @@ function ClueList({
   ) => void;
   selectedTilesState: SelectedTilesStateType | null;
 }) {
-  const selectedTileLocations = selectedTilesState?.locations || [];
+  const selectedTileLocations = useMemo(
+    () => selectedTilesState?.locations || [],
+    [selectedTilesState]
+  );
+  const refsGrid = useRef<(HTMLElement | null)[][] | null>(null);
+
+  // Set the refs grid when the grid changes size
+  useEffect(() => {
+    refsGrid.current = _.times(tileNumbers.length, (row) =>
+      _.times(tileNumbers.length, (column) => null)
+    );
+  }, [tileNumbers.length]);
+
+  // Scroll to the selected clue
+  useEffect(() => {
+    if (
+      !selectedTilesState ||
+      selectedTilesState.locations.length === 0 ||
+      selectedTilesState.direction !== direction
+    )
+      return;
+    const location = selectedTilesState.locations[0];
+    const ref = refsGrid.current?.[location.row]?.[location.column];
+    if (ref)
+      ref.scrollIntoView({
+        behavior: 'smooth',
+        block: 'nearest',
+      });
+  }, [selectedTilesState, refsGrid, direction]);
 
   return (
     <div className="clues-sidebar-list-container">
@@ -66,6 +96,14 @@ function ClueList({
         {_.map(clues, (clue, index) => (
           <ListItem key={index} component="div" disablePadding>
             <ClueListEntry
+              entryRef={(ref) => {
+                if (
+                  refsGrid.current &&
+                  clue.row < refsGrid.current.length &&
+                  clue.column < refsGrid.current.length
+                )
+                  refsGrid.current[clue.row][clue.column] = ref;
+              }}
               tileNumber={tileNumbers[clue.row][clue.column]}
               clue={clue}
               selected={
@@ -76,6 +114,12 @@ function ClueList({
                     : 'across') &&
                 clue.row === selectedTileLocations[0].row &&
                 clue.column === selectedTileLocations[0].column
+              }
+              onClick={() =>
+                updateSelection(
+                  { row: clue.row, column: clue.column },
+                  direction
+                )
               }
             />
           </ListItem>

@@ -52,11 +52,11 @@
   padding: 8px !important;
   display: inline-block !important;
   margin: 4px !important;
+  border-radius: 4px !important;
 }
 
 .clue-list-entry--selected {
   outline: 4px solid !important;
-  border-radius: 8px !important;
   outline-color: #1976d2 !important;
 }
 
