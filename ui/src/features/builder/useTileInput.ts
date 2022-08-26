@@ -19,6 +19,7 @@ import {
 } from './useTileSelection';
 import { TileUpdateType } from './useWaveFunctionCollapse';
 
+const UPPERCASE_LETTERS = _.map(ALL_LETTERS, _.toUpper);
 const PERIOD = '.';
 const BACKSPACE = 'Backspace';
 const TAB = 'Tab';
@@ -31,6 +32,7 @@ const DOWN = 'ArrowDown';
 const SPACEBAR = ' ';
 const SUPPORTED_KEYS = [
   ...ALL_LETTERS,
+  ...UPPERCASE_LETTERS,
   PERIOD,
   BACKSPACE,
   TAB,
@@ -85,7 +87,12 @@ export default function useTileInput(
   const letterEntryEnabled = useSelector(selectLetterEntryEnabled);
 
   const inputKey = useCallback(
-    (key: SupportedKeysType, shift?: boolean) => {
+    (rawKey: SupportedKeysType, shift?: boolean) => {
+      // Make letter keys lowercase
+      const key = _.includes(UPPERCASE_LETTERS, rawKey)
+        ? _.toLower(rawKey)
+        : rawKey;
+      // Reject keys we don't support
       if (!_.includes(SUPPORTED_KEYS, key)) return;
       // PERIOD is not supported in player mode
       if (playerMode && key === PERIOD) return;
@@ -100,7 +107,11 @@ export default function useTileInput(
     },
     [clearHoveredTile, playerMode]
   );
-  const releaseKey = useCallback((key: SupportedKeysType) => {
+  const releaseKey = useCallback((rawKey: SupportedKeysType) => {
+    // Make letter keys lowercase
+    const key = _.includes(UPPERCASE_LETTERS, rawKey)
+      ? _.toLower(rawKey)
+      : rawKey;
     keyStates.current[key] = 'up';
   }, []);
 
@@ -245,6 +256,7 @@ export default function useTileInput(
           newPrimaryLocation = shift(newPrimaryLocation, 1);
           return [];
         } else {
+          // The key is a letter
           if (
             playerMode &&
             tileAtLocation(newPrimaryLocation).value === 'black'
