@@ -279,7 +279,7 @@ export default function CrosswordPlayer() {
   // Offset the puzzle horizontally to account for the width of the clue
   // sidebar. Don't offset at all if the sidebar should not be rendered.
   const puzzleHorizontalOffset = sidebarShouldRender
-    ? (406 * (puzzleScale - 1)) / 2
+    ? (SIDEBAR_WIDTH_PX * (puzzleScale - 1)) / 2
     : 0;
 
   if (puzzleFetchFailed)
