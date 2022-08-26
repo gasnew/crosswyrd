@@ -338,6 +338,7 @@ export default function CrosswordPlayer() {
             }}
           >
             <CluesSidebar
+              puzzle={puzzle}
               clues={clues}
               tileNumbers={tileNumbers}
               updateSelection={updateSelection}

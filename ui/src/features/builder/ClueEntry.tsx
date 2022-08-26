@@ -73,11 +73,11 @@ interface AnswerType {
   word: string;
   complete: boolean;
 }
-interface AnswerGridCellType {
+export interface AnswerGridCellType {
   across: AnswerType | null;
   down: AnswerType | null;
 }
-function getAnswerGrid(puzzle: CrosswordPuzzleType): AnswerGridCellType[][] {
+export function getAnswerGrid(puzzle: CrosswordPuzzleType): AnswerGridCellType[][] {
   // Returns a list of all answers on the board
   const solid = (tile: TileType): boolean => !tile || tile.value === 'black';
   return _.map(puzzle.tiles, (row, rowIndex) =>
