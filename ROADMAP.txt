@@ -116,6 +116,8 @@
   x remove blueprintjs (removing it killed styling for the player, and I'm too
   lazy to fix right now)
   + fix font
+  - fix can't type on Jesse's computer (also accept capital letters)
+  - fix blue outline bug
   - show two columns for clues on big-enough screens
   - "click to select down/across" tooltip/hint
   - fix styling
@@ -132,6 +134,7 @@
     - Next
   - auto-fill popup when it backtracks to beginning
   - fix undoing to larger puzzle
+  - show title and author in player
 - add license?
 
 - INITIAL RELEASE!

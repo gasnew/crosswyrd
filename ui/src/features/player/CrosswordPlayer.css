@@ -32,7 +32,7 @@
 
 .clues-sidebar-list-container {
   height: 100%;
-  width: 160px;
+  width: 180px;
   display: flex;
   flex-direction: column;
 }
@@ -58,6 +58,8 @@
 .clue-list-entry--selected {
   outline: 4px solid !important;
   outline-color: #1976d2 !important;
+  /* Prevent the outline offset from increasing when the button is in focus */
+  outline-offset: 0px !important;
 }
 
 .puzzle-player-input-container {

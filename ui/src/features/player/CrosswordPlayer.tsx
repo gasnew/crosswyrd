@@ -36,7 +36,7 @@ import Navbar from '../app/Navbar';
 import './CrosswordPlayer.css';
 
 const UPPER_PUZZLE_MARGIN = 64;
-const LOWER_PUZZLE_MARGIN = 228;
+const LOWER_PUZZLE_MARGIN = 226;
 
 function DrawerContents() {
   return (
@@ -253,6 +253,14 @@ export default function CrosswordPlayer() {
     [onClick]
   );
 
+  // The clue sidebar should only render on wide enough screens.
+  const sidebarShouldRender = window.innerWidth >= 780;
+  // Offset the puzzle horizontally to account for the width of the clue
+  // sidebar. Don't offset at all if the sidebar should not be rendered.
+  const puzzleHorizontalOffset = sidebarShouldRender
+    ? (406 * (puzzleScale - 1)) / 2
+    : 0;
+
   if (puzzleFetchFailed)
     return (
       <div style={{ display: 'flex', height: '100%', width: '100%' }}>
@@ -272,15 +280,15 @@ export default function CrosswordPlayer() {
       <Navbar>{(handleClose) => <DrawerContents />}</Navbar>
       <div
         className="puzzle-player-sheets-container"
-        ref={setPuzzleRef}
         style={{
           position: 'relative',
           left: '50%',
-          transform: `translate(-50%, ${
+          transform: `translate(calc(-50% + ${puzzleHorizontalOffset}px), ${
             UPPER_PUZZLE_MARGIN + 8
           }px) scale(${puzzleScale})`,
           transformOrigin: 'top center',
         }}
+        ref={setPuzzleRef}
       >
         <div className="puzzle-player-container">
           <div className="puzzle-container sheet">
@@ -298,22 +306,24 @@ export default function CrosswordPlayer() {
             />
           </div>
         </div>
-        <div
-          className="sheet clues-sidebar"
-          style={{
-            position: 'relative',
-            transform: `scale(${1 / puzzleScale})`,
-            transformOrigin: 'top left',
-            height: 559 * puzzleScale,
-          }}
-        >
-          <CluesSidebar
-            clues={clues}
-            tileNumbers={tileNumbers}
-            updateSelection={updateSelection}
-            selectedTilesState={selectedTilesState}
-          />
-        </div>
+        {sidebarShouldRender && (
+          <div
+            className="sheet clues-sidebar"
+            style={{
+              position: 'relative',
+              transform: `scale(${1 / puzzleScale})`,
+              transformOrigin: 'top left',
+              height: 559 * puzzleScale,
+            }}
+          >
+            <CluesSidebar
+              clues={clues}
+              tileNumbers={tileNumbers}
+              updateSelection={updateSelection}
+              selectedTilesState={selectedTilesState}
+            />
+          </div>
+        )}
       </div>
       <div className="puzzle-player-input-container">
         <ClueNavigator
