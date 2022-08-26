@@ -28,6 +28,7 @@ import Tiles from '../builder/Tiles';
 import useTileInput from '../builder/useTileInput';
 import useTileSelection, { DirectionType } from '../builder/useTileSelection';
 import ClueNavigator from './ClueNavigator';
+import CluesSidebar from './CluesSidebar';
 import CompletePuzzleDialog from './CompletePuzzleDialog';
 import { db, logEvent } from '../../firebase';
 import Navbar from '../app/Navbar';
@@ -35,7 +36,11 @@ import Navbar from '../app/Navbar';
 import './CrosswordPlayer.css';
 
 const UPPER_PUZZLE_MARGIN = 64;
-const LOWER_PUZZLE_MARGIN = 228;
+const LOWER_PUZZLE_MARGIN = 226;
+const SIDE_BUFFER_PX = 16;
+const PUZZLE_SIZE_PX = 559;
+const PUZZLE_WITH_SIDEBAR_WIDTH_PX = 977;
+const SIDEBAR_WIDTH_PX = 406;
 
 function DrawerContents() {
   return (
@@ -156,33 +161,50 @@ function usePuzzleData(
 
 interface ScaleDataType {
   scale: number;
-  limitingDimension: 'horizontal' | 'vertical';
+  sidebarShouldRender: boolean;
 }
 function usePuzzleScaleToFit(puzzleRef: HTMLElement | null): ScaleDataType {
   const [scaleData, setScaleData] = useState<ScaleDataType>({
     scale: 1,
-    limitingDimension: 'horizontal',
+    sidebarShouldRender: false,
   });
 
   const onResize = useCallback(() => {
     if (!puzzleRef) return;
-    const horizontalScale = (window.innerWidth - 16) / puzzleRef.clientWidth;
+    const horizontalScale =
+      (window.innerWidth - SIDE_BUFFER_PX) / puzzleRef.clientWidth;
     // Scale vertically with some buffer for the keyboard
     const verticalScale =
       (window.innerHeight - (UPPER_PUZZLE_MARGIN + LOWER_PUZZLE_MARGIN)) /
       puzzleRef.clientHeight;
+    // Only render the sidebar if there's enough horizontal room (kinda
+    // confusing math but has to do with the sidebar scaling, so we have to
+    // account for that when doing the width check here)
+    const sidebarShouldRender =
+      (PUZZLE_WITH_SIDEBAR_WIDTH_PX + SIDE_BUFFER_PX) * verticalScale -
+        SIDEBAR_WIDTH_PX * (verticalScale - 1) <
+        window.innerWidth && window.innerHeight >= 450;
     setScaleData({
-      // Scale by whichever dimension is more limiting
-      scale: Math.min(horizontalScale, verticalScale),
-      limitingDimension:
-        horizontalScale < verticalScale ? 'horizontal' : 'vertical',
+      // Scale by vertical only when the sidebar is rendered--otherwise, by
+      // whichever dimension is more limiting
+      scale: sidebarShouldRender
+        ? verticalScale
+        : Math.min(horizontalScale, verticalScale),
+      sidebarShouldRender,
     });
-  }, [puzzleRef]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    puzzleRef,
+    // NOTE(gnewman): We include this extra dep here so that we recalculate the
+    // size of the puzzle after the sidebar has rendered or unrendered.
+    scaleData.sidebarShouldRender,
+  ]);
 
   // Scale on load
   useEffect(() => {
     if (!puzzleRef) return;
     onResize();
+    setTimeout(() => onResize(), 1000);
   }, [onResize, puzzleRef]);
 
   // Add resize listener
@@ -231,7 +253,9 @@ export default function CrosswordPlayer() {
     puzzleMetadata,
     failed: puzzleFetchFailed,
   } = usePuzzleData(puzzleId, setClues, puzzleId === puzzle.uuid);
-  const { scale: puzzleScale } = usePuzzleScaleToFit(puzzleRef);
+  const { scale: puzzleScale, sidebarShouldRender } = usePuzzleScaleToFit(
+    puzzleRef
+  );
 
   // Default the selection to the first clue
   useEffect(() => {
@@ -252,6 +276,12 @@ export default function CrosswordPlayer() {
     [onClick]
   );
 
+  // Offset the puzzle horizontally to account for the width of the clue
+  // sidebar. Don't offset at all if the sidebar should not be rendered.
+  const puzzleHorizontalOffset = sidebarShouldRender
+    ? (SIDEBAR_WIDTH_PX * (puzzleScale - 1)) / 2
+    : 0;
+
   if (puzzleFetchFailed)
     return (
       <div style={{ display: 'flex', height: '100%', width: '100%' }}>
@@ -270,31 +300,51 @@ export default function CrosswordPlayer() {
       )}
       <Navbar>{(handleClose) => <DrawerContents />}</Navbar>
       <div
-        className="puzzle-player-container"
+        className="puzzle-player-sheets-container"
         style={{
           position: 'relative',
           left: '50%',
-          transform: `translate(-50%, ${
+          transform: `translate(calc(-50% + ${puzzleHorizontalOffset}px), ${
             UPPER_PUZZLE_MARGIN + 8
           }px) scale(${puzzleScale})`,
           transformOrigin: 'top center',
         }}
         ref={setPuzzleRef}
       >
-        <div className="puzzle-container sheet">
-          <Tiles
-            puzzle={puzzle}
-            wave={null}
-            tileNumbers={tileNumbers}
-            selectedTilesState={selectedTilesState}
-            wordLocationsGrid={null}
-            hoveredTile={hoveredTile}
-            draggedWord={null}
-            mkHandleClickTile={mkHandleClickTile}
-            mkHandleMouseoverTile={mkHandleMouseoverTile}
-            onMouseOut={onTilesMouseOut}
-          />
+        <div className="puzzle-player-container">
+          <div className="puzzle-container sheet">
+            <Tiles
+              puzzle={puzzle}
+              wave={null}
+              tileNumbers={tileNumbers}
+              selectedTilesState={selectedTilesState}
+              wordLocationsGrid={null}
+              hoveredTile={hoveredTile}
+              draggedWord={null}
+              mkHandleClickTile={mkHandleClickTile}
+              mkHandleMouseoverTile={mkHandleMouseoverTile}
+              onMouseOut={onTilesMouseOut}
+            />
+          </div>
         </div>
+        {sidebarShouldRender && (
+          <div
+            className="sheet clues-sidebar"
+            style={{
+              position: 'relative',
+              transform: `scale(${1 / puzzleScale})`,
+              transformOrigin: 'top left',
+              height: PUZZLE_SIZE_PX * puzzleScale,
+            }}
+          >
+            <CluesSidebar
+              clues={clues}
+              tileNumbers={tileNumbers}
+              updateSelection={updateSelection}
+              selectedTilesState={selectedTilesState}
+            />
+          </div>
+        )}
       </div>
       <div className="puzzle-player-input-container">
         <ClueNavigator
