@@ -1,5 +1,5 @@
 import _ from 'lodash';
-import { colors } from '@mui/material';
+import { colors, Tooltip } from '@mui/material';
 import React, {
   useCallback,
   useEffect,
@@ -105,7 +105,7 @@ function Tile({
     return () => clearTimeout(timeoutId);
   }, [tile.value]);
 
-  return (
+  const tileComponent = (
     <div
       key={columnIndex}
       className={
@@ -133,7 +133,7 @@ function Tile({
                   : 'white',
             }
           : {}),
-        cursor: wordLocationOptions ? 'pointer' : 'initial',
+        cursor: wordLocationOptions || primarySelection ? 'pointer' : 'initial',
       }}
       onMouseOver={mkHandleMouseoverTile(rowIndex, columnIndex)}
       onClick={mkHandleClickTile(rowIndex, columnIndex)}
@@ -165,6 +165,20 @@ function Tile({
       )}
     </div>
   );
+
+  if (primarySelection && selectedTilesState)
+    return (
+      <Tooltip
+        title={`Switch to ${
+          selectedTilesState.direction === 'across' ? 'down' : 'across'
+        }`}
+        placement="top"
+        arrow
+      >
+        {tileComponent}
+      </Tooltip>
+    );
+  return tileComponent;
 }
 const MemoizedTile = React.memo(Tile);
 
@@ -185,7 +199,6 @@ interface Props {
   onMouseOut: () => void;
 }
 
-// TODO: memoize each tile
 export default function Tiles({
   puzzle,
   wave,

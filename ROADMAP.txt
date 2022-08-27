@@ -119,8 +119,8 @@
   + fix blue outline bug
   + show two columns for clues on big-enough screens
   + make clue gray when it's filled out
-  - fix can't type on Jesse's computer (also accept capital letters)
-  - "click to select down/across" tooltip/hint
+  + fix can't type on Jesse's computer (also accept capital letters)
+  + "click to select down/across" tooltip/hint
   - fix styling
   - add explainer and info button for builder
   - start next clue from first empty tile
