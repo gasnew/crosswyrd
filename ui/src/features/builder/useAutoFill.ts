@@ -37,6 +37,9 @@ function pickWord(
   // Find a random word from the first 15 best words available
   const word = _.find(
     _.shuffle(_.take(sortedWordOptions, 15)),
+    // Comment the above line, and uncomment this one if you want auto-fill to
+    // be deterministic.
+    //_.take(sortedWordOptions, 15),
     (word) => !_.includes(attemptedWords.current[puzzle.version] || [], word)
   );
   if (!word) return null;

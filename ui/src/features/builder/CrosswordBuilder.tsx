@@ -1,5 +1,5 @@
 import _ from 'lodash';
-import { Alert, Divider, Slide, Snackbar } from '@mui/material';
+import { Alert, Slide, Snackbar } from '@mui/material';
 import React, {
   useCallback,
   useEffect,
