@@ -121,6 +121,7 @@
   + make clue gray when it's filled out
   + fix can't type on Jesse's computer (also accept capital letters)
   + "click to select down/across" tooltip/hint
+  + fix bug where builder state gets overwritten
   - fix styling
   - add explainer and info button for builder
   - start next clue from first empty tile

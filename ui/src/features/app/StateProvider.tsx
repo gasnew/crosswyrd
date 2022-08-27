@@ -77,10 +77,13 @@ export default function StateProvider({ children, stateKey }: Props) {
     [store]
   );
 
-  // Prevent rendering if the history was just popped
+  // Prevent rendering if the history was just popped or pushed. This gives us
+  // time to rehydrate the redux state for the new route before mounting our
+  // component tree.
   useLayoutEffect(() => {
     return history.listen(() => {
-      if (history.action === 'POP') setRender(false);
+      if (history.action === 'POP' || history.action === 'PUSH')
+        setRender(false);
     });
   }, [history]);
 
