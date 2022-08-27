@@ -420,7 +420,6 @@ export default function CrosswordBuilder({ grid }: Props) {
         <div className="sidebar-container sheet">
           {dictionary && (
             <>
-              <Divider style={{ margin: 10 }} />
               <BuilderTabs
                 currentTab={currentTab}
                 tilesSelected={tilesSelected}

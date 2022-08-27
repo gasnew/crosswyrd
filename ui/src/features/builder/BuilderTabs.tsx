@@ -11,6 +11,7 @@ interface TabPanelProps {
   children?: React.ReactNode;
   index: number;
   value: number;
+  style?: any;
 }
 
 function TabPanel(props: TabPanelProps) {
@@ -74,11 +75,15 @@ function BuilderTabs({
   };
 
   return (
-    <Box sx={{ width: '100%' }}>
-      <Box
-        sx={{ borderBottom: 1, borderColor: 'divider' }}
-        style={{ marginRight: 10 }}
-      >
+    <Box
+      sx={{
+        height: '100%',
+        width: '100%',
+        display: 'flex',
+        flexDirection: 'column',
+      }}
+    >
+      <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
         <Tabs
           value={currentTab}
           onChange={handleChange}

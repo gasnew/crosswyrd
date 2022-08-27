@@ -268,7 +268,7 @@ function ClueEntry({
       sx={{
         width: '100%',
         overflow: 'auto',
-        maxHeight: 449,
+        maxHeight: 540,
         '& ul': { padding: 0 },
       }}
       subheader={<li />}

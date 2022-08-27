@@ -254,6 +254,7 @@ function withNewObservationAtLocation(
     // ['z', 'x'])
     element.entropy = element.options.length === 1 ? 0 : update.entropy;
 
+    // TODO: Update other tiles first--then propagate
     // Enqueue updates for all tiles in the down word that intersects this tile
     _.forEach(
       computeDownElementUpdates(

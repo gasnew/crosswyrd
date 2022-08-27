@@ -32,6 +32,7 @@ body,
   margin: auto;
   display: flex;
   flex-direction: row;
+  height: 629px;
 }
 
 .puzzle-container {
@@ -166,7 +167,7 @@ body,
   flex-direction: column;
   margin-left: 8px;
   width: 400px;
-  height: 597px;
+  height: 100%;
 }
 
 .word-selector-container {
@@ -195,8 +196,8 @@ body,
 }
 
 .word-bank-list-container {
-  height: 416px;
   overflow-y: scroll;
+  height: 506px;
   margin-bottom: 0;
 }
 
