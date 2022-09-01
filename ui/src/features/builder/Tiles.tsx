@@ -174,6 +174,7 @@ function Tile({
         }`}
         placement="top"
         arrow
+        disableInteractive
       >
         {tileComponent}
       </Tooltip>

@@ -24,6 +24,7 @@ import KoFiButton from './KoFiButton';
 import Navbar from './Navbar';
 import PublishDialog from './PublishDialog';
 import useGrids, { GridType } from './useGrids';
+import WelcomeDialog from './WelcomeDialog';
 
 function DrawerContents({
   handleClose,
@@ -132,6 +133,7 @@ export default function CrossWyrd() {
         open={publishDialogOpen}
         onClose={handleClosePublishDialog}
       />
+      <WelcomeDialog open onClose={console.log}/>
     </Box>
   );
 }

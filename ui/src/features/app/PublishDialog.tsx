@@ -22,7 +22,7 @@ import {
   selectClueGrid,
 } from '../builder/builderSlice';
 import { db, logEvent } from '../../firebase';
-import KoFiButton from './KoFiButton';
+import { GarrettNote } from './KoFiButton';
 
 const CopyAlertSnackbar = React.memo(
   ({ open, onClose }: { open: boolean; onClose: () => void }) => {
@@ -211,16 +211,7 @@ export default function PublishDialog({ open, onClose }: Props) {
                   {puzzleLink}
                 </pre>
               </div>
-              <Divider style={{ margin: 12 }} />
-              <p>
-                By the way, if you're enjoying Crosswyrd, it really helps me to
-                drop a donation! Your donations make it possible for me to
-                develop and maintain this passion project. Thank you.
-              </p>
-              <p>- Garrett </p>
-              <div style={{ display: 'flex', margin: 'auto' }}>
-                <KoFiButton />
-              </div>
+              <GarrettNote />
             </>
           )}
         </div>

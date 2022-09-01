@@ -1,0 +1,36 @@
+.keyboard-mapping {
+  display: flex;
+  flex-direction: row;
+}
+
+.keyboard-mapping-description {
+  margin: auto;
+  margin-left: 0;
+}
+
+.keyboard-mapping-keys {
+  margin-right: 0;
+}
+
+kbd {
+  font-size: inherit;
+  line-height: inherit;
+  margin: 0.25rem 0.25rem 0.4375rem;
+  padding: 0.1rem 0.4rem;
+  box-shadow: 0 0 #d9d9d9, 0 0 #d9d9d9, 0 1px #d9d9d9, 0 2px #d9d9d9,
+    0 3px #d9d9d9, 0 4px #d9d9d9, 0 5px #d9d9d9, 2px 2.5px 4px #adb5bd,
+    0 -1px 2.5px #adb5bd;
+  background-color: #fff;
+  color: #343a40;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  border: 1px solid #e6e6e6;
+  border-radius: 0.25rem;
+  display: inline-block;
+  font-family: SFMono-Regular, Menlo, Monaco, Consolas, Liberation Mono,
+    Courier New, monospace;
+  font-weight: 400;
+  text-align: left;
+  transform: translateZ(5px);
+  transform-style: preserve-3d;
+}

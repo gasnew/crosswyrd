@@ -173,9 +173,16 @@ body,
 .word-selector-container {
   display: flex;
   flex-direction: column;
+  position: relative;
 }
 
 .selector-comment {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  text-align: center;
   font-style: italic;
   margin: auto;
   margin-top: 10px;
