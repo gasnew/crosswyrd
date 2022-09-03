@@ -1,3 +1,9 @@
+.keyboard-mapping-container {
+  background-color: #fafbfb;
+  margin-top: 8px;
+  margin-bottom: 8px;
+}
+
 .keyboard-mapping {
   display: flex;
   flex-direction: row;
@@ -5,11 +11,15 @@
 
 .keyboard-mapping-description {
   margin: auto;
-  margin-left: 0;
+  margin-right: 6px;
+  width: 200px;
+  text-align: right;
 }
 
 .keyboard-mapping-keys {
-  margin-right: 0;
+  margin: auto;
+  margin-left: 6px;
+  width: 160px;
 }
 
 kbd {
@@ -18,8 +28,7 @@ kbd {
   margin: 0.25rem 0.25rem 0.4375rem;
   padding: 0.1rem 0.4rem;
   box-shadow: 0 0 #d9d9d9, 0 0 #d9d9d9, 0 1px #d9d9d9, 0 2px #d9d9d9,
-    0 3px #d9d9d9, 0 4px #d9d9d9, 0 5px #d9d9d9, 2px 2.5px 4px #adb5bd,
-    0 -1px 2.5px #adb5bd;
+    0 3px #d9d9d9, 0 4px #d9d9d9, 0 5px #d9d9d9;
   background-color: #fff;
   color: #343a40;
   -webkit-backface-visibility: hidden;
@@ -33,4 +42,27 @@ kbd {
   text-align: left;
   transform: translateZ(5px);
   transform-style: preserve-3d;
+}
+
+.inline-kbd-container {
+  display: inline-block;
+  height: 16px;
+  width: 21px;
+  position: relative;
+}
+
+.inline-kbd {
+  position: absolute;
+  transform: translate(-5px, -5px);
+  line-height: 1;
+  padding-left: 4px;
+  padding-right: 4px;
+}
+
+.welcome-dialog-img {
+  margin-left: auto;
+  margin-right: auto;
+  background-color: #fafbfb;
+  margin-top: 8px;
+  margin-bottom: 8px;
 }
