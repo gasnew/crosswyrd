@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import AddIcon from '@mui/icons-material/Add';
 import Box from '@mui/material/Box';
@@ -16,7 +16,9 @@ import {
   DEFAULT_PUZZLE_SIZE,
   setDefaultGridDialogOpen,
   setLetterEntryEnabled,
+  setWelcomeDialogState,
   selectDefaultGridDialogOpen,
+  selectWelcomeDialogState,
 } from '../builder/builderSlice';
 import CrosswordBuilder from '../builder/CrosswordBuilder';
 import GridsDialog, { blankGrid } from './GridsDialog';
@@ -75,6 +77,7 @@ export interface GridWithVersionType extends GridType {
 
 export default function CrossWyrd() {
   const defaultGridDialogOpen = useSelector(selectDefaultGridDialogOpen);
+  const welcomeDialogState = useSelector(selectWelcomeDialogState);
   const [gridDialogState, setGridDialogState] = useState<{
     open: boolean;
     canClose?: boolean;
@@ -83,7 +86,6 @@ export default function CrossWyrd() {
     ...blankGrid(DEFAULT_PUZZLE_SIZE),
     version: randomId(),
   });
-  const [welcomeOpen, setWelcomeOpen] = useState(true);
 
   const { grids } = useGrids();
 
@@ -101,11 +103,15 @@ export default function CrossWyrd() {
     // Re-enable letter entry in the puzzle.
     dispatch(setLetterEntryEnabled(true));
   };
+  const handleCloseWelcomeDialog = useCallback(
+    () => dispatch(setWelcomeDialogState({ open: false, showCheckbox: false })),
+    [dispatch]
+  );
 
   return (
     <Box sx={{ display: 'flex', height: '100%' }}>
       <CssBaseline />
-      <Navbar supportsDesktopSidebar>
+      <Navbar supportsDesktopSidebar showInfoButton>
         {(handleClose) => (
           <DrawerContents
             handleClose={handleClose}
@@ -118,7 +124,7 @@ export default function CrossWyrd() {
         <CrosswordBuilder grid={grid} />
       </Box>
       <GridsDialog
-        open={gridDialogState.open}
+        open={!welcomeDialogState.open && gridDialogState.open}
         canClose={gridDialogState.canClose || false}
         onClose={() => setGridDialogState({ open: false })}
         grids={grids}
@@ -134,7 +140,11 @@ export default function CrossWyrd() {
         open={publishDialogOpen}
         onClose={handleClosePublishDialog}
       />
-      <WelcomeDialog open={welcomeOpen} onClose={() => setWelcomeOpen(false)} />
+      <WelcomeDialog
+        open={welcomeDialogState.open}
+        showCheckbox={welcomeDialogState.showCheckbox}
+        onClose={handleCloseWelcomeDialog}
+      />
     </Box>
   );
 }

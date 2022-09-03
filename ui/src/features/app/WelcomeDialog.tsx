@@ -1,11 +1,13 @@
-import React from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Alert,
   Button,
+  Checkbox,
   Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
+  FormControlLabel,
   Typography,
 } from '@mui/material';
 import KeyboardArrowRightIcon from '@mui/icons-material/KeyboardArrowRight';
@@ -80,10 +82,36 @@ function Keyword({ children }) {
 
 interface Props {
   open: boolean;
+  showCheckbox: boolean;
   onClose: () => void;
 }
 
-export default function WelcomeDialog({ open, onClose }: Props) {
+export default function WelcomeDialog({ open, showCheckbox, onClose }: Props) {
+  const [boxChecked, setBoxChecked] = useState(false);
+
+  const handleBoxClick = useCallback(() => {
+    console.log('hmm');
+    setBoxChecked(!boxChecked);
+  }, [boxChecked]);
+
+  const skipDialogStorageString = useMemo(() => `skipWelcomeDialog`, []);
+
+  // Set localStorage to keep track of checkbox choice
+  useEffect(() => {
+    if (boxChecked && !open)
+      window.localStorage.setItem(skipDialogStorageString, 'true');
+  }, [boxChecked, open, skipDialogStorageString]);
+
+  // Close the dialog immediately if the user has clicked "Do not show again".
+  useEffect(() => {
+    if (
+      showCheckbox &&
+      open &&
+      window.localStorage.getItem(skipDialogStorageString) === 'true'
+    )
+      onClose();
+  }, [showCheckbox, open, skipDialogStorageString, onClose]);
+
   return (
     <Dialog
       open={open}
@@ -97,7 +125,7 @@ export default function WelcomeDialog({ open, onClose }: Props) {
         className="sheet"
         style={{
           margin: 12,
-          marginBottom: 0,
+          marginBottom: showCheckbox ? 0 : 12,
           display: 'flex',
           flexDirection: 'column',
           textAlign: 'justify',
@@ -202,37 +230,46 @@ export default function WelcomeDialog({ open, onClose }: Props) {
         <Heading>Writing Clues</Heading>
         <Img src="/gifs/clues.gif" alt="Writing Clues" height={350} />
         <p>
-          In the Clues tab, you can enter clues for each of the answers on the
-          board. There is a lot of literature available online about how to
-          write good crossword puzzle clues, but it is much more of an art than
-          a science. While this can often be the most time-consuming part of
-          constructing a puzzle, it is worth taking the time to write
-          high-quality clues.
+          In the <Keyword>Clues</Keyword> tab, you can enter clues for each of
+          the answers on the board. There is a lot of literature available
+          online about how to write good crossword puzzle clues, but it is much
+          more of an art than a science. While this can often be the most
+          time-consuming part of constructing a puzzle, it is worth taking the
+          time to write high-quality clues.
         </p>
         <Heading>Publishing Your Puzzle</Heading>
         <Img src="/gifs/publish.gif" alt="Publishing Your Puzzle" />
         <p>
           You've filled all empty tiles and written the clues. Now it's time to
-          share the puzzle for others to enjoy! Click Publish in the drawer on
-          the left side of the screen to upload the puzzle and get a shareable
-          link. Send this link out to your friends or community so they can try
-          their hand at solving your creation.
+          share the puzzle for others to enjoy! Click <Keyword>Publish</Keyword>{' '}
+          in the drawer on the left side of the screen to upload the puzzle and
+          get a shareable link. Send this link out to your friends or community
+          so they can try their hand at solving your creation.
         </p>
         <GarrettNote />
       </DialogContent>
-      <DialogActions>
-        <div className="welcome-dialog-actions">
-          <span className="welcome-dialog-do-not-show">Do not show again</span>
-          <Button
-            variant="contained"
-            color="primary"
-            endIcon={<KeyboardArrowRightIcon />}
-            onClick={onClose}
-          >
-            Let's go!
-          </Button>
-        </div>
-      </DialogActions>
+      {showCheckbox && (
+        <DialogActions>
+          <div className="welcome-dialog-actions">
+            <div className="welcome-dialog-do-not-show">
+              <FormControlLabel
+                control={
+                  <Checkbox checked={boxChecked} onChange={handleBoxClick} />
+                }
+                label="Do not show again"
+              />
+            </div>
+            <Button
+              variant="contained"
+              color="primary"
+              endIcon={<KeyboardArrowRightIcon />}
+              onClick={onClose}
+            >
+              Let's go!
+            </Button>
+          </div>
+        </DialogActions>
+      )}
     </Dialog>
   );
 }

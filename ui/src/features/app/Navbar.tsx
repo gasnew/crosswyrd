@@ -1,13 +1,17 @@
 import React from 'react';
+import { useDispatch } from 'react-redux';
 import AppBar from '@mui/material/AppBar';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import Box from '@mui/material/Box';
 import Divider from '@mui/material/Divider';
 import Drawer from '@mui/material/Drawer';
 import IconButton from '@mui/material/IconButton';
+import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import MenuIcon from '@mui/icons-material/Menu';
 import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
+
+import { setWelcomeDialogState } from '../builder/builderSlice';
 
 const drawerWidth = 200;
 
@@ -41,13 +45,23 @@ function DrawerControls({
 interface Props {
   children: (handleClose: () => void) => React.ReactNode;
   supportsDesktopSidebar?: boolean;
+  showInfoButton?: boolean;
 }
 
-export default function Navbar({ children, supportsDesktopSidebar }: Props) {
+export default function Navbar({
+  children,
+  supportsDesktopSidebar,
+  showInfoButton,
+}: Props) {
   const [mobileOpen, setMobileOpen] = React.useState(false);
+
+  const dispatch = useDispatch();
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
+  };
+  const handleOpenInfo = () => {
+    dispatch(setWelcomeDialogState({ open: true, showCheckbox: false }));
   };
 
   return (
@@ -88,6 +102,14 @@ export default function Navbar({ children, supportsDesktopSidebar }: Props) {
           >
             CROSSWYRD
           </Typography>
+          <IconButton
+            color="inherit"
+            aria-label="show info"
+            edge="start"
+            onClick={handleOpenInfo}
+          >
+            <HelpOutlineIcon />
+          </IconButton>
         </Toolbar>
       </AppBar>
       <Box

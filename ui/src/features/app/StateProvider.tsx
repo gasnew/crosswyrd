@@ -59,7 +59,12 @@ export default function StateProvider({ children, stateKey }: Props) {
             {
               key: stateKey,
               storage,
-              blacklist: ['draggedWord', 'currentTab', 'letterEntryEnabled'],
+              blacklist: [
+                'draggedWord',
+                'currentTab',
+                'letterEntryEnabled',
+                'welcomeDialogState',
+              ],
             },
             builderSliceReducer
           ),
