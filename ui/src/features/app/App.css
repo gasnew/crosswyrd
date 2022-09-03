@@ -1,3 +1,11 @@
+.welcome-dialog-intro {
+  font-style: italic !important;
+  text-align: center !important;
+  font-size: 18px !important;
+  margin-bottom: 12px;
+  /*color: #0d47a1;*/
+}
+
 .keyboard-mapping-container {
   background-color: #fafbfb;
   margin-top: 8px;
@@ -65,4 +73,20 @@ kbd {
   background-color: #fafbfb;
   margin-top: 8px;
   margin-bottom: 8px;
+  max-height: 100%;
+  max-width: 100%;
+}
+
+.welcome-dialog-actions {
+  width: 100%;
+  padding: 4px;
+  padding-top: 0;
+  margin-top: 8px;
+  display: flex;
+  flex-direction: row;
+}
+
+.welcome-dialog-do-not-show {
+  margin: auto;
+  margin-left: 0;
 }

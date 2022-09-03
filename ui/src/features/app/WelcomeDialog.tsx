@@ -1,12 +1,14 @@
 import React from 'react';
 import {
   Alert,
+  Button,
   Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
   Typography,
 } from '@mui/material';
+import KeyboardArrowRightIcon from '@mui/icons-material/KeyboardArrowRight';
 
 import { GarrettNote } from './KoFiButton';
 
@@ -15,8 +17,25 @@ import { GarrettNote } from './KoFiButton';
 const MIN_VIEWPORT_WIDTH = 970;
 const MIN_VIEWPORT_HEIGHT = 694;
 
-function Img({ src, alt }: { src: string; alt: string }) {
-  return <img className="sheet welcome-dialog-img" src={src} alt={alt} />;
+const HIGHLIGHT_COLOR = 'rgb(1, 67, 97)';
+
+function Img({
+  src,
+  alt,
+  height,
+}: {
+  src: string;
+  alt: string;
+  height?: number;
+}) {
+  return (
+    <img
+      className="sheet welcome-dialog-img"
+      src={src}
+      alt={alt}
+      {...(height ? { height: height } : {})}
+    />
+  );
 }
 
 function InlineKbd({ children }) {
@@ -33,6 +52,29 @@ function KeyboardMapping({ keys, description }) {
       <span className="keyboard-mapping-description">{description}</span>
       <span className="keyboard-mapping-keys">{keys}</span>
     </div>
+  );
+}
+
+function Heading({ children }) {
+  return (
+    <Typography
+      variant="h5"
+      style={{
+        color: HIGHLIGHT_COLOR,
+        fontSize: 24,
+        textShadow: '0.5px 0.5px 0 #ddd, 1px 1px 0 #ddd, 1.5px 1.5px 0 #ddd',
+      }}
+    >
+      {children}
+    </Typography>
+  );
+}
+
+function Keyword({ children }) {
+  return (
+    <span style={{ fontWeight: 'bold', color: HIGHLIGHT_COLOR }}>
+      {children}
+    </span>
   );
 }
 
@@ -55,6 +97,7 @@ export default function WelcomeDialog({ open, onClose }: Props) {
         className="sheet"
         style={{
           margin: 12,
+          marginBottom: 0,
           display: 'flex',
           flexDirection: 'column',
           textAlign: 'justify',
@@ -66,11 +109,11 @@ export default function WelcomeDialog({ open, onClose }: Props) {
             Crosswyrd Builder may work better on a device with a larger screen
           </Alert>
         )}
-        <p>
-          Crosswyrd makes constructing and sharing crosswords as simple as
-          possible.
-        </p>
-        <Typography variant="h5">Controls</Typography>
+        <Alert className="welcome-dialog-intro" icon={false} severity="info">
+          <span style={{ fontWeight: 'bold' }}>Crosswyrd</span> makes
+          constructing and sharing crosswords as simple as possible.
+        </Alert>
+        <Heading>Controls</Heading>
         <div className="sheet keyboard-mapping-container">
           <KeyboardMapping
             keys={<kbd>.</kbd>}
@@ -114,18 +157,18 @@ export default function WelcomeDialog({ open, onClose }: Props) {
             description="Next best answer to fill"
           />
         </div>
-        <Typography variant="h5">Filling the Board</Typography>
+        <Heading>Filling the Board</Heading>
         <Img src="/gifs/fill.gif" alt="Filling the Board" />
         <p>
           You'll start with selecting a grid pattern. The classic way to
           construct a crossword is to start with a blank grid, but you can pick
-          from an array of preset patterns as well for a quick start. If it's
+          from an array of preset patterns instead for a quick start. If it's
           your first time constructing a puzzle, starting with a 5x5 grid is a
           good way to get your feet wet. As you place and remove black tiles
-          with <InlineKbd>.</InlineKbd>, you'll notice that the board maintains
-          rotational symmetry. This is a common pattern for dense crossword
-          puzzles like this, and the New York Times requires symmetry for their
-          crossword submissions.
+          with <InlineKbd>.</InlineKbd>, you'll notice that the black tiles
+          maintain rotational symmetry. This is a common pattern for dense
+          crossword puzzles like this. For example, the New York Times require
+          symmetry for their crossword submissions.
         </p>
         <p>
           The best puzzles have a theme that the player uncovers while solving (
@@ -137,32 +180,37 @@ export default function WelcomeDialog({ open, onClose }: Props) {
             The New York Times themselves have a nice article on this
           </a>
           ), which is usually expressed in the puzzle's handful of longer words.
-          Once you have a theme in mind, you can enter some ideas into the Word
-          Bank then click and drag them onto the board to see how they fit. You
-          can also fill in words directly on the board by typing them
-          letter-by-letter, or pick from the suggested words in the Fill tab in
-          the sidebar. Try it out, and see which approaches work best for you!
+          Once you have a theme in mind, you can enter some ideas into the bank
+          in the <Keyword>Word Bank</Keyword> tab then click and drag them onto
+          the board to see how they fit. You can also fill in words directly on
+          the board by typing them letter-by-letter, or pick from the suggested
+          words in the <Keyword>Fill</Keyword> tab in the sidebar. Try it out,
+          and see which approaches work best for you!
         </p>
         <p>
-          Crosswyrd comes with a built-in Fill Assist, which suggests words that
-          fit in the part of the board you have selected and tells you when the
-          board is not solvable. It does this by partially solving the puzzle
-          any time you make a change to it. The darker blue the tile, the more
-          constrained it is, so it is recommended that you generally prioritize
-          filling darker blue tiles first. When you have filled the board with
-          your own words to your satisfaction, you can click Auto-Fill to
-          automatically fill the remaining tiles with new words.
+          Crosswyrd comes with a built-in <Keyword>Fill Assist</Keyword>, which
+          suggests words that fit in the part of the board you have selected. It
+          does this by partially solving the puzzle any time you make a change
+          to it. The darker blue the tile, the more constrained it is, so it is
+          recommended that you generally prioritize filling darker blue tiles
+          first. If the board is not solvable from a certain point, try undoing
+          your recent change(s) or clearing any red tiles. When you have filled
+          the board with your own words to your satisfaction, you can click the{' '}
+          <Keyword>Auto-Fill</Keyword> button to automatically fill the
+          remaining tiles with new words.
         </p>
-        <Typography variant="h5">Writing Clues</Typography>
+        <Heading>Writing Clues</Heading>
+        <Img src="/gifs/clues.gif" alt="Writing Clues" height={350} />
         <p>
           In the Clues tab, you can enter clues for each of the answers on the
           board. There is a lot of literature available online about how to
           write good crossword puzzle clues, but it is much more of an art than
           a science. While this can often be the most time-consuming part of
-          constructing a puzzle, it is worthwhile to the user to have
-          high-quality clues to work off of.
+          constructing a puzzle, it is worth taking the time to write
+          high-quality clues.
         </p>
-        <Typography variant="h5">Publishing Your Puzzle</Typography>
+        <Heading>Publishing Your Puzzle</Heading>
+        <Img src="/gifs/publish.gif" alt="Publishing Your Puzzle" />
         <p>
           You've filled all empty tiles and written the clues. Now it's time to
           share the puzzle for others to enjoy! Click Publish in the drawer on
@@ -172,7 +220,19 @@ export default function WelcomeDialog({ open, onClose }: Props) {
         </p>
         <GarrettNote />
       </DialogContent>
-      <DialogActions>Do not show again</DialogActions>
+      <DialogActions>
+        <div className="welcome-dialog-actions">
+          <span className="welcome-dialog-do-not-show">Do not show again</span>
+          <Button
+            variant="contained"
+            color="primary"
+            endIcon={<KeyboardArrowRightIcon />}
+            onClick={onClose}
+          >
+            Let's go!
+          </Button>
+        </div>
+      </DialogActions>
     </Dialog>
   );
 }

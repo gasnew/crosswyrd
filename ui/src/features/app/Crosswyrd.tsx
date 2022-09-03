@@ -83,6 +83,7 @@ export default function CrossWyrd() {
     ...blankGrid(DEFAULT_PUZZLE_SIZE),
     version: randomId(),
   });
+  const [welcomeOpen, setWelcomeOpen] = useState(true);
 
   const { grids } = useGrids();
 
@@ -133,7 +134,7 @@ export default function CrossWyrd() {
         open={publishDialogOpen}
         onClose={handleClosePublishDialog}
       />
-      <WelcomeDialog open onClose={console.log}/>
+      <WelcomeDialog open={welcomeOpen} onClose={() => setWelcomeOpen(false)} />
     </Box>
   );
 }
