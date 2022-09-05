@@ -304,7 +304,15 @@ export default function useTileInput(
             // The next non-letter tile is empty and is not the current
             // location, so let's move there!
             newPrimaryLocation = nextNonLetterLocation;
-          else if (!nextNonLetterTileDistance || nextNonLetterTileDistance > 1)
+          else if (
+            // We are not looking down at the bottom edge of the board
+            (newDirection === 'across' ||
+              newPrimaryLocation.row < puzzle.tiles.length - 1) &&
+            // We are not looking across at the right edge of the board
+            (newDirection === 'down' ||
+              newPrimaryLocation.column < puzzle.tiles.length - 1) &&
+            (!nextNonLetterTileDistance || nextNonLetterTileDistance > 1)
+          )
             // The next non-letter tile is black or is the edge of the board
             // but is far away, so let's advance one tile!
             newPrimaryLocation = shift(newPrimaryLocation, 1);
