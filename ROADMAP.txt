@@ -105,7 +105,7 @@
   + scale puzzle correctly for various screen sizes
 + support 10x10 and 5x5 boards
 + Ko-Fi for donations
-/ QoL pt2
++ QoL pt2
   + banner and dropdown
     + build button on player
   + state persistence
@@ -118,34 +118,33 @@
   + fix font
   + fix blue outline bug
   + show two columns for clues on big-enough screens
-  - fix can't type on Jesse's computer (also accept capital letters)
-  - "click to select down/across" tooltip/hint
-  - fix styling
-  - add explainer and info button for builder
-  - start next clue from first empty tile
-  - include share buttons when publishing a puzzle
-  - tooltips! tooltips everywhere!
-    - NYT <3-letter words rule
-    - Fill Assist
-    - Undo
-    - Redo
-    - Auto-Fill
-    - Clear
-    - Next
-  - auto-fill popup when it backtracks to beginning
-  - fix undoing to larger puzzle (just reset history when new puzzle?)
-  - show title and author in player
+  + make clue gray when it's filled out
+  + fix can't type on Jesse's computer (also accept capital letters)
+  + "click to select down/across" tooltip/hint
+  + fix bug where builder state gets overwritten
+  + fix styling
+  + add explainer and info button for builder
+  + start next clue from first empty tile
+  + include share buttons when publishing a puzzle
+  + tooltips! tooltips everywhere!
+    + NYT <3-letter words rule
+    + Fill Assist
+    + Undo
+    + Redo
+    + Auto-Fill
+    + Clear
+    + Next
+  + fix undoing to larger puzzle
+  + auto-fill popup when it backtracks to beginning
+  + show title and author in player
 - add license?
 
 - INITIAL RELEASE!
 
-- player desktop version (simple clues on right side, no virtual keyboard)
-Variable board size
 ingest files as dictionaries
 sell custom dictionaries?
 pentatonic scale sounds
 BEEG BOARD
-juicy animations
 
 - pro features
   - use stripe for payment?

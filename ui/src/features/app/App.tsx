@@ -12,6 +12,8 @@ import Crosswyrd from './Crosswyrd';
 import CrosswordPlayer from '../player/CrosswordPlayer';
 import StateProvider from './StateProvider';
 
+import './App.css';
+
 function App() {
   return (
     <>

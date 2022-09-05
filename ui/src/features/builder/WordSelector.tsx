@@ -110,7 +110,7 @@ function WordSelector({
       <Box sx={{ width: '100%', maxWidth: 360, bgcolor: 'background.paper' }}>
         <List style={{ padding: 0 }}>
           <FixedSizeList
-            height={416}
+            height={546}
             itemCount={possibleWords.length}
             itemData={{
               possibleWords,

@@ -1,5 +1,5 @@
 import _ from 'lodash';
-import { Alert, Divider, Slide, Snackbar } from '@mui/material';
+import { Alert, Slide, Snackbar } from '@mui/material';
 import React, {
   useCallback,
   useEffect,
@@ -158,7 +158,7 @@ export default function CrosswordBuilder({ grid }: Props) {
       );
     return nextState;
   }, [dispatch, setWaveState, popStateFuture, updateSelection]);
-  const { runAutoFill, stopAutoFill } = useAutoFill(
+  const { runAutoFill, stopAutoFill, autoFillError } = useAutoFill(
     dictionary,
     puzzle,
     wave,
@@ -217,6 +217,7 @@ export default function CrosswordBuilder({ grid }: Props) {
 
   const puzzleError = useMemo(() => {
     if (autoFillRunning || !wave) return '';
+    if (autoFillError) return autoFillError;
     if (
       _.some(puzzle.tiles, (row, rowIndex) =>
         _.some(
@@ -229,7 +230,7 @@ export default function CrosswordBuilder({ grid }: Props) {
     )
       return 'The puzzle cannot be filled from here! Try undoing recent changes, clearing up any red tiles, or adjusting the grid pattern.';
     return '';
-  }, [autoFillRunning, puzzle, wave]);
+  }, [autoFillRunning, puzzle, wave, autoFillError]);
   const showPuzzleError = useMemo(() => !!puzzleError, [puzzleError]);
 
   // Set puzzle to grid when the grid is updated
@@ -420,7 +421,6 @@ export default function CrosswordBuilder({ grid }: Props) {
         <div className="sidebar-container sheet">
           {dictionary && (
             <>
-              <Divider style={{ margin: 10 }} />
               <BuilderTabs
                 currentTab={currentTab}
                 tilesSelected={tilesSelected}

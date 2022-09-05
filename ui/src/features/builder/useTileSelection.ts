@@ -229,6 +229,8 @@ export default function useTileSelection(
 
   const selectNextAnswer = useCallback(
     (forward: boolean, endOfAnswer: boolean = false) => {
+      // Select the first empty tile in the next unfinished answer. If
+      // endOfAnswer, select last tile in the selected answer.
       if (locations.length === 0) return;
       const answers = getFlattenedAnswers(puzzle);
       const currentAnswerIndex = _.findIndex(
@@ -240,17 +242,37 @@ export default function useTileSelection(
       );
       if (currentAnswerIndex < 0) return;
 
+      // Construct array of all answers after this one
+      const afterAnswersUnadjusted = _.drop([
+        ..._.slice(answers, currentAnswerIndex),
+        ..._.slice(answers, 0, currentAnswerIndex),
+      ]);
+      // Reverse the following answers if going backwards
+      const afterAnswers = forward
+        ? afterAnswersUnadjusted
+        : _.reverse(afterAnswersUnadjusted);
+      // Find the next incomplete answer, or if none, the next answer
       const answer =
-        answers[
-          (currentAnswerIndex + (forward ? 1 : -1) + answers.length) %
-            answers.length
-        ];
-      const { row, column } = endOfAnswer
-        ? _.last(determineLocations(puzzle, answer, dir)) || answer
-        : answer;
+        _.find(afterAnswers, (answer) => !answer.answer.complete) ||
+        afterAnswers[0];
+
+      // Set the selection to the first empty tile in the answer or to the last
+      // tile if specified
+      const answerLocations = determineLocations(
+        puzzle,
+        answer,
+        answer.direction === 'across' ? [0, 1] : [1, 0]
+      );
+      const { row, column } =
+        (endOfAnswer
+          ? _.last(answerLocations)
+          : _.find(
+              answerLocations,
+              (location, index) => answer.answer.word[index] === '-'
+            )) || answer;
       updateSelection({ row, column }, answer.direction);
     },
-    [puzzle, locations, direction, updateSelection, dir]
+    [puzzle, locations, direction, updateSelection]
   );
 
   const selectedTilesState = useMemo(() => {

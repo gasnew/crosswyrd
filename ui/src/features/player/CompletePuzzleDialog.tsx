@@ -19,7 +19,7 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
 import BuildIcon from '@mui/icons-material/Build';
 
-import KoFiButton from '../app/KoFiButton';
+import { GarrettNote } from '../app/KoFiButton';
 import { CrosswordPuzzleType } from '../builder/builderSlice';
 import { PuzzleMetadataType } from './CrosswordPlayer';
 import { logEvent } from '../../firebase';
@@ -27,6 +27,51 @@ import { logEvent } from '../../firebase';
 // Wait half a second before the dialog can be closed again. This is because
 // tap events close the dialog immediately after it is opened.
 const DIALOG_CLOSE_DELAY_MS = 200;
+
+export function ShareButtons({
+  shareUrl,
+  shareTitle,
+  shareHashtag,
+  mkHandleShareClick,
+}) {
+  return (
+    <div className="share-buttons">
+      <TwitterShareButton
+        url={shareUrl}
+        title={shareTitle}
+        hashtags={[shareHashtag]}
+        className="share-button"
+        onClick={mkHandleShareClick('twitter')}
+      >
+        <TwitterIcon size={32} round />
+      </TwitterShareButton>
+      <FacebookShareButton
+        url={shareUrl}
+        quote={shareTitle}
+        hashtag={`#${shareHashtag}`}
+        className="share-button"
+        onClick={mkHandleShareClick('facebook')}
+      >
+        <FacebookIcon size={32} round />
+      </FacebookShareButton>
+      <RedditShareButton
+        url={shareUrl}
+        title={shareTitle}
+        className="share-button"
+        onClick={mkHandleShareClick('reddit')}
+      >
+        <RedditIcon size={32} round />
+      </RedditShareButton>
+      <EmailShareButton
+        url={shareUrl}
+        subject={shareTitle}
+        onClick={mkHandleShareClick('email')}
+      >
+        <EmailIcon size={32} round />
+      </EmailShareButton>
+    </div>
+  );
+}
 
 interface Props {
   puzzle: CrosswordPuzzleType;
@@ -112,41 +157,12 @@ export default function CompletePuzzleDialog({
           </div>
           <div className="share-container">
             <div className="share-content">
-              <div className="share-buttons">
-                <TwitterShareButton
-                  url={shareUrl}
-                  title={shareTitle}
-                  hashtags={[shareHashtag]}
-                  className="share-button"
-                  onClick={mkHandleShareClick('twitter')}
-                >
-                  <TwitterIcon size={32} round />
-                </TwitterShareButton>
-                <FacebookShareButton
-                  url={shareUrl}
-                  quote={shareTitle}
-                  hashtag={`#${shareHashtag}`}
-                  className="share-button"
-                  onClick={mkHandleShareClick('facebook')}
-                >
-                  <FacebookIcon size={32} round />
-                </FacebookShareButton>
-                <RedditShareButton
-                  url={shareUrl}
-                  title={shareTitle}
-                  className="share-button"
-                  onClick={mkHandleShareClick('reddit')}
-                >
-                  <RedditIcon size={32} round />
-                </RedditShareButton>
-                <EmailShareButton
-                  url={shareUrl}
-                  subject={shareTitle}
-                  onClick={mkHandleShareClick('email')}
-                >
-                  <EmailIcon size={32} round />
-                </EmailShareButton>
-              </div>
+              <ShareButtons
+                shareUrl={shareUrl}
+                shareTitle={shareTitle}
+                shareHashtag={shareHashtag}
+                mkHandleShareClick={mkHandleShareClick}
+              />
               <Divider
                 variant="middle"
                 flexItem
@@ -163,16 +179,7 @@ export default function CompletePuzzleDialog({
               </Link>
             </div>
           </div>
-          <Divider style={{ margin: 12 }} />
-          <p>
-            By the way, if you're enjoying Crosswyrd, it really helps me to drop
-            a donation! Your donations make it possible for me to develop and
-            maintain this passion project. Thank you.
-          </p>
-          <p>- Garrett </p>
-          <div style={{ display: 'flex', margin: 'auto' }}>
-            <KoFiButton />
-          </div>
+          <GarrettNote />
         </div>
       </DialogContent>
     </Dialog>

@@ -1,5 +1,5 @@
 import _ from 'lodash';
-import { Chip, Divider } from '@mui/material';
+import { Chip, Divider, Tooltip } from '@mui/material';
 import React, { useEffect, useMemo, useRef } from 'react';
 import { useDispatch } from 'react-redux';
 
@@ -52,18 +52,24 @@ export default function PuzzleStats({ puzzle }: Props) {
             flexItem
             style={{ marginLeft: 8, marginRight: 8 }}
           />
-          <Chip
-            size="small"
-            color="error"
-            variant="filled"
-            label={
-              <span>
-                <span style={{ fontWeight: 'bold' }}>{smallWordCount}</span>{' '}
-                words 2 letters long or shorter
-              </span>
-            }
-            style={{ pointerEvents: 'none' }}
-          />
+          <Tooltip
+            title="According to NYT rules, all words in the puzzle must be at least 3 letters long"
+            placement="top"
+            arrow
+            disableInteractive
+          >
+            <Chip
+              size="small"
+              color="error"
+              variant="filled"
+              label={
+                <span>
+                  <span style={{ fontWeight: 'bold' }}>{smallWordCount}</span>{' '}
+                  words 2 letters long or shorter
+                </span>
+              }
+            />
+          </Tooltip>
         </>
       )}
     </div>

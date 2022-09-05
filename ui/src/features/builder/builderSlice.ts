@@ -24,6 +24,10 @@ export interface ClueGridCellType {
   down: string | null;
 }
 export type ClueGridType = ClueGridCellType[][];
+interface WelcomeDialogStateType {
+  open: boolean;
+  showCheckbox: boolean;
+}
 interface BuilderState {
   puzzle: CrosswordPuzzleType;
   wave: WaveType | null;
@@ -34,6 +38,7 @@ interface BuilderState {
   fillAssistState: boolean;
   letterEntryEnabled: boolean;
   defaultGridDialogOpen: boolean;
+  welcomeDialogState: WelcomeDialogStateType;
 }
 
 export const DEFAULT_PUZZLE_SIZE = 15;
@@ -59,6 +64,7 @@ const initialState: BuilderState = {
   letterEntryEnabled: true,
   // Default grid dialog to open unless in development mode
   defaultGridDialogOpen: !devMode(),
+  welcomeDialogState: { open: true, showCheckbox: true },
 };
 
 export function getSymmetricTile(
@@ -158,6 +164,12 @@ export const builderSlice = createSlice({
     setDefaultGridDialogOpen: (state, action: PayloadAction<boolean>) => {
       state.defaultGridDialogOpen = action.payload;
     },
+    setWelcomeDialogState: (
+      state,
+      action: PayloadAction<WelcomeDialogStateType>
+    ) => {
+      state.welcomeDialogState = action.payload;
+    },
   },
 });
 
@@ -177,6 +189,7 @@ export const {
   setLetterEntryEnabled,
   setWaveState,
   setDefaultGridDialogOpen,
+  setWelcomeDialogState,
 } = builderSlice.actions;
 
 export const selectPuzzle = (state: RootState) => state.builder.puzzle;
@@ -192,5 +205,7 @@ export const selectLetterEntryEnabled = (state: RootState) =>
 export const selectWave = (state: RootState) => state.builder.wave;
 export const selectDefaultGridDialogOpen = (state: RootState) =>
   state.builder.defaultGridDialogOpen;
+export const selectWelcomeDialogState = (state: RootState) =>
+  state.builder.welcomeDialogState;
 
 export default builderSlice.reducer;

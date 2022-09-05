@@ -1,5 +1,5 @@
 import _ from 'lodash';
-import { useCallback, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useDispatch } from 'react-redux';
 
 import { randomId, useInterval } from '../../app/util';
@@ -37,6 +37,9 @@ function pickWord(
   // Find a random word from the first 15 best words available
   const word = _.find(
     _.shuffle(_.take(sortedWordOptions, 15)),
+    // Comment the above line, and uncomment this one if you want auto-fill to
+    // be deterministic.
+    //_.take(sortedWordOptions, 15),
     (word) => !_.includes(attemptedWords.current[puzzle.version] || [], word)
   );
   if (!word) return null;
@@ -51,6 +54,7 @@ function pickWord(
 interface ReturnType {
   runAutoFill: () => void;
   stopAutoFill: () => void;
+  autoFillError: string | null;
 }
 
 export default function useAutoFill(
@@ -68,6 +72,21 @@ export default function useAutoFill(
   WFCBusy: boolean,
   stepBack: (times: number) => any
 ): ReturnType {
+  const [autoFillErrorState, setAutoFillErrorState] = useState<{
+    error: string;
+    puzzleVersion: string;
+  } | null>(null);
+
+  // Reset fill error when auto-fill starts running again, or the puzzle
+  // changes
+  useEffect(() => {
+    if (
+      autoFillErrorState &&
+      (autoFillRunning || puzzle.version !== autoFillErrorState.puzzleVersion)
+    )
+      setAutoFillErrorState(null);
+  }, [autoFillErrorState, autoFillRunning, puzzle.version]);
+
   // the number of steps into the run we are from where we started (guards
   // against undoing something a user inputted)
   const stepsFromRunStart = useRef(0);
@@ -139,6 +158,11 @@ export default function useAutoFill(
         if (stepsFromRunStart.current <= 0) {
           // Stop running so that we don't overwrite something the user did
           setAutoFillRunning(false);
+          setAutoFillErrorState({
+            error:
+              'Auto-Fill cannot fill the puzzle from here! Try undoing recent changes or erasing words you have already placed.',
+            puzzleVersion: puzzle.version,
+          });
           return;
         }
 
@@ -164,5 +188,13 @@ export default function useAutoFill(
     setAutoFillRunning(false);
   }, [autoFillRunning, setAutoFillRunning]);
 
-  return { runAutoFill, stopAutoFill };
+  const autoFillError = useMemo(() => autoFillErrorState?.error || null, [
+    autoFillErrorState,
+  ]);
+
+  return {
+    runAutoFill,
+    stopAutoFill,
+    autoFillError,
+  };
 }

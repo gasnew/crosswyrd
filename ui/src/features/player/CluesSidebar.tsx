@@ -8,19 +8,33 @@ import {
 } from '@mui/material';
 import React, { useEffect, useMemo, useRef } from 'react';
 
+import { CrosswordPuzzleType } from '../builder/builderSlice';
 import {
   DirectionType,
   SelectedTilesStateType,
 } from '../builder/useTileSelection';
-import { TileNumbersType } from '../builder/ClueEntry';
+import {
+  AnswerGridCellType,
+  getAnswerGrid,
+  TileNumbersType,
+} from '../builder/ClueEntry';
 import { LocationType } from '../builder/CrosswordBuilder';
 import { PlayerClueType } from './CrosswordPlayer';
 
-function ClueListEntry({ entryRef, tileNumber, clue, selected, onClick }) {
+function ClueListEntry({
+  entryRef,
+  tileNumber,
+  clue,
+  selected,
+  complete,
+  onClick,
+}) {
   return (
     <ListItemButton
       className={
-        'clue-list-entry' + (selected ? ' clue-list-entry--selected' : '')
+        'clue-list-entry' +
+        (selected ? ' clue-list-entry--selected' : '') +
+        (complete ? ' clue-list-entry--complete' : '')
       }
       onClick={onClick}
     >
@@ -42,12 +56,14 @@ function ClueListEntry({ entryRef, tileNumber, clue, selected, onClick }) {
 
 function ClueList({
   direction,
+  answerGrid,
   clues,
   tileNumbers,
   updateSelection,
   selectedTilesState,
 }: {
   direction: DirectionType;
+  answerGrid: AnswerGridCellType[][];
   clues: PlayerClueType[];
   tileNumbers: TileNumbersType;
   updateSelection: (
@@ -115,6 +131,9 @@ function ClueList({
                 clue.row === selectedTileLocations[0].row &&
                 clue.column === selectedTileLocations[0].column
               }
+              complete={
+                !!answerGrid[clue.row][clue.column][direction]?.complete
+              }
               onClick={() =>
                 updateSelection(
                   { row: clue.row, column: clue.column },
@@ -130,6 +149,7 @@ function ClueList({
 }
 
 interface Props {
+  puzzle: CrosswordPuzzleType;
   clues: PlayerClueType[];
   tileNumbers: TileNumbersType;
   updateSelection: (
@@ -138,16 +158,20 @@ interface Props {
   ) => void;
   selectedTilesState: SelectedTilesStateType | null;
 }
-export default function CluesSidebar({
+function CluesSidebar({
+  puzzle,
   clues,
   tileNumbers,
   updateSelection,
   selectedTilesState,
 }: Props) {
+  const answerGrid = useMemo(() => getAnswerGrid(puzzle), [puzzle]);
+
   return (
     <>
       <ClueList
         direction="across"
+        answerGrid={answerGrid}
         clues={_.filter(clues, ['direction', 'across'])}
         tileNumbers={tileNumbers}
         updateSelection={updateSelection}
@@ -155,6 +179,7 @@ export default function CluesSidebar({
       />
       <ClueList
         direction="down"
+        answerGrid={answerGrid}
         clues={_.filter(clues, ['direction', 'down'])}
         tileNumbers={tileNumbers}
         updateSelection={updateSelection}
@@ -164,4 +189,4 @@ export default function CluesSidebar({
   );
 }
 
-// TODO memoize?
+export default React.memo(CluesSidebar);

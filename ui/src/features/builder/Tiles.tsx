@@ -1,5 +1,5 @@
 import _ from 'lodash';
-import { colors } from '@mui/material';
+import { colors, Tooltip } from '@mui/material';
 import React, {
   useCallback,
   useEffect,
@@ -105,7 +105,7 @@ function Tile({
     return () => clearTimeout(timeoutId);
   }, [tile.value]);
 
-  return (
+  const tileComponent = (
     <div
       key={columnIndex}
       className={
@@ -133,7 +133,7 @@ function Tile({
                   : 'white',
             }
           : {}),
-        cursor: wordLocationOptions ? 'pointer' : 'initial',
+        cursor: wordLocationOptions || primarySelection ? 'pointer' : 'initial',
       }}
       onMouseOver={mkHandleMouseoverTile(rowIndex, columnIndex)}
       onClick={mkHandleClickTile(rowIndex, columnIndex)}
@@ -165,6 +165,21 @@ function Tile({
       )}
     </div>
   );
+
+  if (primarySelection && selectedTilesState)
+    return (
+      <Tooltip
+        title={`Switch to ${
+          selectedTilesState.direction === 'across' ? 'down' : 'across'
+        }`}
+        placement="top"
+        arrow
+        disableInteractive
+      >
+        {tileComponent}
+      </Tooltip>
+    );
+  return tileComponent;
 }
 const MemoizedTile = React.memo(Tile);
 
@@ -185,7 +200,6 @@ interface Props {
   onMouseOut: () => void;
 }
 
-// TODO: memoize each tile
 export default function Tiles({
   puzzle,
   wave,
@@ -221,7 +235,7 @@ export default function Tiles({
         )
     );
   }, [wave, puzzle]);
-  const scale = puzzle.size === 15 ? 1 : puzzle.size === 10 ? 3 / 2 : 3;
+  const scale = puzzle.size === 15 ? 1 : puzzle.size === 10 ? 3 / 2 : 2.97;
 
   // Make special cases for handling clicking tiles so that we can make use of
   // memoizing the tile components (reduces render time from ~14ms to ~7ms)
@@ -238,7 +252,14 @@ export default function Tiles({
   return (
     <div
       className="tiles-scale-container"
-      style={{ transform: `scale(${scale})`, transformOrigin: 'top left' }}
+      style={{
+        transform:
+          `scale(${scale})` +
+          // Adjust the translation for small puzzles (otherwise, the outline
+          // gets too close to the edges of the container)
+          (puzzle.size === 5 ? ' translate(1px, 1px)' : ''),
+        transformOrigin: 'top left',
+      }}
     >
       <div className="tiles-container" onMouseOut={onMouseOut}>
         {_.map(puzzle.tiles, (row, rowIndex) => (

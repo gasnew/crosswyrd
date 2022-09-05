@@ -19,6 +19,7 @@ import {
 } from './useTileSelection';
 import { TileUpdateType } from './useWaveFunctionCollapse';
 
+const UPPERCASE_LETTERS = _.map(ALL_LETTERS, _.toUpper);
 const PERIOD = '.';
 const BACKSPACE = 'Backspace';
 const TAB = 'Tab';
@@ -31,6 +32,7 @@ const DOWN = 'ArrowDown';
 const SPACEBAR = ' ';
 const SUPPORTED_KEYS = [
   ...ALL_LETTERS,
+  ...UPPERCASE_LETTERS,
   PERIOD,
   BACKSPACE,
   TAB,
@@ -85,10 +87,15 @@ export default function useTileInput(
   const letterEntryEnabled = useSelector(selectLetterEntryEnabled);
 
   const inputKey = useCallback(
-    (key: SupportedKeysType, shift?: boolean) => {
+    (rawKey: SupportedKeysType, shift?: boolean) => {
+      // Make letter keys lowercase
+      const key = _.includes(UPPERCASE_LETTERS, rawKey)
+        ? _.toLower(rawKey)
+        : rawKey;
+      // Reject keys we don't support
       if (!_.includes(SUPPORTED_KEYS, key)) return;
-      // PERIOD is not supported in player mode
-      if (playerMode && key === PERIOD) return;
+      // PERIOD and ENTER are not supported in player mode
+      if (playerMode && (key === PERIOD || key === ENTER)) return;
       clearHoveredTile();
       if (keyStates.current[key] === 'down') return;
       keyStates.current[key] = 'down';
@@ -100,7 +107,11 @@ export default function useTileInput(
     },
     [clearHoveredTile, playerMode]
   );
-  const releaseKey = useCallback((key: SupportedKeysType) => {
+  const releaseKey = useCallback((rawKey: SupportedKeysType) => {
+    // Make letter keys lowercase
+    const key = _.includes(UPPERCASE_LETTERS, rawKey)
+      ? _.toLower(rawKey)
+      : rawKey;
     keyStates.current[key] = 'up';
   }, []);
 
@@ -245,6 +256,7 @@ export default function useTileInput(
           newPrimaryLocation = shift(newPrimaryLocation, 1);
           return [];
         } else {
+          // The key is a letter
           if (
             playerMode &&
             tileAtLocation(newPrimaryLocation).value === 'black'
@@ -292,7 +304,15 @@ export default function useTileInput(
             // The next non-letter tile is empty and is not the current
             // location, so let's move there!
             newPrimaryLocation = nextNonLetterLocation;
-          else if (!nextNonLetterTileDistance || nextNonLetterTileDistance > 1)
+          else if (
+            // We are not looking down at the bottom edge of the board
+            (newDirection === 'across' ||
+              newPrimaryLocation.row < puzzle.tiles.length - 1) &&
+            // We are not looking across at the right edge of the board
+            (newDirection === 'down' ||
+              newPrimaryLocation.column < puzzle.tiles.length - 1) &&
+            (!nextNonLetterTileDistance || nextNonLetterTileDistance > 1)
+          )
             // The next non-letter tile is black or is the edge of the board
             // but is far away, so let's advance one tile!
             newPrimaryLocation = shift(newPrimaryLocation, 1);

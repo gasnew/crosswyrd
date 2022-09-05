@@ -10,7 +10,6 @@ import TextField from '@mui/material/TextField';
 import Dialog from '@mui/material/Dialog';
 import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
-import Divider from '@mui/material/Divider';
 import NewspaperIcon from '@mui/icons-material/Newspaper';
 import LinkIcon from '@mui/icons-material/Link';
 import { v4 as uuidv4 } from 'uuid';
@@ -22,7 +21,10 @@ import {
   selectClueGrid,
 } from '../builder/builderSlice';
 import { db, logEvent } from '../../firebase';
-import KoFiButton from './KoFiButton';
+import { GarrettNote } from './KoFiButton';
+import { ShareButtons } from '../player/CompletePuzzleDialog';
+
+const CHARACTER_LIMIT = 45;
 
 const CopyAlertSnackbar = React.memo(
   ({ open, onClose }: { open: boolean; onClose: () => void }) => {
@@ -102,6 +104,11 @@ export default function PublishDialog({ open, onClose }: Props) {
     setCopyAlertSnackbarOpen(true);
     logEvent('puzzle_link_copied', { title, author, puzzleLink });
   };
+  const shareTitle = `I created a crossword puzzle called "${title}" on Crosswyrd! Check it out:`;
+  const shareHashtag = 'crosswyrd';
+  const mkHandleShareClick = (appName: string) => () => {
+    logEvent('puzzle_link_shared', { title, author, appName });
+  };
 
   return (
     <Dialog
@@ -136,7 +143,9 @@ export default function PublishDialog({ open, onClose }: Props) {
                 variant="standard"
                 style={{ margin: 'auto', marginTop: 12 }}
                 value={title}
-                onChange={(event) => setTitle(event.target.value)}
+                onChange={(event) =>
+                  setTitle(event.target.value.slice(0, CHARACTER_LIMIT))
+                }
                 onKeyPress={(event) => {
                   if (event.key === 'Enter') {
                     event.preventDefault();
@@ -149,7 +158,9 @@ export default function PublishDialog({ open, onClose }: Props) {
                 variant="standard"
                 style={{ margin: 'auto', marginTop: 12 }}
                 value={author}
-                onChange={(event) => setAuthor(event.target.value)}
+                onChange={(event) =>
+                  setAuthor(event.target.value.slice(0, CHARACTER_LIMIT))
+                }
                 onKeyPress={(event) => {
                   if (event.key === 'Enter') {
                     event.preventDefault();
@@ -211,16 +222,15 @@ export default function PublishDialog({ open, onClose }: Props) {
                   {puzzleLink}
                 </pre>
               </div>
-              <Divider style={{ margin: 12 }} />
-              <p>
-                By the way, if you're enjoying Crosswyrd, it really helps me to
-                drop a donation! Your donations make it possible for me to
-                develop and maintain this passion project. Thank you.
-              </p>
-              <p>- Garrett </p>
-              <div style={{ display: 'flex', margin: 'auto' }}>
-                <KoFiButton />
+              <div style={{ display: 'flex', width: '100%', marginTop: 16 }}>
+                <ShareButtons
+                  shareUrl={puzzleLink}
+                  shareTitle={shareTitle}
+                  shareHashtag={shareHashtag}
+                  mkHandleShareClick={mkHandleShareClick}
+                />
               </div>
+              <GarrettNote />
             </>
           )}
         </div>

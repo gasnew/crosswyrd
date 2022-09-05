@@ -1,0 +1,148 @@
+.welcome-dialog-intro {
+  font-style: italic !important;
+  text-align: center !important;
+  font-size: 18px !important;
+  margin-bottom: 12px;
+}
+
+.keyboard-mapping-container {
+  background-color: #fafbfb;
+  margin-top: 8px;
+  margin-bottom: 8px;
+}
+
+.keyboard-mapping {
+  display: flex;
+  flex-direction: row;
+}
+
+.keyboard-mapping-description {
+  margin: auto;
+  margin-right: 6px;
+  width: 200px;
+  text-align: right;
+}
+
+.keyboard-mapping-keys {
+  margin: auto;
+  margin-left: 6px;
+  width: 160px;
+}
+
+kbd {
+  font-size: inherit;
+  line-height: inherit;
+  margin: 0.25rem 0.25rem 0.4375rem;
+  padding: 0.1rem 0.4rem;
+  box-shadow: 0 0 #d9d9d9, 0 0 #d9d9d9, 0 1px #d9d9d9, 0 2px #d9d9d9,
+    0 3px #d9d9d9, 0 4px #d9d9d9, 0 5px #d9d9d9;
+  background-color: #fff;
+  color: #343a40;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  border: 1px solid #e6e6e6;
+  border-radius: 0.25rem;
+  display: inline-block;
+  font-family: SFMono-Regular, Menlo, Monaco, Consolas, Liberation Mono,
+    Courier New, monospace;
+  font-weight: 400;
+  text-align: left;
+  transform: translateZ(5px);
+  transform-style: preserve-3d;
+}
+
+.inline-kbd-container {
+  display: inline-block;
+  height: 16px;
+  width: 21px;
+  position: relative;
+}
+
+.inline-kbd {
+  position: absolute;
+  transform: translate(-5px, -5px);
+  line-height: 1;
+  padding-left: 4px;
+  padding-right: 4px;
+}
+
+.welcome-dialog-img {
+  margin-left: auto;
+  margin-right: auto;
+  background-color: #fafbfb;
+  margin-top: 8px;
+  margin-bottom: 8px;
+  max-height: 100%;
+  max-width: 100%;
+}
+
+.welcome-dialog-actions {
+  width: 100%;
+  padding: 4px;
+  padding-top: 0;
+  margin-top: 8px;
+  display: flex;
+  flex-direction: row;
+}
+
+.welcome-dialog-do-not-show {
+  margin: auto;
+  margin-left: 0;
+}
+
+.navbar-crosswyrd-logo {
+  margin: 12px;
+  margin-right: 0px;
+  max-height: 35px;
+}
+
+.navbar-puzzle-title-container {
+  margin: auto;
+  max-width: 500px;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  font-weight: 500;
+  vertical-align: text-bottom;
+  line-height: 1.1;
+}
+
+.navbar-puzzle-title {
+  /* Really complicated CSS to allow titles to span up to two lines and
+   * terminate with ellipsis when all else fails. Edit with care! Also note how
+   * the "author" CSS below copies some code from this class. Edit both in
+   * tandem. */
+  display: inline-block;
+  font-size: min(4.25vw, 22px);
+  max-width: calc(100vw - 135px);
+  line-height: min(4.25vw, 26px);
+  max-height: calc(min(4.25vw, 26px) * 2);
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2; /* number of lines to show */
+  overflow: hidden;
+}
+
+.navbar-puzzle-author {
+  display: inline-block;
+  font-size: calc(min(4.25vw, 22px) / 2);
+  max-width: calc(100vw - 135px);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: right;
+  overflow: hidden;
+}
+
+.navbar-puzzle-crosswyrd {
+  margin-top: auto;
+  margin-bottom: auto;
+  margin-left: 8px;
+  font-weight: 500;
+  font-size: 14px;
+}
+
+.navbar-puzzle-crosswyrd-logo-and-title {
+  display: flex;
+  flex-direction: row;
+  margin-left: 4px;
+}
