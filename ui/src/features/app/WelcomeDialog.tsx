@@ -90,7 +90,6 @@ export default function WelcomeDialog({ open, showCheckbox, onClose }: Props) {
   const [boxChecked, setBoxChecked] = useState(false);
 
   const handleBoxClick = useCallback(() => {
-    console.log('hmm');
     setBoxChecked(!boxChecked);
   }, [boxChecked]);
 
