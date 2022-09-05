@@ -3,7 +3,6 @@
   text-align: center !important;
   font-size: 18px !important;
   margin-bottom: 12px;
-  /*color: #0d47a1;*/
 }
 
 .keyboard-mapping-container {
@@ -89,4 +88,54 @@ kbd {
 .welcome-dialog-do-not-show {
   margin: auto;
   margin-left: 0;
+}
+
+.navbar-crosswyrd-logo {
+  margin: 12px;
+  margin-right: 0px;
+  max-height: 35px;
+}
+
+.navbar-puzzle-title-container {
+  margin: auto;
+  max-width: 500px;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  font-weight: 500;
+  vertical-align: text-bottom;
+  line-height: 1.1;
+}
+
+.navbar-puzzle-title {
+  display: inline-block;
+  font-size: min(5vw, 26px);
+  max-width: calc(100vw - 135px);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.navbar-puzzle-author {
+  display: inline-block;
+  font-size: calc(min(5vw, 26px) / 2);
+  max-width: calc(100vw - 135px);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: right;
+  overflow: hidden;
+}
+
+.navbar-puzzle-crosswyrd {
+  margin-top: auto;
+  margin-bottom: auto;
+  margin-left: 8px;
+  font-weight: 500;
+  font-size: 14px;
+}
+
+.navbar-puzzle-crosswyrd-logo-and-title {
+  display: flex;
+  flex-direction: row;
+  margin-left: 4px;
 }

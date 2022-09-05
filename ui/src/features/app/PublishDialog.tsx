@@ -24,6 +24,8 @@ import { db, logEvent } from '../../firebase';
 import { GarrettNote } from './KoFiButton';
 import { ShareButtons } from '../player/CompletePuzzleDialog';
 
+const CHARACTER_LIMIT = 45;
+
 const CopyAlertSnackbar = React.memo(
   ({ open, onClose }: { open: boolean; onClose: () => void }) => {
     return (
@@ -141,7 +143,9 @@ export default function PublishDialog({ open, onClose }: Props) {
                 variant="standard"
                 style={{ margin: 'auto', marginTop: 12 }}
                 value={title}
-                onChange={(event) => setTitle(event.target.value)}
+                onChange={(event) =>
+                  setTitle(event.target.value.slice(0, CHARACTER_LIMIT))
+                }
                 onKeyPress={(event) => {
                   if (event.key === 'Enter') {
                     event.preventDefault();
@@ -154,7 +158,9 @@ export default function PublishDialog({ open, onClose }: Props) {
                 variant="standard"
                 style={{ margin: 'auto', marginTop: 12 }}
                 value={author}
-                onChange={(event) => setAuthor(event.target.value)}
+                onChange={(event) =>
+                  setAuthor(event.target.value.slice(0, CHARACTER_LIMIT))
+                }
                 onKeyPress={(event) => {
                   if (event.key === 'Enter') {
                     event.preventDefault();

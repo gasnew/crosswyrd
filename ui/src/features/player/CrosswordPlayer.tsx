@@ -298,7 +298,9 @@ export default function CrosswordPlayer() {
           <title>Crosswyrd - {puzzleMetadata.title}</title>
         </Helmet>
       )}
-      <Navbar>{(handleClose) => <DrawerContents />}</Navbar>
+      <Navbar meta={puzzleMetadata}>
+        {(handleClose) => <DrawerContents />}
+      </Navbar>
       <div
         className="puzzle-player-sheets-container"
         style={{

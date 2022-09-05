@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useDispatch } from 'react-redux';
 import AppBar from '@mui/material/AppBar';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
@@ -9,9 +9,39 @@ import IconButton from '@mui/material/IconButton';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import MenuIcon from '@mui/icons-material/Menu';
 import Toolbar from '@mui/material/Toolbar';
-import Typography from '@mui/material/Typography';
 
 import { setWelcomeDialogState } from '../builder/builderSlice';
+import { PuzzleMetadataType } from '../player/CrosswordPlayer';
+
+const SHOW_FULL_CROSSWYRD_WIDTH = 730;
+
+function useShowFullCrosswyrd(): boolean {
+  const [show, setShow] = useState<boolean>(false);
+
+  const onResize = useCallback(() => {
+    if (!show && window.innerWidth > SHOW_FULL_CROSSWYRD_WIDTH) setShow(true);
+    if (show && window.innerWidth <= SHOW_FULL_CROSSWYRD_WIDTH) setShow(false);
+  }, [show]);
+
+  // Set on load
+  const init = useRef(false);
+  useEffect(() => {
+    if (init.current) return;
+    init.current = true;
+    onResize();
+    setTimeout(() => onResize(), 1000);
+  }, [onResize]);
+
+  // Add resize listener
+  useEffect(() => {
+    window.addEventListener('resize', onResize);
+    return () => {
+      window.removeEventListener('resize', onResize);
+    };
+  }, [onResize]);
+
+  return show;
+}
 
 const drawerWidth = 200;
 
@@ -26,16 +56,25 @@ function DrawerControls({
 }) {
   return (
     <div>
-      <Toolbar>
+      <Toolbar style={{ height: 64 }}>
         <IconButton
           color="inherit"
           aria-label="close drawer"
           edge="start"
           onClick={handleDrawerToggle}
-          sx={supportsDesktopSidebar ? { mr: 2, display: { lg: 'none' } } : {}}
+          sx={supportsDesktopSidebar ? { display: { lg: 'none' } } : {}}
         >
           <ArrowBackIcon />
         </IconButton>
+        <div className="navbar-puzzle-crosswyrd-logo-and-title">
+          <img
+            src="/logo152.png"
+            alt="Crosswyrd"
+            className="navbar-crosswyrd-logo"
+            style={{ margin: 'auto' }}
+          />
+          <span className="navbar-puzzle-crosswyrd">CROSSWYRD</span>
+        </div>
       </Toolbar>
       <Divider style={{ height: 0 }} />
       <Box sx={{ overflow: 'auto' }}>{children(handleDrawerToggle)}</Box>
@@ -46,12 +85,14 @@ interface Props {
   children: (handleClose: () => void) => React.ReactNode;
   supportsDesktopSidebar?: boolean;
   showInfoButton?: boolean;
+  meta?: PuzzleMetadataType | null;
 }
 
 export default function Navbar({
   children,
   supportsDesktopSidebar,
   showInfoButton,
+  meta,
 }: Props) {
   const [mobileOpen, setMobileOpen] = React.useState(false);
 
@@ -63,6 +104,7 @@ export default function Navbar({
   const handleOpenInfo = () => {
     dispatch(setWelcomeDialogState({ open: true, showCheckbox: false }));
   };
+  const showFullCrosswyrd = useShowFullCrosswyrd();
 
   return (
     <>
@@ -82,7 +124,7 @@ export default function Navbar({
         }}
         elevation={0}
       >
-        <Toolbar style={{ height: 64 }}>
+        <Toolbar style={{ height: 64, width: '100%' }}>
           <IconButton
             color="inherit"
             aria-label="open drawer"
@@ -94,22 +136,46 @@ export default function Navbar({
           >
             <MenuIcon />
           </IconButton>
-          <Typography
-            variant="h6"
-            noWrap
-            component="div"
-            style={{ margin: 'auto' }}
+          <Box
+            sx={
+              supportsDesktopSidebar
+                ? {
+                    display: { xs: 'flex', lg: 'none' },
+                  }
+                : { display: 'flex' }
+            }
           >
-            CROSSWYRD
-          </Typography>
-          <IconButton
-            color="inherit"
-            aria-label="show info"
-            edge="start"
-            onClick={handleOpenInfo}
-          >
-            <HelpOutlineIcon />
-          </IconButton>
+            <img
+              src="/logo152.png"
+              alt="Crosswyrd"
+              className="navbar-crosswyrd-logo"
+            />
+            {(showFullCrosswyrd || supportsDesktopSidebar) && (
+              <span className="navbar-puzzle-crosswyrd">CROSSWYRD</span>
+            )}
+          </Box>
+          {meta && (
+            <>
+              <Divider orientation="vertical" flexItem style={{ margin: 16 }} />
+              <div className="navbar-puzzle-title-container">
+                <span className="navbar-puzzle-title">{meta.title}</span>
+                <span className="navbar-puzzle-author">
+                  by&nbsp;{meta.author}
+                </span>
+              </div>
+            </>
+          )}
+          {showInfoButton && (
+            <IconButton
+              color="inherit"
+              aria-label="show info"
+              edge="start"
+              onClick={handleOpenInfo}
+              style={{ marginLeft: 'auto' }}
+            >
+              <HelpOutlineIcon />
+            </IconButton>
+          )}
         </Toolbar>
       </AppBar>
       <Box
