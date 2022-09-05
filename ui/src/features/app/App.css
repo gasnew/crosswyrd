@@ -108,17 +108,24 @@ kbd {
 }
 
 .navbar-puzzle-title {
+  /* Really complicated CSS to allow titles to span up to two lines and
+   * terminate with ellipsis when all else fails. Edit with care! Also note how
+   * the "author" CSS below copies some code from this class. Edit both in
+   * tandem. */
   display: inline-block;
-  font-size: min(5vw, 26px);
+  font-size: min(4.25vw, 22px);
   max-width: calc(100vw - 135px);
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  line-height: min(4.25vw, 26px);
+  max-height: calc(min(4.25vw, 26px) * 2);
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2; /* number of lines to show */
   overflow: hidden;
 }
 
 .navbar-puzzle-author {
   display: inline-block;
-  font-size: calc(min(5vw, 26px) / 2);
+  font-size: calc(min(4.25vw, 22px) / 2);
   max-width: calc(100vw - 135px);
   text-overflow: ellipsis;
   white-space: nowrap;

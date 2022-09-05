@@ -158,7 +158,7 @@ export default function Navbar({
             <>
               <Divider orientation="vertical" flexItem style={{ margin: 16 }} />
               <div className="navbar-puzzle-title-container">
-                <span className="navbar-puzzle-title">{meta.title}</span>
+                <div className="navbar-puzzle-title">{meta.title}</div>
                 <span className="navbar-puzzle-author">
                   by&nbsp;{meta.author}
                 </span>

@@ -105,7 +105,7 @@
   + scale puzzle correctly for various screen sizes
 + support 10x10 and 5x5 boards
 + Ko-Fi for donations
-/ QoL pt2
++ QoL pt2
   + banner and dropdown
     + build button on player
   + state persistence
@@ -136,7 +136,7 @@
     + Next
   + fix undoing to larger puzzle
   + auto-fill popup when it backtracks to beginning
-  - show title and author in player
+  + show title and author in player
 - add license?
 
 - INITIAL RELEASE!
