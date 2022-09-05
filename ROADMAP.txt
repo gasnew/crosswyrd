@@ -135,7 +135,7 @@
     + Clear
     + Next
   + fix undoing to larger puzzle
-  - auto-fill popup when it backtracks to beginning
+  + auto-fill popup when it backtracks to beginning
   - show title and author in player
 - add license?
 

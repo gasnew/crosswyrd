@@ -110,6 +110,7 @@ function FillAssistState({ state }: { state: FillAssistStateType }) {
       placement="top"
       arrow
       disableInteractive
+      enterDelay={500}
     >
       <div
         style={{
@@ -203,21 +204,38 @@ export default function PuzzleBanner({
 
   return (
     <div className="puzzle-banner-container">
-      <Tooltip title="Undo" placement="top" arrow disableInteractive>
-        <IconButton disabled={undoDisabled} onClick={undo} component="span">
-          <UndoIcon />
-        </IconButton>
+      <Tooltip
+        title="Undo"
+        placement="top"
+        arrow
+        disableInteractive
+        enterDelay={500}
+      >
+        <span>
+          <IconButton disabled={undoDisabled} onClick={undo} component="span">
+            <UndoIcon />
+          </IconButton>
+        </span>
       </Tooltip>
-      <Tooltip title="Redo" placement="top" arrow disableInteractive>
-        <IconButton disabled={redoDisabled} onClick={redo} component="span">
-          <RedoIcon />
-        </IconButton>
+      <Tooltip
+        title="Redo"
+        placement="top"
+        arrow
+        disableInteractive
+        enterDelay={500}
+      >
+        <span>
+          <IconButton disabled={redoDisabled} onClick={redo} component="span">
+            <RedoIcon />
+          </IconButton>
+        </span>
       </Tooltip>
       <Tooltip
         title="Clear all letters"
         placement="top"
         arrow
         disableInteractive
+        enterDelay={500}
       >
         <div style={{ marginTop: 'auto', marginBottom: 'auto' }}>
           <Button disabled={WFCBusy || autoFillRunning} onClick={clearLetters}>
@@ -230,6 +248,7 @@ export default function PuzzleBanner({
         placement="top"
         arrow
         disableInteractive
+        enterDelay={500}
       >
         <div style={{ marginTop: 'auto', marginBottom: 'auto' }}>
           <Button
@@ -265,6 +284,7 @@ export default function PuzzleBanner({
         placement="top"
         arrow
         disableInteractive
+        enterDelay={500}
       >
         <FormGroup
           style={{ marginTop: 'auto', marginBottom: 'auto', marginLeft: 12 }}
@@ -303,6 +323,7 @@ export default function PuzzleBanner({
             placement="top"
             arrow
             disableInteractive
+            enterDelay={500}
           >
             <div
               style={{ marginTop: 'auto', marginBottom: 'auto', marginLeft: 8 }}
