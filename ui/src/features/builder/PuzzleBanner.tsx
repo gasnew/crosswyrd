@@ -204,12 +204,12 @@ export default function PuzzleBanner({
   return (
     <div className="puzzle-banner-container">
       <Tooltip title="Undo" placement="top" arrow disableInteractive>
-        <IconButton disabled={undoDisabled} onClick={undo}>
+        <IconButton disabled={undoDisabled} onClick={undo} component="span">
           <UndoIcon />
         </IconButton>
       </Tooltip>
       <Tooltip title="Redo" placement="top" arrow disableInteractive>
-        <IconButton disabled={redoDisabled} onClick={redo}>
+        <IconButton disabled={redoDisabled} onClick={redo} component="span">
           <RedoIcon />
         </IconButton>
       </Tooltip>

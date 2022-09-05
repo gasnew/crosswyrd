@@ -1,10 +1,11 @@
 import _ from 'lodash';
 import { Input, List, ListItem, ListSubheader } from '@mui/material';
-import React, { useLayoutEffect, useMemo, useRef } from 'react';
+import React, { useEffect, useLayoutEffect, useMemo, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
 import {
   CrosswordPuzzleType,
+  initClueGrid,
   selectClueGrid,
   setClue,
   TileType,
@@ -77,7 +78,9 @@ export interface AnswerGridCellType {
   across: AnswerType | null;
   down: AnswerType | null;
 }
-export function getAnswerGrid(puzzle: CrosswordPuzzleType): AnswerGridCellType[][] {
+export function getAnswerGrid(
+  puzzle: CrosswordPuzzleType
+): AnswerGridCellType[][] {
   // Returns a list of all answers on the board
   const solid = (tile: TileType): boolean => !tile || tile.value === 'black';
   return _.map(puzzle.tiles, (row, rowIndex) =>
@@ -262,7 +265,14 @@ function ClueEntry({
   const selectAnswer = (direction, row, column, answer) =>
     updateSelection({ row, column }, direction);
 
-  if (!clueGrid) return null;
+  // Resize the clue grid if the puzzle size has changed. This can happen when
+  // traversing history--only puzzle and wave are included there.
+  useEffect(() => {
+    if (clueGrid && clueGrid.length !== puzzle.tiles.length)
+      dispatch(initClueGrid({ size: puzzle.tiles.length }));
+  }, [dispatch, clueGrid, puzzle.tiles.length]);
+
+  if (!clueGrid || clueGrid.length !== puzzle.tiles.length) return null;
   return (
     <List
       sx={{

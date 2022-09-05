@@ -126,7 +126,7 @@
   + add explainer and info button for builder
   + start next clue from first empty tile
   + include share buttons when publishing a puzzle
-  - tooltips! tooltips everywhere!
+  + tooltips! tooltips everywhere!
     + NYT <3-letter words rule
     + Fill Assist
     + Undo
@@ -134,8 +134,8 @@
     + Auto-Fill
     + Clear
     + Next
+  + fix undoing to larger puzzle
   - auto-fill popup when it backtracks to beginning
-  - fix undoing to larger puzzle (just reset history when new puzzle?)
   - show title and author in player
 - add license?
 
