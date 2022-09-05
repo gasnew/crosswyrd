@@ -1,3 +1,4 @@
+import _ from 'lodash';
 import CloseIcon from '@mui/icons-material/Close';
 import UndoIcon from '@mui/icons-material/Undo';
 import RedoIcon from '@mui/icons-material/Redo';
@@ -13,6 +14,7 @@ import {
   Divider,
   IconButton,
   Popover,
+  Tooltip,
   Typography,
 } from '@mui/material';
 import { useEffect, useRef, useState } from 'react';
@@ -103,46 +105,53 @@ function FillAssistState({ state }: { state: FillAssistStateType }) {
   }, [state]);
 
   return (
-    <div
-      style={{
-        marginTop: 'auto',
-        marginBottom: 'auto',
-        marginLeft: -10,
-        display: 'flex',
-        width: 24,
-        height: 24,
-        position: 'relative',
-      }}
+    <Tooltip
+      title={`Fill assist state: ${_.capitalize(state)}`}
+      placement="top"
+      arrow
+      disableInteractive
     >
-      <DoneIcon
-        className={
-          'fill-state-icon ' +
-          (state === 'success' ? 'rotate-in' : 'rotate-out')
-        }
-        color="primary"
-      />
-      {errorVisible && (
-        <CloseIcon
+      <div
+        style={{
+          marginTop: 'auto',
+          marginBottom: 'auto',
+          marginLeft: -10,
+          display: 'flex',
+          width: 24,
+          height: 24,
+          position: 'relative',
+        }}
+      >
+        <DoneIcon
           className={
             'fill-state-icon ' +
-            (state === 'error' ? 'rotate-in' : 'rotate-out')
+            (state === 'success' ? 'rotate-in' : 'rotate-out')
           }
-          color="error"
+          color="primary"
         />
-      )}
-      {spinnerVisible && (
-        <div
-          className={'fill-state-icon fill-state-progress'}
-          style={{
-            top: -3,
-            left: 2,
-            opacity: state === 'running' ? 1 : 0,
-          }}
-        >
-          <CircularProgress size={20} thickness={5} />
-        </div>
-      )}
-    </div>
+        {errorVisible && (
+          <CloseIcon
+            className={
+              'fill-state-icon ' +
+              (state === 'error' ? 'rotate-in' : 'rotate-out')
+            }
+            color="error"
+          />
+        )}
+        {spinnerVisible && (
+          <div
+            className={'fill-state-icon fill-state-progress'}
+            style={{
+              top: -3,
+              left: 2,
+              opacity: state === 'running' ? 1 : 0,
+            }}
+          >
+            <CircularProgress size={20} thickness={5} />
+          </div>
+        )}
+      </div>
+    </Tooltip>
   );
 }
 
@@ -194,45 +203,89 @@ export default function PuzzleBanner({
 
   return (
     <div className="puzzle-banner-container">
-      <IconButton disabled={undoDisabled} onClick={undo}>
-        <UndoIcon />
-      </IconButton>
-      <IconButton disabled={redoDisabled} onClick={redo}>
-        <RedoIcon />
-      </IconButton>
-      <div style={{ marginTop: 'auto', marginBottom: 'auto' }}>
-        <Button disabled={WFCBusy || autoFillRunning} onClick={clearLetters}>
-          Clear
-        </Button>
-      </div>
-      <div style={{ marginTop: 'auto', marginBottom: 'auto' }}>
-        <Button disabled={WFCBusy || autoFillRunning} onClick={selectBestNext}>
-          Next
-        </Button>
-      </div>
+      <Tooltip title="Undo" placement="top" arrow disableInteractive>
+        <IconButton disabled={undoDisabled} onClick={undo}>
+          <UndoIcon />
+        </IconButton>
+      </Tooltip>
+      <Tooltip title="Redo" placement="top" arrow disableInteractive>
+        <IconButton disabled={redoDisabled} onClick={redo}>
+          <RedoIcon />
+        </IconButton>
+      </Tooltip>
+      <Tooltip
+        title="Clear all letters"
+        placement="top"
+        arrow
+        disableInteractive
+      >
+        <div style={{ marginTop: 'auto', marginBottom: 'auto' }}>
+          <Button disabled={WFCBusy || autoFillRunning} onClick={clearLetters}>
+            Clear
+          </Button>
+        </div>
+      </Tooltip>
+      <Tooltip
+        title="Select the next best (most constrained) answer to fill"
+        placement="top"
+        arrow
+        disableInteractive
+      >
+        <div style={{ marginTop: 'auto', marginBottom: 'auto' }}>
+          <Button
+            disabled={WFCBusy || autoFillRunning}
+            onClick={selectBestNext}
+          >
+            Next
+          </Button>
+        </div>
+      </Tooltip>
       <Divider
         orientation="vertical"
         variant="middle"
         flexItem
         style={{ marginLeft: 8, marginRight: 8 }}
       />
-      <FormGroup
-        style={{ marginTop: 'auto', marginBottom: 'auto', marginLeft: 12 }}
-        ref={setFillAssistElement}
+      <Tooltip
+        title={
+          <span>
+            Fill Assist is{' '}
+            <span style={{ fontWeight: 'bold' }}>
+              {fillAssistActive ? 'on' : 'off'}
+            </span>
+            . When on, Fill Assist will partially solve the board to show you
+            how constrained each tile is. Darker blue means more constrained.
+            The Fill and Word Bank tabs use this information to suggest words or
+            locations that may work well on the board. It is recommended to turn
+            on Fill Assist once all black tiles have been placed on the board
+            (i.e., the board is constrained enough that partially solving the
+            board is possible).
+          </span>
+        }
+        placement="top"
+        arrow
+        disableInteractive
       >
-        <FormControlLabel
-          control={
-            <Switch
-              disabled={WFCBusy || autoFillRunning}
-              size="small"
-              checked={fillAssistActive}
-              onChange={() => dispatch(setFillAssistActive(!fillAssistActive))}
-            />
-          }
-          label="Fill Assist"
-          style={{ userSelect: 'none' }}
-        />
-      </FormGroup>
+        <FormGroup
+          style={{ marginTop: 'auto', marginBottom: 'auto', marginLeft: 12 }}
+          ref={setFillAssistElement}
+        >
+          <FormControlLabel
+            control={
+              <Switch
+                disabled={WFCBusy || autoFillRunning}
+                size="small"
+                checked={fillAssistActive}
+                onChange={() =>
+                  dispatch(setFillAssistActive(!fillAssistActive))
+                }
+              />
+            }
+            label="Fill Assist"
+            style={{ userSelect: 'none' }}
+          />
+        </FormGroup>
+      </Tooltip>
       {fillAssistElement && <FillAssistPopover anchorEl={fillAssistElement} />}
       {fillAssistActive && (
         <>
@@ -245,19 +298,26 @@ export default function PuzzleBanner({
                 : 'success'
             }
           />
-          <div
-            style={{ marginTop: 'auto', marginBottom: 'auto', marginLeft: 8 }}
+          <Tooltip
+            title="Automatically fill the rest of the board"
+            placement="top"
+            arrow
+            disableInteractive
           >
-            <Button
-              variant="contained"
-              onClick={!autoFillRunning ? handleClickRun : handleClickStop}
-              disabled={(WFCBusy || autoFillErrored) && !autoFillRunning}
-              color={autoFillRunning ? 'error' : 'primary'}
-              endIcon={autoFillRunning ? <StopIcon /> : <PlayArrowIcon />}
+            <div
+              style={{ marginTop: 'auto', marginBottom: 'auto', marginLeft: 8 }}
             >
-              {autoFillRunning ? 'Stop' : 'Auto-Fill'}
-            </Button>
-          </div>
+              <Button
+                variant="contained"
+                onClick={!autoFillRunning ? handleClickRun : handleClickStop}
+                disabled={(WFCBusy || autoFillErrored) && !autoFillRunning}
+                color={autoFillRunning ? 'error' : 'primary'}
+                endIcon={autoFillRunning ? <StopIcon /> : <PlayArrowIcon />}
+              >
+                {autoFillRunning ? 'Stop' : 'Auto-Fill'}
+              </Button>
+            </div>
+          </Tooltip>
         </>
       )}
     </div>

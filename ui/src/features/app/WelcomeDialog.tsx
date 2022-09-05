@@ -189,12 +189,13 @@ export default function WelcomeDialog({ open, showCheckbox, onClose }: Props) {
         <Img src="/gifs/fill.gif" alt="Filling the Board" />
         <p>
           You'll start with selecting a grid pattern. The classic way to
-          construct a crossword is to start with a blank grid, but you can pick
-          from an array of preset patterns instead for a quick start. If it's
-          your first time constructing a puzzle, starting with a 5x5 grid is a
-          good way to get your feet wet. As you place and remove black tiles
-          with <InlineKbd>.</InlineKbd>, you'll notice that the black tiles
-          maintain rotational symmetry. This is a common pattern for dense
+          construct a crossword is to start with a blank grid and place long
+          theme words while constraining the board with black tiles. But you can
+          pick from an array of preset patterns instead for a quick start. If
+          it's your first time constructing a puzzle, starting with a 5x5 grid
+          is a good way to get your feet wet. As you place and remove black
+          tiles with <InlineKbd>.</InlineKbd>, you'll notice that the black
+          tiles maintain rotational symmetry. This is a common pattern for dense
           crossword puzzles like this. For example, the New York Times require
           symmetry for their crossword submissions.
         </p>

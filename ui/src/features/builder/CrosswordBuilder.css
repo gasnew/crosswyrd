@@ -50,6 +50,8 @@ body,
 .tiles-scale-container {
   height: 526px;
   width: 525px;
+  /* Place it behind puzzle stats */
+  z-index: 0;
 }
 
 .tiles-container {
@@ -355,4 +357,7 @@ body,
   height: 32px;
   padding-top: 12px;
   display: flex;
+  user-select: none;
+  /* Place it above tiles */
+  z-index: 10;
 }
