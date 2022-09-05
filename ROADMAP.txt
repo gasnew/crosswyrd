@@ -125,7 +125,7 @@
   + fix styling
   + add explainer and info button for builder
   + start next clue from first empty tile
-  - include share buttons when publishing a puzzle
+  + include share buttons when publishing a puzzle
   - tooltips! tooltips everywhere!
     - NYT <3-letter words rule
     - Fill Assist

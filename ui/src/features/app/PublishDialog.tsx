@@ -22,6 +22,7 @@ import {
 } from '../builder/builderSlice';
 import { db, logEvent } from '../../firebase';
 import { GarrettNote } from './KoFiButton';
+import { ShareButtons } from '../player/CompletePuzzleDialog';
 
 const CopyAlertSnackbar = React.memo(
   ({ open, onClose }: { open: boolean; onClose: () => void }) => {
@@ -100,6 +101,11 @@ export default function PublishDialog({ open, onClose }: Props) {
     copy(puzzleLink);
     setCopyAlertSnackbarOpen(true);
     logEvent('puzzle_link_copied', { title, author, puzzleLink });
+  };
+  const shareTitle = `I created a crossword puzzle called "${title}" on Crosswyrd! Check it out:`;
+  const shareHashtag = 'crosswyrd';
+  const mkHandleShareClick = (appName: string) => () => {
+    logEvent('puzzle_link_shared', { title, author, appName });
   };
 
   return (
@@ -209,6 +215,14 @@ export default function PublishDialog({ open, onClose }: Props) {
                 >
                   {puzzleLink}
                 </pre>
+              </div>
+              <div style={{ display: 'flex', width: '100%', marginTop: 16 }}>
+                <ShareButtons
+                  shareUrl={puzzleLink}
+                  shareTitle={shareTitle}
+                  shareHashtag={shareHashtag}
+                  mkHandleShareClick={mkHandleShareClick}
+                />
               </div>
               <GarrettNote />
             </>

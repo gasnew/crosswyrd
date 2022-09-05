@@ -28,6 +28,51 @@ import { logEvent } from '../../firebase';
 // tap events close the dialog immediately after it is opened.
 const DIALOG_CLOSE_DELAY_MS = 200;
 
+export function ShareButtons({
+  shareUrl,
+  shareTitle,
+  shareHashtag,
+  mkHandleShareClick,
+}) {
+  return (
+    <div className="share-buttons">
+      <TwitterShareButton
+        url={shareUrl}
+        title={shareTitle}
+        hashtags={[shareHashtag]}
+        className="share-button"
+        onClick={mkHandleShareClick('twitter')}
+      >
+        <TwitterIcon size={32} round />
+      </TwitterShareButton>
+      <FacebookShareButton
+        url={shareUrl}
+        quote={shareTitle}
+        hashtag={`#${shareHashtag}`}
+        className="share-button"
+        onClick={mkHandleShareClick('facebook')}
+      >
+        <FacebookIcon size={32} round />
+      </FacebookShareButton>
+      <RedditShareButton
+        url={shareUrl}
+        title={shareTitle}
+        className="share-button"
+        onClick={mkHandleShareClick('reddit')}
+      >
+        <RedditIcon size={32} round />
+      </RedditShareButton>
+      <EmailShareButton
+        url={shareUrl}
+        subject={shareTitle}
+        onClick={mkHandleShareClick('email')}
+      >
+        <EmailIcon size={32} round />
+      </EmailShareButton>
+    </div>
+  );
+}
+
 interface Props {
   puzzle: CrosswordPuzzleType;
   puzzleKey: CrosswordPuzzleType;
@@ -112,41 +157,12 @@ export default function CompletePuzzleDialog({
           </div>
           <div className="share-container">
             <div className="share-content">
-              <div className="share-buttons">
-                <TwitterShareButton
-                  url={shareUrl}
-                  title={shareTitle}
-                  hashtags={[shareHashtag]}
-                  className="share-button"
-                  onClick={mkHandleShareClick('twitter')}
-                >
-                  <TwitterIcon size={32} round />
-                </TwitterShareButton>
-                <FacebookShareButton
-                  url={shareUrl}
-                  quote={shareTitle}
-                  hashtag={`#${shareHashtag}`}
-                  className="share-button"
-                  onClick={mkHandleShareClick('facebook')}
-                >
-                  <FacebookIcon size={32} round />
-                </FacebookShareButton>
-                <RedditShareButton
-                  url={shareUrl}
-                  title={shareTitle}
-                  className="share-button"
-                  onClick={mkHandleShareClick('reddit')}
-                >
-                  <RedditIcon size={32} round />
-                </RedditShareButton>
-                <EmailShareButton
-                  url={shareUrl}
-                  subject={shareTitle}
-                  onClick={mkHandleShareClick('email')}
-                >
-                  <EmailIcon size={32} round />
-                </EmailShareButton>
-              </div>
+              <ShareButtons
+                shareUrl={shareUrl}
+                shareTitle={shareTitle}
+                shareHashtag={shareHashtag}
+                mkHandleShareClick={mkHandleShareClick}
+              />
               <Divider
                 variant="middle"
                 flexItem
