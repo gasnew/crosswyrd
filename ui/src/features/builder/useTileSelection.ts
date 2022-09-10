@@ -7,7 +7,7 @@ import {
   selectCurrentTab,
   selectFillAssistActive,
 } from './builderSlice';
-import { getFlattenedAnswers } from './ClueEntry';
+import { AnswerEntryType, getFlattenedAnswers } from './ClueEntry';
 import { LocationType } from './CrosswordBuilder';
 import { WaveAndPuzzleType } from './useWaveAndPuzzleHistory';
 import { ElementType, WaveType } from './useWaveFunctionCollapse';
@@ -88,6 +88,7 @@ interface ReturnType {
   clearSelection: () => void;
   selectBestNext: (state?: WaveAndPuzzleType) => void;
   selectNextAnswer: (forward: boolean) => void;
+  selectAnswer: (answer: AnswerEntryType, endOfAnswer?: boolean) => void;
 }
 
 export default function useTileSelection(
@@ -227,6 +228,27 @@ export default function useTileSelection(
     [direction, primaryLocation, playerMode, puzzle.tiles]
   );
 
+  const selectAnswer = useCallback(
+    (answer: AnswerEntryType, endOfAnswer: boolean = false) => {
+      // Set the selection to the first empty tile in the answer or to the last
+      // tile if specified
+      const answerLocations = determineLocations(
+        puzzle,
+        answer,
+        answer.direction === 'across' ? [0, 1] : [1, 0]
+      );
+      const { row, column } =
+        (endOfAnswer
+          ? _.last(answerLocations)
+          : _.find(
+              answerLocations,
+              (location, index) => answer.answer.word[index] === '-'
+            )) || answer;
+      updateSelection({ row, column }, answer.direction);
+    },
+    [puzzle, updateSelection]
+  );
+
   const selectNextAnswer = useCallback(
     (forward: boolean, endOfAnswer: boolean = false) => {
       // Select the first empty tile in the next unfinished answer. If
@@ -256,23 +278,9 @@ export default function useTileSelection(
         _.find(afterAnswers, (answer) => !answer.answer.complete) ||
         afterAnswers[0];
 
-      // Set the selection to the first empty tile in the answer or to the last
-      // tile if specified
-      const answerLocations = determineLocations(
-        puzzle,
-        answer,
-        answer.direction === 'across' ? [0, 1] : [1, 0]
-      );
-      const { row, column } =
-        (endOfAnswer
-          ? _.last(answerLocations)
-          : _.find(
-              answerLocations,
-              (location, index) => answer.answer.word[index] === '-'
-            )) || answer;
-      updateSelection({ row, column }, answer.direction);
+      selectAnswer(answer, endOfAnswer);
     },
-    [puzzle, locations, direction, updateSelection]
+    [puzzle, locations, direction, selectAnswer]
   );
 
   const selectedTilesState = useMemo(() => {
@@ -292,5 +300,6 @@ export default function useTileSelection(
     clearSelection,
     selectBestNext,
     selectNextAnswer,
+    selectAnswer,
   };
 }

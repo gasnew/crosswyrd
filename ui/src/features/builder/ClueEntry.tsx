@@ -136,7 +136,7 @@ export function getAnswerGrid(
   );
 }
 
-interface AnswerEntryType {
+export interface AnswerEntryType {
   row: number;
   column: number;
   direction: 'across' | 'down';

@@ -233,6 +233,7 @@ export default function CrosswordPlayer() {
     selectBestNext,
     selectNextAnswer,
     updateSelection,
+    selectAnswer,
   } = useTileSelection(puzzle, null, false, false, true);
   const clearHoveredTile = useCallback(() => setHoveredTile(null), [
     setHoveredTile,
@@ -343,7 +344,7 @@ export default function CrosswordPlayer() {
               puzzle={puzzle}
               clues={clues}
               tileNumbers={tileNumbers}
-              updateSelection={updateSelection}
+              selectAnswer={selectAnswer}
               selectedTilesState={selectedTilesState}
             />
           </div>

@@ -14,11 +14,11 @@ import {
   SelectedTilesStateType,
 } from '../builder/useTileSelection';
 import {
+  AnswerEntryType,
   AnswerGridCellType,
   getAnswerGrid,
   TileNumbersType,
 } from '../builder/ClueEntry';
-import { LocationType } from '../builder/CrosswordBuilder';
 import { PlayerClueType } from './CrosswordPlayer';
 
 function ClueListEntry({
@@ -59,17 +59,14 @@ function ClueList({
   answerGrid,
   clues,
   tileNumbers,
-  updateSelection,
+  selectAnswer,
   selectedTilesState,
 }: {
   direction: DirectionType;
   answerGrid: AnswerGridCellType[][];
   clues: PlayerClueType[];
   tileNumbers: TileNumbersType;
-  updateSelection: (
-    primaryLocation: LocationType,
-    direction?: DirectionType
-  ) => void;
+  selectAnswer: (answer: AnswerEntryType) => void;
   selectedTilesState: SelectedTilesStateType | null;
 }) {
   const selectedTileLocations = useMemo(
@@ -134,12 +131,16 @@ function ClueList({
               complete={
                 !!answerGrid[clue.row][clue.column][direction]?.complete
               }
-              onClick={() =>
-                updateSelection(
-                  { row: clue.row, column: clue.column },
-                  direction
-                )
-              }
+              onClick={() => {
+                const answer = answerGrid[clue.row][clue.column][direction];
+                if (!answer) return;
+                selectAnswer({
+                  row: clue.row,
+                  column: clue.column,
+                  direction,
+                  answer,
+                });
+              }}
             />
           </ListItem>
         ))}
@@ -152,17 +153,14 @@ interface Props {
   puzzle: CrosswordPuzzleType;
   clues: PlayerClueType[];
   tileNumbers: TileNumbersType;
-  updateSelection: (
-    primaryLocation: LocationType,
-    direction?: DirectionType
-  ) => void;
+  selectAnswer: (answer: AnswerEntryType) => void;
   selectedTilesState: SelectedTilesStateType | null;
 }
 function CluesSidebar({
   puzzle,
   clues,
   tileNumbers,
-  updateSelection,
+  selectAnswer,
   selectedTilesState,
 }: Props) {
   const answerGrid = useMemo(() => getAnswerGrid(puzzle), [puzzle]);
@@ -174,7 +172,7 @@ function CluesSidebar({
         answerGrid={answerGrid}
         clues={_.filter(clues, ['direction', 'across'])}
         tileNumbers={tileNumbers}
-        updateSelection={updateSelection}
+        selectAnswer={selectAnswer}
         selectedTilesState={selectedTilesState}
       />
       <ClueList
@@ -182,7 +180,7 @@ function CluesSidebar({
         answerGrid={answerGrid}
         clues={_.filter(clues, ['direction', 'down'])}
         tileNumbers={tileNumbers}
-        updateSelection={updateSelection}
+        selectAnswer={selectAnswer}
         selectedTilesState={selectedTilesState}
       />
     </>
