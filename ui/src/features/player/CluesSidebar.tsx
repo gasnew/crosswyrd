@@ -36,7 +36,12 @@ function ClueListEntry({
         (selected ? ' clue-list-entry--selected' : '') +
         (complete ? ' clue-list-entry--complete' : '')
       }
-      onClick={onClick}
+      onClick={(event) => {
+        // We do not want hitting a key to click the button because we handle
+        // key inputs elsewhere.
+        if (event.type === 'keydown' || event.type === 'keyup') return;
+        onClick();
+      }}
     >
       <span
         ref={entryRef}

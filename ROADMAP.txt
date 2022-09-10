@@ -137,13 +137,13 @@
   + fix undoing to larger puzzle
   + auto-fill popup when it backtracks to beginning
   + show title and author in player
-/ QoL pt3
++ QoL pt3
   + delay all interaction on complete puzzle dialog for a moment after opening
   + click clue -> first empty tile if available
   + fix email button
   + fix builder going offscreen for small screens
   + play mode: ENTER switches direction?
-  - fix meta info
+  + fix meta info
 - add license?
 
 - INITIAL RELEASE!
