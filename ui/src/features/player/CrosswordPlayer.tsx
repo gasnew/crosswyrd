@@ -228,7 +228,6 @@ export default function CrosswordPlayer() {
 
   const {
     onClick,
-    updateSelectionWithPuzzle,
     selectedTilesState,
     selectBestNext,
     selectNextAnswer,
@@ -241,7 +240,7 @@ export default function CrosswordPlayer() {
   const { inputKey, releaseKey } = useTileInput(
     puzzle,
     selectedTilesState,
-    updateSelectionWithPuzzle,
+    updateSelection,
     clearHoveredTile,
     selectNextAnswer,
     selectBestNext,

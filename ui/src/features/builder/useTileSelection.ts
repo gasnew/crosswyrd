@@ -19,10 +19,9 @@ export interface SelectedTilesStateType {
   primaryLocation: LocationType;
   direction: DirectionType;
 }
-export type UpdateSelectionWithPuzzleType = (
-  puzzle: CrosswordPuzzleType,
-  newPrimaryLocation: LocationType,
-  newDirection: DirectionType
+export type UpdateSelectionType = (
+  primaryLocation: LocationType,
+  direction?: DirectionType
 ) => void;
 
 export function getBestNextElementSet(
@@ -79,12 +78,8 @@ function determineLocations(
 
 interface ReturnType {
   onClick: (row: number, column: number) => void;
-  updateSelection: (
-    primaryLocation: LocationType,
-    direction?: DirectionType
-  ) => void;
+  updateSelection: UpdateSelectionType;
   selectedTilesState: SelectedTilesStateType | null;
-  updateSelectionWithPuzzle: UpdateSelectionWithPuzzleType;
   clearSelection: () => void;
   selectBestNext: (state?: WaveAndPuzzleType) => void;
   selectNextAnswer: (forward: boolean) => void;
@@ -125,20 +120,6 @@ export default function useTileSelection(
   const clearSelection = useCallback(() => {
     setPrimaryLocation(null);
   }, []);
-
-  const updateSelectionWithPuzzle = useCallback(
-    (
-      newPuzzle: CrosswordPuzzleType,
-      newPrimaryLocation: LocationType,
-      newDirection: DirectionType
-    ) => {
-      if (!primaryLocation || locations.length < 1) return;
-
-      setPrimaryLocation(newPrimaryLocation);
-      setDirection(newDirection || direction);
-    },
-    [primaryLocation, locations, direction]
-  );
 
   const selectBestNext = useCallback(
     (state?: WaveAndPuzzleType) => {
@@ -294,7 +275,6 @@ export default function useTileSelection(
 
   return {
     onClick,
-    updateSelectionWithPuzzle,
     updateSelection,
     selectedTilesState,
     clearSelection,

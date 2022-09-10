@@ -142,7 +142,7 @@
   + click clue -> first empty tile if available
   + fix email button
   + fix builder going offscreen for small screens
-  - play mode: ENTER switches direction?
+  + play mode: ENTER switches direction?
   - fix meta info
 - add license?
 

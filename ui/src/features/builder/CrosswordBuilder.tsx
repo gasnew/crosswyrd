@@ -102,7 +102,6 @@ export default function CrosswordBuilder({ grid }: Props) {
   const {
     onClick,
     updateSelection,
-    updateSelectionWithPuzzle,
     selectedTilesState,
     clearSelection,
     selectBestNext,
@@ -114,7 +113,7 @@ export default function CrosswordBuilder({ grid }: Props) {
   useTileInput(
     puzzle,
     selectedTilesState,
-    updateSelectionWithPuzzle,
+    updateSelection,
     clearHoveredTile,
     selectNextAnswer,
     selectBestNext

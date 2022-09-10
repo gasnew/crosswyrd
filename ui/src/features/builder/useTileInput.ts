@@ -15,7 +15,7 @@ import {
 import { ALL_LETTERS } from './constants';
 import {
   SelectedTilesStateType,
-  UpdateSelectionWithPuzzleType,
+  UpdateSelectionType,
 } from './useTileSelection';
 import { TileUpdateType } from './useWaveFunctionCollapse';
 
@@ -68,7 +68,7 @@ interface ReturnType {
 export default function useTileInput(
   puzzle: CrosswordPuzzleType,
   selectedTilesState: SelectedTilesStateType | null,
-  updateSelectionWithPuzzle: UpdateSelectionWithPuzzleType,
+  updateSelection: UpdateSelectionType,
   clearHoveredTile: () => void,
   selectNextAnswer: (forward: boolean, endOfAnswer?: boolean) => void,
   selectBestNext: () => void,
@@ -94,8 +94,8 @@ export default function useTileInput(
         : rawKey;
       // Reject keys we don't support
       if (!_.includes(SUPPORTED_KEYS, key)) return;
-      // PERIOD and ENTER are not supported in player mode
-      if (playerMode && (key === PERIOD || key === ENTER)) return;
+      // PERIOD is not supported in player mode
+      if (playerMode && key === PERIOD) return;
       clearHoveredTile();
       if (keyStates.current[key] === 'down') return;
       keyStates.current[key] = 'down';
@@ -144,9 +144,18 @@ export default function useTileInput(
       setInputQueue(cachedInputQueue.current);
     };
 
-    // Return early and move selection if hit enter
+    // Return early and change selection if hit enter
     if (_.includes(cachedInputQueue.current, ENTER)) {
-      selectBestNext();
+      if (playerMode) {
+        // If in player mode, switch direction
+        updateSelection(
+          selectedTilesState.primaryLocation,
+          selectedTilesState.direction === 'across' ? 'down' : 'across'
+        );
+      } else {
+        // Otherwise, move selection to best next answer
+        selectBestNext();
+      }
       cleanUp();
       return;
     }
@@ -346,17 +355,12 @@ export default function useTileInput(
     cleanUp();
 
     if (tileUpdates.length > 0) dispatch(setPuzzleTileValues(tileUpdates));
-    // TODO: Just use updateSelection?
     if (shouldUpdateSelection)
-      updateSelectionWithPuzzle(
-        withPuzzleTileUpdates(puzzle, tileUpdates),
-        newPrimaryLocation,
-        newDirection
-      );
+      updateSelection(newPrimaryLocation, newDirection);
   }, [
     dispatch,
     selectedTilesState,
-    updateSelectionWithPuzzle,
+    updateSelection,
     setInputQueue,
     inputQueue,
     puzzle,
