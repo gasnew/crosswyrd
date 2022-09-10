@@ -182,3 +182,4 @@ BEEG BOARD
     - when code input, donation button says "Thank you!" and has stars
   - button to clear word bank in one click
   - optimization: don't reset puzzle during auto-fill (now that wave is a part of history)
+  - add virtual keyboard to builder
