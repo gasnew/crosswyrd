@@ -242,7 +242,6 @@ export default function CrosswordBuilder({ grid }: Props) {
       tiles: _.map(grid.tiles, (row) =>
         _.map(row, (tile) => ({ value: tile ? 'black' : 'empty' }))
       ),
-      size: grid.tiles.length,
       version: randomId(),
     };
     const newWave: WaveType = waveFromPuzzle(newPuzzle);
@@ -259,21 +258,13 @@ export default function CrosswordBuilder({ grid }: Props) {
           value: tile.value === 'black' ? 'black' : 'empty',
         }))
       ),
-      size: grid.tiles.length,
       version: randomId(),
     };
     const newWave = waveFromPuzzle(newPuzzle);
     pushStateHistory({ wave: newWave, puzzle: newPuzzle });
     setWaveState(newWave, newPuzzle);
     dispatch(setPuzzleState(newPuzzle));
-  }, [
-    dispatch,
-    setWaveState,
-    puzzle,
-    pushStateHistory,
-    wave,
-    grid.tiles.length,
-  ]);
+  }, [dispatch, setWaveState, puzzle, pushStateHistory, wave]);
 
   const handleClickBack = () => {
     stepBack();

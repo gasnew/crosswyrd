@@ -182,9 +182,9 @@ export default function useTileInput(
           const newColumn = column + step * dir[1];
           if (
             newRow >= 0 &&
-            newRow < puzzle.size &&
+            newRow < puzzle.tiles.length &&
             newColumn >= 0 &&
-            newColumn < puzzle.size
+            newColumn < puzzle.tiles.length
           )
             return {
               row: newRow,
@@ -295,7 +295,7 @@ export default function useTileInput(
           // Move to the next empty location, to the next letter if no empty
           // tile, or not at all if blocked by a black tile
           const nextNonLetterTileDistance = _.find(
-            _.range(1, puzzle.size),
+            _.range(1, puzzle.tiles.length),
             (index) => {
               const nextLocation = shift(newPrimaryLocation, index);
               const nextTile = tileAtLocation(nextLocation);

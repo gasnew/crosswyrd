@@ -44,7 +44,7 @@ export function useClueData(puzzle: CrosswordPuzzleType): ClueDataType {
     // Return if the black tiles haven't changed (unless the puzzle has changed
     // size)
     if (
-      cachedPuzzle.current.size === puzzle.size &&
+      cachedPuzzle.current.tiles.length === puzzle.tiles.length &&
       _.every(puzzle.tiles, (row, rowIndex) =>
         _.every(
           row,

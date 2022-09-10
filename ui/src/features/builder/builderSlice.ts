@@ -15,7 +15,6 @@ export interface TileType {
 }
 export interface CrosswordPuzzleType {
   tiles: TileType[][];
-  size: number;
   version: string;
   uuid?: string;
 }
@@ -50,7 +49,6 @@ export const DEFAULT_TILES: TileType[][] = Array.from(
 const initialState: BuilderState = {
   puzzle: {
     tiles: DEFAULT_TILES,
-    size: DEFAULT_PUZZLE_SIZE,
     version: randomId(),
   },
   wave: null,

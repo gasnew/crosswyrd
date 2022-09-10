@@ -58,14 +58,14 @@ function determineLocations(
   if (puzzle.tiles[row][column].value === 'black') return [primaryLocation];
   const tilesBehind =
     _.takeWhile(
-      _.range(puzzle.size),
+      _.range(puzzle.tiles.length),
       (index) =>
         (puzzle.tiles?.[row - index * dir[0]]?.[column - index * dir[1]]
           ?.value || 'black') !== 'black'
     ).length - 1;
   const tilesInFront =
     _.takeWhile(
-      _.range(puzzle.size),
+      _.range(puzzle.tiles.length),
       (index) =>
         (puzzle.tiles?.[row + index * dir[0]]?.[column + index * dir[1]]
           ?.value || 'black') !== 'black'
@@ -74,6 +74,29 @@ function determineLocations(
     row: row + index * dir[0],
     column: column + index * dir[1],
   }));
+}
+
+// Returns handles for primary location that cannot possible be out of bounds
+// for the puzzle
+function useSafePrimaryLocation(
+  puzzle: CrosswordPuzzleType
+): [LocationType | null, (location: LocationType | null) => void] {
+  const [
+    unsafePrimaryLocation,
+    setPrimaryLocation,
+  ] = useState<LocationType | null>(null);
+
+  const primaryLocation = useMemo(
+    () =>
+      unsafePrimaryLocation &&
+      (unsafePrimaryLocation.row >= puzzle.tiles.length ||
+        unsafePrimaryLocation.column >= puzzle.tiles.length)
+        ? null
+        : unsafePrimaryLocation,
+    [unsafePrimaryLocation, puzzle]
+  );
+
+  return [primaryLocation, setPrimaryLocation];
 }
 
 interface ReturnType {
@@ -93,9 +116,7 @@ export default function useTileSelection(
   running: boolean,
   playerMode: boolean = false
 ): ReturnType {
-  const [primaryLocation, setPrimaryLocation] = useState<LocationType | null>(
-    null
-  );
+  const [primaryLocation, setPrimaryLocation] = useSafePrimaryLocation(puzzle);
   const [direction, setDirection] = useState<DirectionType>('across');
 
   const currentTab = useSelector(selectCurrentTab);
@@ -114,12 +135,12 @@ export default function useTileSelection(
       setPrimaryLocation(newPrimaryLocation);
       setDirection(newDirection || direction);
     },
-    [direction]
+    [setPrimaryLocation, direction]
   );
 
   const clearSelection = useCallback(() => {
     setPrimaryLocation(null);
-  }, []);
+  }, [setPrimaryLocation]);
 
   const selectBestNext = useCallback(
     (state?: WaveAndPuzzleType) => {
@@ -143,7 +164,7 @@ export default function useTileSelection(
         if (newDirection !== direction) setDirection(newDirection);
       }
     },
-    [puzzle, wave, direction]
+    [puzzle, wave, direction, setPrimaryLocation]
   );
 
   // Automatically select best next word
@@ -206,7 +227,7 @@ export default function useTileSelection(
       setPrimaryLocation({ row, column });
       if (newDirection !== direction) setDirection(newDirection);
     },
-    [direction, primaryLocation, playerMode, puzzle.tiles]
+    [direction, primaryLocation, playerMode, puzzle.tiles, setPrimaryLocation]
   );
 
   const selectAnswer = useCallback(
