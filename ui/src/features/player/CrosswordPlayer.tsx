@@ -357,6 +357,8 @@ export default function CrosswordPlayer() {
           updateSelection={updateSelection}
         />
         <Keyboard
+          preventMouseDownDefault
+          preventMouseUpDefault
           layout={{
             default: [
               'q w e r t y u i o p',

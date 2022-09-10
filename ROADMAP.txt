@@ -137,6 +137,13 @@
   + fix undoing to larger puzzle
   + auto-fill popup when it backtracks to beginning
   + show title and author in player
+/ QoL pt3
+  + delay all interaction on complete puzzle dialog for a moment after opening
+  - click clue -> first empty tile if available
+  - fix email button
+  - Jesse laptop can't see top of page
+  - play mode: ENTER switches direction?
+  - fix meta info
 - add license?
 
 - INITIAL RELEASE!
@@ -174,3 +181,4 @@ BEEG BOARD
     - input code to unlock feature (color themes)!
     - when code input, donation button says "Thank you!" and has stars
   - button to clear word bank in one click
+  - optimization: don't reset puzzle during auto-fill (now that wave is a part of history)

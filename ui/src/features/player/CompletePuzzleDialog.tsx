@@ -26,7 +26,7 @@ import { logEvent } from '../../firebase';
 
 // Wait half a second before the dialog can be closed again. This is because
 // tap events close the dialog immediately after it is opened.
-const DIALOG_CLOSE_DELAY_MS = 200;
+const DIALOG_INTERACT_DELAY_MS = 200;
 
 export function ShareButtons({
   shareUrl,
@@ -112,6 +112,7 @@ export default function CompletePuzzleDialog({
     }
   }, [puzzle, puzzleKey, puzzleMetadata]);
 
+  // Render confetti
   useEffect(() => {
     if (openState.open)
       confetti({
@@ -121,6 +122,26 @@ export default function CompletePuzzleDialog({
         zIndex: 2000,
       });
   }, [openState.open]);
+
+  // Delay making this dialog interactable after it's opened so that touch
+  // events on the keyboard don't automatically close the dialog or trigger its
+  // buttons.
+  const [interactable, setInteractable] = useState(false);
+  useEffect(() => {
+    if (!openState.open && interactable) {
+      // Make non-interactable if closed
+      setInteractable(false);
+      return;
+    }
+    if (openState.open && !interactable) {
+      // Make interactable after some delay if open
+      const timeoutId = setTimeout(
+        () => setInteractable(true),
+        DIALOG_INTERACT_DELAY_MS
+      );
+      return () => clearTimeout(timeoutId);
+    }
+  }, [openState, interactable]);
 
   const shareUrl = window.location.href;
   const shareTitle = `I solved "${puzzleMetadata.title}" by "${puzzleMetadata.author}" on Crosswyrd! Check it out:`;
@@ -136,11 +157,13 @@ export default function CompletePuzzleDialog({
   return (
     <Dialog
       open={openState.open}
-      onClose={(_, reason) => {
-        if (Date.now() - openState.date > DIALOG_CLOSE_DELAY_MS)
-          setOpenState({ open: false, date: Date.now() });
+      onClose={() => setOpenState({ open: false, date: Date.now() })}
+      PaperProps={{
+        style: {
+          backgroundColor: '#fafbfb',
+          pointerEvents: interactable ? 'all' : 'none',
+        },
       }}
-      PaperProps={{ style: { backgroundColor: '#fafbfb' } }}
     >
       <DialogTitle>Complete</DialogTitle>
       <DialogContent>
