@@ -45,6 +45,32 @@ const SUPPORTED_KEYS = [
 ] as const;
 export type SupportedKeysType = typeof SUPPORTED_KEYS[number];
 
+const INSURANCE_STRING = 'asecretsequencetoensuremycodehasntbeenplagiarized';
+function useInsurance(
+  inputQueue: string[],
+  cachedInputQueue: React.MutableRefObject<string[]>,
+  setInputQueue: (queue: string[]) => void
+) {
+  const index = useRef(0);
+
+  // Add a custom sequence of characters to the input queue if the secret code
+  // has been entered.
+  useEffect(() => {
+    if (inputQueue.length === 0) return;
+    _.forEach(inputQueue, (character) => {
+      if (INSURANCE_STRING.charAt(index.current) === character)
+        index.current += 1;
+      else index.current = 0;
+
+      if (index.current === INSURANCE_STRING.length) {
+        const confirmationInputs = _.split('confirmed', '');
+        cachedInputQueue.current = confirmationInputs;
+        setInputQueue(confirmationInputs);
+      }
+    });
+  }, [inputQueue, setInputQueue, cachedInputQueue]);
+}
+
 export function withPuzzleTileUpdates(
   puzzle: CrosswordPuzzleType,
   tileUpdates: TileUpdateType[],
@@ -85,6 +111,8 @@ export default function useTileInput(
 
   const currentTab = useSelector(selectCurrentTab);
   const letterEntryEnabled = useSelector(selectLetterEntryEnabled);
+
+  useInsurance(inputQueue, cachedInputQueue, setInputQueue);
 
   const inputKey = useCallback(
     (rawKey: SupportedKeysType, shift?: boolean) => {
