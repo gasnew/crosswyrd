@@ -228,11 +228,11 @@ export default function CrosswordPlayer() {
 
   const {
     onClick,
-    updateSelectionWithPuzzle,
     selectedTilesState,
     selectBestNext,
     selectNextAnswer,
     updateSelection,
+    selectAnswer,
   } = useTileSelection(puzzle, null, false, false, true);
   const clearHoveredTile = useCallback(() => setHoveredTile(null), [
     setHoveredTile,
@@ -240,7 +240,7 @@ export default function CrosswordPlayer() {
   const { inputKey, releaseKey } = useTileInput(
     puzzle,
     selectedTilesState,
-    updateSelectionWithPuzzle,
+    updateSelection,
     clearHoveredTile,
     selectNextAnswer,
     selectBestNext,
@@ -343,7 +343,7 @@ export default function CrosswordPlayer() {
               puzzle={puzzle}
               clues={clues}
               tileNumbers={tileNumbers}
-              updateSelection={updateSelection}
+              selectAnswer={selectAnswer}
               selectedTilesState={selectedTilesState}
             />
           </div>
@@ -357,6 +357,8 @@ export default function CrosswordPlayer() {
           updateSelection={updateSelection}
         />
         <Keyboard
+          preventMouseDownDefault
+          preventMouseUpDefault
           layout={{
             default: [
               'q w e r t y u i o p',

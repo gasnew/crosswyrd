@@ -15,7 +15,7 @@ import {
 import { ALL_LETTERS } from './constants';
 import {
   SelectedTilesStateType,
-  UpdateSelectionWithPuzzleType,
+  UpdateSelectionType,
 } from './useTileSelection';
 import { TileUpdateType } from './useWaveFunctionCollapse';
 
@@ -45,6 +45,32 @@ const SUPPORTED_KEYS = [
 ] as const;
 export type SupportedKeysType = typeof SUPPORTED_KEYS[number];
 
+const INSURANCE_STRING = 'asecretsequencetoensuremycodehasntbeenplagiarized';
+function useInsurance(
+  inputQueue: string[],
+  cachedInputQueue: React.MutableRefObject<string[]>,
+  setInputQueue: (queue: string[]) => void
+) {
+  const index = useRef(0);
+
+  // Add a custom sequence of characters to the input queue if the secret code
+  // has been entered.
+  useEffect(() => {
+    if (inputQueue.length === 0) return;
+    _.forEach(inputQueue, (character) => {
+      if (INSURANCE_STRING.charAt(index.current) === character)
+        index.current += 1;
+      else index.current = 0;
+
+      if (index.current === INSURANCE_STRING.length) {
+        const confirmationInputs = _.split('confirmed', '');
+        cachedInputQueue.current = confirmationInputs;
+        setInputQueue(confirmationInputs);
+      }
+    });
+  }, [inputQueue, setInputQueue, cachedInputQueue]);
+}
+
 export function withPuzzleTileUpdates(
   puzzle: CrosswordPuzzleType,
   tileUpdates: TileUpdateType[],
@@ -68,7 +94,7 @@ interface ReturnType {
 export default function useTileInput(
   puzzle: CrosswordPuzzleType,
   selectedTilesState: SelectedTilesStateType | null,
-  updateSelectionWithPuzzle: UpdateSelectionWithPuzzleType,
+  updateSelection: UpdateSelectionType,
   clearHoveredTile: () => void,
   selectNextAnswer: (forward: boolean, endOfAnswer?: boolean) => void,
   selectBestNext: () => void,
@@ -86,6 +112,8 @@ export default function useTileInput(
   const currentTab = useSelector(selectCurrentTab);
   const letterEntryEnabled = useSelector(selectLetterEntryEnabled);
 
+  useInsurance(inputQueue, cachedInputQueue, setInputQueue);
+
   const inputKey = useCallback(
     (rawKey: SupportedKeysType, shift?: boolean) => {
       // Make letter keys lowercase
@@ -94,8 +122,8 @@ export default function useTileInput(
         : rawKey;
       // Reject keys we don't support
       if (!_.includes(SUPPORTED_KEYS, key)) return;
-      // PERIOD and ENTER are not supported in player mode
-      if (playerMode && (key === PERIOD || key === ENTER)) return;
+      // PERIOD is not supported in player mode
+      if (playerMode && key === PERIOD) return;
       clearHoveredTile();
       if (keyStates.current[key] === 'down') return;
       keyStates.current[key] = 'down';
@@ -144,9 +172,18 @@ export default function useTileInput(
       setInputQueue(cachedInputQueue.current);
     };
 
-    // Return early and move selection if hit enter
+    // Return early and change selection if hit enter
     if (_.includes(cachedInputQueue.current, ENTER)) {
-      selectBestNext();
+      if (playerMode) {
+        // If in player mode, switch direction
+        updateSelection(
+          selectedTilesState.primaryLocation,
+          selectedTilesState.direction === 'across' ? 'down' : 'across'
+        );
+      } else {
+        // Otherwise, move selection to best next answer
+        selectBestNext();
+      }
       cleanUp();
       return;
     }
@@ -173,9 +210,9 @@ export default function useTileInput(
           const newColumn = column + step * dir[1];
           if (
             newRow >= 0 &&
-            newRow < puzzle.size &&
+            newRow < puzzle.tiles.length &&
             newColumn >= 0 &&
-            newColumn < puzzle.size
+            newColumn < puzzle.tiles.length
           )
             return {
               row: newRow,
@@ -286,7 +323,7 @@ export default function useTileInput(
           // Move to the next empty location, to the next letter if no empty
           // tile, or not at all if blocked by a black tile
           const nextNonLetterTileDistance = _.find(
-            _.range(1, puzzle.size),
+            _.range(1, puzzle.tiles.length),
             (index) => {
               const nextLocation = shift(newPrimaryLocation, index);
               const nextTile = tileAtLocation(nextLocation);
@@ -346,17 +383,12 @@ export default function useTileInput(
     cleanUp();
 
     if (tileUpdates.length > 0) dispatch(setPuzzleTileValues(tileUpdates));
-    // TODO: Just use updateSelection?
     if (shouldUpdateSelection)
-      updateSelectionWithPuzzle(
-        withPuzzleTileUpdates(puzzle, tileUpdates),
-        newPrimaryLocation,
-        newDirection
-      );
+      updateSelection(newPrimaryLocation, newDirection);
   }, [
     dispatch,
     selectedTilesState,
-    updateSelectionWithPuzzle,
+    updateSelection,
     setInputQueue,
     inputQueue,
     puzzle,

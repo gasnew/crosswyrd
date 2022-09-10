@@ -23,7 +23,7 @@ import {
 import CrosswordBuilder from '../builder/CrosswordBuilder';
 import GridsDialog, { blankGrid } from './GridsDialog';
 import KoFiButton from './KoFiButton';
-import Navbar from './Navbar';
+import Navbar, { NAVBAR_HEIGHT } from './Navbar';
 import PublishDialog from './PublishDialog';
 import useGrids, { GridType } from './useGrids';
 import WelcomeDialog from './WelcomeDialog';
@@ -120,7 +120,10 @@ export default function CrossWyrd() {
           />
         )}
       </Navbar>
-      <Box component="main" sx={{ flexGrow: 1 }}>
+      <Box
+        component="main"
+        sx={{ flexGrow: 1, marginTop: `${NAVBAR_HEIGHT}px` }}
+      >
         <CrosswordBuilder grid={grid} />
       </Box>
       <GridsDialog

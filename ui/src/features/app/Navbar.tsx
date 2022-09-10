@@ -43,7 +43,8 @@ function useShowFullCrosswyrd(): boolean {
   return show;
 }
 
-const drawerWidth = 200;
+const DRAWER_WIDTH = 200;
+export const NAVBAR_HEIGHT = 64;
 
 function DrawerControls({
   handleDrawerToggle,
@@ -56,7 +57,7 @@ function DrawerControls({
 }) {
   return (
     <div>
-      <Toolbar style={{ height: 64 }}>
+      <Toolbar style={{ height: NAVBAR_HEIGHT }}>
         <IconButton
           color="inherit"
           aria-label="close drawer"
@@ -114,8 +115,8 @@ export default function Navbar({
         sx={{
           ...(supportsDesktopSidebar
             ? {
-                width: { lg: `calc(100% - ${drawerWidth}px)` },
-                ml: { lg: `${drawerWidth}px` },
+                width: { lg: `calc(100% - ${DRAWER_WIDTH}px)` },
+                ml: { lg: `${DRAWER_WIDTH}px` },
               }
             : {}),
           backgroundColor: '#fff',
@@ -124,7 +125,7 @@ export default function Navbar({
         }}
         elevation={0}
       >
-        <Toolbar style={{ height: 64, width: '100%' }}>
+        <Toolbar style={{ height: NAVBAR_HEIGHT, width: '100%' }}>
           <IconButton
             color="inherit"
             aria-label="open drawer"
@@ -182,7 +183,7 @@ export default function Navbar({
         component="nav"
         sx={
           supportsDesktopSidebar
-            ? { width: { lg: drawerWidth }, flexShrink: { lg: 0 } }
+            ? { width: { lg: DRAWER_WIDTH }, flexShrink: { lg: 0 } }
             : {}
         }
         aria-label="mailbox folders"
@@ -197,7 +198,7 @@ export default function Navbar({
               : {}),
             '& .MuiDrawer-paper': {
               boxSizing: 'border-box',
-              width: drawerWidth,
+              width: DRAWER_WIDTH,
             },
           }}
         >
@@ -214,7 +215,7 @@ export default function Navbar({
               display: { xs: 'none', lg: 'block' },
               '& .MuiDrawer-paper': {
                 boxSizing: 'border-box',
-                width: drawerWidth,
+                width: DRAWER_WIDTH,
               },
             }}
             open

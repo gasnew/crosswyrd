@@ -7,6 +7,7 @@
     "url": "https://github.com/gasnew"
   },
   "repository": "github:gasnew/crosswyrd",
+  "license": "UNLICENSED",
   "dependencies": {
     "@blueprintjs/core": "^4.4.0",
     "@emotion/react": "^11.9.0",
