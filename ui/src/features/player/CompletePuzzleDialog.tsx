@@ -66,6 +66,7 @@ export function ShareButtons({
         url={shareUrl}
         subject={shareTitle}
         onClick={mkHandleShareClick('email')}
+        openShareDialogOnClick
       >
         <EmailIcon size={32} round />
       </EmailShareButton>

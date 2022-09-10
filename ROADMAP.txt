@@ -140,7 +140,7 @@
 / QoL pt3
   + delay all interaction on complete puzzle dialog for a moment after opening
   + click clue -> first empty tile if available
-  - fix email button
+  + fix email button
   - Jesse laptop can't see top of page
   - play mode: ENTER switches direction?
   - fix meta info
