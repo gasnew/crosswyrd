@@ -100,7 +100,7 @@ function ClueList({
     if (ref)
       ref.scrollIntoView({
         behavior: 'smooth',
-        block: 'nearest',
+        block: 'center',
       });
   }, [selectedTilesState, refsGrid, direction]);
 
