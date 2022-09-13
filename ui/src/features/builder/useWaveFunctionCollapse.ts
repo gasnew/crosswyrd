@@ -1,3 +1,4 @@
+import { Remote, wrap } from 'comlink';
 import _ from 'lodash';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
@@ -16,8 +17,6 @@ import { DictionaryType, inDictionary } from './useDictionary';
 import { SelectedTilesStateType } from './useTileSelection';
 import WFCWorker, { WFCWorkerAPIType } from './WFCWorker.worker';
 import { getAllElementSets } from './WordBank';
-
-import { Remote, wrap } from 'comlink';
 
 export interface ElementType {
   row: number;

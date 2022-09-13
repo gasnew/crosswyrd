@@ -78,7 +78,7 @@ function FillAssistPopover({ anchorEl }: { anchorEl: HTMLElement }) {
 }
 
 type FillAssistStateType = 'running' | 'success' | 'error';
-function FillAssistState({ state }: { state: FillAssistStateType }) {
+export function FillAssistState({ state }: { state: FillAssistStateType }) {
   const [spinnerVisible, setSpinnerVisible] = useState(false);
   const [errorVisible, setErrorVisible] = useState(false);
 
