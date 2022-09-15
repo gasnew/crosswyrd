@@ -148,9 +148,9 @@
 
 + INITIAL RELEASE!
 
-/ check suggested words
-  - look into infinite running word (wait until wave version matches puzzle version?)
-  - turn off when fill assist off
++ check suggested words
+  + look into infinite running word (wait until wave version matches puzzle version)
+  + turn off when fill assist off
 - add DO NOT USE?
 - App Check
 

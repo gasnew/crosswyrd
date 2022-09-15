@@ -56,6 +56,7 @@ function WordEntry({
                 ? 'success'
                 : 'error'
             }
+            noTooltip
           />
         )}
       </ListItemButton>

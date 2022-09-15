@@ -78,7 +78,13 @@ function FillAssistPopover({ anchorEl }: { anchorEl: HTMLElement }) {
 }
 
 type FillAssistStateType = 'running' | 'success' | 'error';
-export function FillAssistState({ state }: { state: FillAssistStateType }) {
+export function FillAssistState({
+  state,
+  noTooltip,
+}: {
+  state: FillAssistStateType;
+  noTooltip?: boolean;
+}) {
   const [checkmarkVisible, setCheckmarkVisible] = useState(false);
   const [spinnerVisible, setSpinnerVisible] = useState(false);
   const [errorVisible, setErrorVisible] = useState(false);
@@ -116,7 +122,54 @@ export function FillAssistState({ state }: { state: FillAssistStateType }) {
     return () => clearTimeout(timeoutId);
   }, [state]);
 
-  return (
+  const component = (
+    <div
+      style={{
+        marginTop: 'auto',
+        marginBottom: 'auto',
+        marginLeft: -10,
+        display: 'flex',
+        width: 24,
+        height: 24,
+        position: 'relative',
+      }}
+    >
+      {checkmarkVisible && (
+        <DoneIcon
+          className={
+            'fill-state-icon ' +
+            (state === 'success' ? 'rotate-in' : 'rotate-out')
+          }
+          color="primary"
+        />
+      )}
+      {errorVisible && (
+        <CloseIcon
+          className={
+            'fill-state-icon ' +
+            (state === 'error' ? 'rotate-in' : 'rotate-out')
+          }
+          color="error"
+        />
+      )}
+      {spinnerVisible && (
+        <div
+          className={'fill-state-icon fill-state-progress'}
+          style={{
+            top: -3,
+            left: 2,
+            opacity: state === 'running' ? 1 : 0,
+          }}
+        >
+          <CircularProgress size={20} thickness={5} />
+        </div>
+      )}
+    </div>
+  );
+
+  return noTooltip ? (
+    component
+  ) : (
     <Tooltip
       title={`Fill assist state: ${_.capitalize(state)}`}
       placement="top"
@@ -124,48 +177,7 @@ export function FillAssistState({ state }: { state: FillAssistStateType }) {
       disableInteractive
       enterDelay={500}
     >
-      <div
-        style={{
-          marginTop: 'auto',
-          marginBottom: 'auto',
-          marginLeft: -10,
-          display: 'flex',
-          width: 24,
-          height: 24,
-          position: 'relative',
-        }}
-      >
-        {checkmarkVisible && (
-          <DoneIcon
-            className={
-              'fill-state-icon ' +
-              (state === 'success' ? 'rotate-in' : 'rotate-out')
-            }
-            color="primary"
-          />
-        )}
-        {errorVisible && (
-          <CloseIcon
-            className={
-              'fill-state-icon ' +
-              (state === 'error' ? 'rotate-in' : 'rotate-out')
-            }
-            color="error"
-          />
-        )}
-        {spinnerVisible && (
-          <div
-            className={'fill-state-icon fill-state-progress'}
-            style={{
-              top: -3,
-              left: 2,
-              opacity: state === 'running' ? 1 : 0,
-            }}
-          >
-            <CircularProgress size={20} thickness={5} />
-          </div>
-        )}
-      </div>
+      {component}
     </Tooltip>
   );
 }
