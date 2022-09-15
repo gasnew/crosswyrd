@@ -1,6 +1,6 @@
 import { Remote, wrap } from 'comlink';
 import _ from 'lodash';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useReducer, useRef } from 'react';
 
 import { useInterval } from '../../app/util';
 import { CrosswordPuzzleType, LetterType } from './builderSlice';
@@ -27,30 +27,43 @@ function shouldRunViabilityChecks(
 }
 
 export type ViabilityStateType = 'Checking' | 'Viable' | 'Not Viable';
-export interface WordViabilityType {
-  state: ViabilityStateType;
+export type WordViabilitiesType = { [word: string]: ViabilityStateType };
+type WordViabilityActionType =
+  | { type: 'clearState' }
+  | {
+      type: 'updateWordState';
+      word: string;
+      state: ViabilityStateType;
+    };
+export function wordViabilitiesReducer(
+  state: WordViabilitiesType,
+  action: WordViabilityActionType
+): WordViabilitiesType {
+  if (action.type === 'clearState') return {};
+  if (action.type === 'updateWordState') {
+    if (action.state !== 'Checking' && !state[action.word])
+      // Protect from going straight from no state past "Checking". This
+      // probably means we tried to set a non-"Checking" state after clearing
+      // the whole wordViabilities state, so we should do nothing.
+      return state;
+    return {
+      ...state,
+      [action.word]: action.state,
+    };
+  }
+  return state;
 }
+
 export default function useWordViabilities(
   dictionary: DictionaryType,
-  wave: WaveType,
+  wave: WaveType | null,
   puzzle: CrosswordPuzzleType,
   words: string[],
   selectedTilesState: SelectedTilesStateType | null,
   autoFillRunning: boolean,
   fillAssistActive: boolean
-): WordViabilityType[] {
-  //console.log(
-  //dictionary,
-  //wave,
-  //puzzle,
-  //words,
-  //selectedTilesState,
-  //autoFillRunning,
-  //fillAssistActive
-  //);
-  const [wordViabilities, setWordViabilities] = useState<WordViabilityType[]>(
-    []
-  );
+): WordViabilitiesType {
+  const [wordViabilities, dispatch] = useReducer(wordViabilitiesReducer, {});
 
   // Instantiate WFCWorker
   const WFCWorkerRef = useRef<Remote<WFCWorkerAPIType> | null>(null);
@@ -75,7 +88,7 @@ export default function useWordViabilities(
         fillAssistActive
       )
     ) {
-      setWordViabilities([]);
+      dispatch({ type: 'clearState' });
       currentPuzzleVersion.current = puzzle.version;
       currentSelectedLocations.current = selectedTilesState.locations;
     }
@@ -85,7 +98,7 @@ export default function useWordViabilities(
   const running = useRef(false);
   useInterval(
     () => {
-      if (!WFCWorkerRef.current) return;
+      if (!WFCWorkerRef.current || !wave) return;
 
       const checkViability = async () => {
         if (!WFCWorkerRef.current || running.current || !selectedTilesState)
@@ -93,10 +106,10 @@ export default function useWordViabilities(
         running.current = true;
 
         // Add a new viability entry in the "Checking" state
-        setWordViabilities([...wordViabilities, { state: 'Checking' }]);
+        const word = words[_.size(wordViabilities)];
+        dispatch({ type: 'updateWordState', word, state: 'Checking' });
 
         // Compute a new wave in the background
-        const word = words[wordViabilities.length];
         const newWave = await WFCWorkerRef.current.withTileUpdates(
           dictionary,
           wave,
@@ -120,14 +133,13 @@ export default function useWordViabilities(
           // Update the viability entry's state given the results (if the
           // puzzle version and selected tiles are still the same--otherwise,
           // discard results)
-          setWordViabilities([
-            ...wordViabilities,
-            {
-              state: puzzleCannotBeFilled(puzzle, newWave)
-                ? 'Not Viable'
-                : 'Viable',
-            },
-          ]);
+          dispatch({
+            type: 'updateWordState',
+            word,
+            state: puzzleCannotBeFilled(puzzle, newWave)
+              ? 'Not Viable'
+              : 'Viable',
+          });
 
         running.current = false;
       };
@@ -138,10 +150,11 @@ export default function useWordViabilities(
     // available to check, the wave has been updated to the current puzzle
     // version, and auto-fill is not running
     selectedTilesState &&
-      wordViabilities.length < VIABILITY_CHECK_LIMIT &&
-      words.length > wordViabilities.length &&
-      wave.puzzleVersion === puzzle.version &&
-      !autoFillRunning && fillAssistActive
+      _.size(wordViabilities) < VIABILITY_CHECK_LIMIT &&
+      words.length > _.size(wordViabilities) &&
+      wave?.puzzleVersion === puzzle.version &&
+      !autoFillRunning &&
+      fillAssistActive
       ? 100
       : null
   );

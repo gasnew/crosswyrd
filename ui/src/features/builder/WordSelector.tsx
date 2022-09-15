@@ -21,7 +21,7 @@ import {
 } from './useWaveFunctionCollapse';
 import useWordViabilities, {
   ViabilityStateType,
-  WordViabilityType,
+  WordViabilitiesType,
 } from './useWordViabilities';
 
 function WordEntry({
@@ -31,14 +31,14 @@ function WordEntry({
 }: {
   data: {
     possibleWords: string[];
-    wordViabilities: WordViabilityType[];
+    wordViabilities: WordViabilitiesType;
     mkHandleClickWord: (index: number) => () => void;
   };
   index: number;
   style: any;
 }) {
   const viabilityState: ViabilityStateType | null =
-    wordViabilities[index]?.state || null;
+    wordViabilities[possibleWords[index]] || null;
   return (
     <ListItem key={index} disablePadding style={style} component="div">
       <ListItemButton onClick={mkHandleClickWord(index)} divider>
@@ -72,7 +72,7 @@ export function sortByWordScore(words: string[]): string[] {
 
 interface Props {
   dictionary: DictionaryType;
-  wave: WaveType;
+  wave: WaveType | null;
   puzzle: CrosswordPuzzleType;
   optionsSet: LetterType[][];
   selectedTilesState: SelectedTilesStateType | null;
@@ -131,16 +131,15 @@ function WordSelector({
     return sortedWordsExceptSelectedWord;
   }, [wordsFilteredByTiles, selectedTiles, optionsSet]);
 
-  const wordViabilities = [];
-  //const wordViabilities = useWordViabilities(
-    //dictionary,
-    //wave,
-    //puzzle,
-    //possibleWords,
-    //selectedTilesState,
-    //autoFillRunning,
-    //fillAssistActive
-  //);
+  const wordViabilities = useWordViabilities(
+    dictionary,
+    wave,
+    puzzle,
+    possibleWords,
+    selectedTilesState,
+    autoFillRunning,
+    fillAssistActive
+  );
 
   const mkHandleClickWord = (index: number) => () => {
     onEnter(possibleWords[index]);

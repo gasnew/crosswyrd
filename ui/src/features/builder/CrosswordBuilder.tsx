@@ -410,7 +410,7 @@ export default function CrosswordBuilder({ grid }: Props) {
           <PuzzleStats puzzle={puzzle} />
         </div>
         <div className="sidebar-container sheet">
-          {dictionary && wave && (
+          {dictionary && (
             <>
               <BuilderTabs
                 currentTab={currentTab}
