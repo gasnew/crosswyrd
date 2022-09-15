@@ -9,30 +9,56 @@ import {
 import React, { useMemo } from 'react';
 import { FixedSizeList } from 'react-window';
 
-import { LetterType, TileType } from './builderSlice';
+import { CrosswordPuzzleType, LetterType } from './builderSlice';
 import { LETTER_WEIGHTS } from './constants';
+import { FillAssistState } from './PuzzleBanner';
 import { DictionaryType } from './useDictionary';
+import { SelectedTilesStateType } from './useTileSelection';
 import {
   findWordOptions,
   findWordOptionsFromDictionary,
+  WaveType,
 } from './useWaveFunctionCollapse';
+import useWordViabilities, {
+  ViabilityStateType,
+  WordViabilitiesType,
+} from './useWordViabilities';
 
 function WordEntry({
-  data: { possibleWords, mkHandleClickWord },
+  data: { possibleWords, wordViabilities, mkHandleClickWord },
   index,
   style,
 }: {
   data: {
     possibleWords: string[];
+    wordViabilities: WordViabilitiesType;
     mkHandleClickWord: (index: number) => () => void;
   };
   index: number;
   style: any;
 }) {
+  const viabilityState: ViabilityStateType | null =
+    wordViabilities[possibleWords[index]] || null;
   return (
     <ListItem key={index} disablePadding style={style} component="div">
       <ListItemButton onClick={mkHandleClickWord(index)} divider>
-        <ListItemText primary={_.toUpper(possibleWords[index])} />
+        <ListItemText
+          className="word-selector-entry"
+          primary={_.toUpper(possibleWords[index])}
+          style={{ opacity: viabilityState === 'Not Viable' ? 0.5 : 1 }}
+        />
+        {viabilityState && (
+          <FillAssistState
+            state={
+              viabilityState === 'Checking'
+                ? 'running'
+                : viabilityState === 'Viable'
+                ? 'success'
+                : 'error'
+            }
+            noTooltip
+          />
+        )}
       </ListItemButton>
     </ListItem>
   );
@@ -47,19 +73,35 @@ export function sortByWordScore(words: string[]): string[] {
 
 interface Props {
   dictionary: DictionaryType;
+  wave: WaveType | null;
+  puzzle: CrosswordPuzzleType;
   optionsSet: LetterType[][];
-  selectedTiles: TileType[];
+  selectedTilesState: SelectedTilesStateType | null;
   onEnter: (word: string) => void;
   clearSelection: () => void;
+  autoFillRunning: boolean;
+  fillAssistActive: boolean;
 }
 
 function WordSelector({
   dictionary,
+  wave,
+  puzzle,
   optionsSet,
-  selectedTiles,
+  selectedTilesState,
   onEnter,
   clearSelection,
+  autoFillRunning,
+  fillAssistActive,
 }: Props) {
+  const selectedTiles = useMemo(
+    () =>
+      _.map(
+        selectedTilesState?.locations || [],
+        ({ row, column }) => puzzle.tiles[row][column]
+      ),
+    [selectedTilesState, puzzle]
+  );
   const allPossibleWords = useMemo(
     () => findWordOptionsFromDictionary(dictionary, optionsSet),
     [dictionary, optionsSet]
@@ -90,6 +132,16 @@ function WordSelector({
     return sortedWordsExceptSelectedWord;
   }, [wordsFilteredByTiles, selectedTiles, optionsSet]);
 
+  const wordViabilities = useWordViabilities(
+    dictionary,
+    wave,
+    puzzle,
+    possibleWords,
+    selectedTilesState,
+    autoFillRunning,
+    fillAssistActive
+  );
+
   const mkHandleClickWord = (index: number) => () => {
     onEnter(possibleWords[index]);
   };
@@ -114,6 +166,7 @@ function WordSelector({
             itemCount={possibleWords.length}
             itemData={{
               possibleWords,
+              wordViabilities,
               mkHandleClickWord,
             }}
             itemSize={46}

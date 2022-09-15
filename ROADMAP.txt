@@ -144,9 +144,15 @@
   + fix builder going offscreen for small screens
   + play mode: ENTER switches direction?
   + fix meta info
-- add license?
++ add secret code to detect plagiarism
 
-- INITIAL RELEASE!
++ INITIAL RELEASE!
+
++ check suggested words
+  + look into infinite running word (wait until wave version matches puzzle version)
+  + turn off when fill assist off
+- add DO NOT USE?
+- App Check
 
 ingest files as dictionaries
 sell custom dictionaries?

@@ -78,9 +78,27 @@ function FillAssistPopover({ anchorEl }: { anchorEl: HTMLElement }) {
 }
 
 type FillAssistStateType = 'running' | 'success' | 'error';
-function FillAssistState({ state }: { state: FillAssistStateType }) {
+export function FillAssistState({
+  state,
+  noTooltip,
+}: {
+  state: FillAssistStateType;
+  noTooltip?: boolean;
+}) {
+  const [checkmarkVisible, setCheckmarkVisible] = useState(false);
   const [spinnerVisible, setSpinnerVisible] = useState(false);
   const [errorVisible, setErrorVisible] = useState(false);
+
+  // Stop rendering the checkmark after a little time if it isn't supposed to
+  // be rendered
+  useEffect(() => {
+    if (state === 'success') {
+      setCheckmarkVisible(true);
+      return;
+    }
+    const timeoutId = setTimeout(() => setCheckmarkVisible(false), 1000);
+    return () => clearTimeout(timeoutId);
+  }, [state]);
 
   // Stop rendering the spinner after a little time if it isn't supposed to be
   // rendered
@@ -104,25 +122,19 @@ function FillAssistState({ state }: { state: FillAssistStateType }) {
     return () => clearTimeout(timeoutId);
   }, [state]);
 
-  return (
-    <Tooltip
-      title={`Fill assist state: ${_.capitalize(state)}`}
-      placement="top"
-      arrow
-      disableInteractive
-      enterDelay={500}
+  const component = (
+    <div
+      style={{
+        marginTop: 'auto',
+        marginBottom: 'auto',
+        marginLeft: -10,
+        display: 'flex',
+        width: 24,
+        height: 24,
+        position: 'relative',
+      }}
     >
-      <div
-        style={{
-          marginTop: 'auto',
-          marginBottom: 'auto',
-          marginLeft: -10,
-          display: 'flex',
-          width: 24,
-          height: 24,
-          position: 'relative',
-        }}
-      >
+      {checkmarkVisible && (
         <DoneIcon
           className={
             'fill-state-icon ' +
@@ -130,28 +142,42 @@ function FillAssistState({ state }: { state: FillAssistStateType }) {
           }
           color="primary"
         />
-        {errorVisible && (
-          <CloseIcon
-            className={
-              'fill-state-icon ' +
-              (state === 'error' ? 'rotate-in' : 'rotate-out')
-            }
-            color="error"
-          />
-        )}
-        {spinnerVisible && (
-          <div
-            className={'fill-state-icon fill-state-progress'}
-            style={{
-              top: -3,
-              left: 2,
-              opacity: state === 'running' ? 1 : 0,
-            }}
-          >
-            <CircularProgress size={20} thickness={5} />
-          </div>
-        )}
-      </div>
+      )}
+      {errorVisible && (
+        <CloseIcon
+          className={
+            'fill-state-icon ' +
+            (state === 'error' ? 'rotate-in' : 'rotate-out')
+          }
+          color="error"
+        />
+      )}
+      {spinnerVisible && (
+        <div
+          className={'fill-state-icon fill-state-progress'}
+          style={{
+            top: -3,
+            left: 2,
+            opacity: state === 'running' ? 1 : 0,
+          }}
+        >
+          <CircularProgress size={20} thickness={5} />
+        </div>
+      )}
+    </div>
+  );
+
+  return noTooltip ? (
+    component
+  ) : (
+    <Tooltip
+      title={`Fill assist state: ${_.capitalize(state)}`}
+      placement="top"
+      arrow
+      disableInteractive
+      enterDelay={500}
+    >
+      {component}
     </Tooltip>
   );
 }

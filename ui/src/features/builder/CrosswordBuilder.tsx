@@ -14,6 +14,7 @@ import {
   CrosswordPuzzleType,
   selectCurrentTab,
   selectDraggedWord,
+  selectFillAssistActive,
   selectPuzzle,
   setDraggedWord,
   setPuzzleState,
@@ -69,6 +70,22 @@ const AlertSnackbar = React.memo(
   }
 );
 
+export function puzzleCannotBeFilled(
+  puzzle: CrosswordPuzzleType,
+  wave: WaveType
+): boolean {
+  // Returns true if the puzzle wave has some contradiction (a non-black tile
+  // has 0 letter options)
+  return _.some(puzzle.tiles, (row, rowIndex) =>
+    _.some(
+      row,
+      (tile, columnIndex) =>
+        tile.value !== 'black' &&
+        wave.elements[rowIndex][columnIndex].options.length === 0
+    )
+  );
+}
+
 interface Props {
   grid: GridWithVersionType;
 }
@@ -76,6 +93,7 @@ export default function CrosswordBuilder({ grid }: Props) {
   const puzzle = useSelector(selectPuzzle);
   const draggedWord = useSelector(selectDraggedWord);
   const currentTab = useSelector(selectCurrentTab);
+  const fillAssistActive = useSelector(selectFillAssistActive);
   const { dictionary, addWordsToDictionary } = useDictionary();
   const { tileNumbers } = useClueData(puzzle);
   const {
@@ -217,16 +235,7 @@ export default function CrosswordBuilder({ grid }: Props) {
   const puzzleError = useMemo(() => {
     if (autoFillRunning || !wave) return '';
     if (autoFillError) return autoFillError;
-    if (
-      _.some(puzzle.tiles, (row, rowIndex) =>
-        _.some(
-          row,
-          (tile, columnIndex) =>
-            tile.value !== 'black' &&
-            wave.elements[rowIndex][columnIndex].options.length === 0
-        )
-      )
-    )
+    if (puzzleCannotBeFilled(puzzle, wave))
       return 'The puzzle cannot be filled from here! Try undoing recent changes, clearing up any red tiles, or adjusting the grid pattern.';
     return '';
   }, [autoFillRunning, puzzle, wave, autoFillError]);
@@ -342,14 +351,6 @@ export default function CrosswordBuilder({ grid }: Props) {
         : _.map(selectedTilesState?.locations || [], ({ row, column }) => []),
     [selectedTilesState, wave]
   );
-  const selectedTiles = useMemo(
-    () =>
-      _.map(
-        selectedTilesState?.locations || [],
-        ({ row, column }) => puzzle.tiles[row][column]
-      ),
-    [selectedTilesState, puzzle]
-  );
   const tilesSelected = useMemo(
     () => (selectedTilesState?.locations?.length || 0) > 0,
     [selectedTilesState]
@@ -418,10 +419,14 @@ export default function CrosswordBuilder({ grid }: Props) {
                 wordSelector={
                   <WordSelector
                     dictionary={dictionary}
+                    wave={wave}
+                    puzzle={puzzle}
                     optionsSet={selectedOptionsSet}
-                    selectedTiles={selectedTiles}
+                    selectedTilesState={selectedTilesState}
                     onEnter={handleEnterWord}
                     clearSelection={clearSelection}
+                    autoFillRunning={autoFillRunning}
+                    fillAssistActive={fillAssistActive}
                   />
                 }
                 wordBank={

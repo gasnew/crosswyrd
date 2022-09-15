@@ -199,6 +199,10 @@ body,
   font-size: 8px;
 }
 
+.word-selector-entry {
+  transition: opacity 200ms ease-out;
+}
+
 .word-bank-list-box-container {
   display: flex;
   flex-direction: column;
