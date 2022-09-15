@@ -79,8 +79,20 @@ function FillAssistPopover({ anchorEl }: { anchorEl: HTMLElement }) {
 
 type FillAssistStateType = 'running' | 'success' | 'error';
 export function FillAssistState({ state }: { state: FillAssistStateType }) {
+  const [checkmarkVisible, setCheckmarkVisible] = useState(false);
   const [spinnerVisible, setSpinnerVisible] = useState(false);
   const [errorVisible, setErrorVisible] = useState(false);
+
+  // Stop rendering the checkmark after a little time if it isn't supposed to
+  // be rendered
+  useEffect(() => {
+    if (state === 'success') {
+      setCheckmarkVisible(true);
+      return;
+    }
+    const timeoutId = setTimeout(() => setCheckmarkVisible(false), 1000);
+    return () => clearTimeout(timeoutId);
+  }, [state]);
 
   // Stop rendering the spinner after a little time if it isn't supposed to be
   // rendered
@@ -123,13 +135,15 @@ export function FillAssistState({ state }: { state: FillAssistStateType }) {
           position: 'relative',
         }}
       >
-        <DoneIcon
-          className={
-            'fill-state-icon ' +
-            (state === 'success' ? 'rotate-in' : 'rotate-out')
-          }
-          color="primary"
-        />
+        {checkmarkVisible && (
+          <DoneIcon
+            className={
+              'fill-state-icon ' +
+              (state === 'success' ? 'rotate-in' : 'rotate-out')
+            }
+            color="primary"
+          />
+        )}
         {errorVisible && (
           <CloseIcon
             className={

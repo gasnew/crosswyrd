@@ -12,6 +12,20 @@ import WFCWorker, { WFCWorkerAPIType } from './WFCWorker.worker';
 
 const VIABILITY_CHECK_LIMIT = 20;
 
+function shouldRunViabilityChecks(
+  puzzleVersion,
+  currentPuzzleVersion,
+  selectedTilesLocations,
+  currentSelectedLocations,
+  fillAssistActive
+) {
+  return (
+    puzzleVersion === currentPuzzleVersion &&
+    _.isEqual(selectedTilesLocations, currentSelectedLocations) &&
+    fillAssistActive
+  );
+}
+
 export type ViabilityStateType = 'Checking' | 'Viable' | 'Not Viable';
 export interface WordViabilityType {
   state: ViabilityStateType;
@@ -21,8 +35,19 @@ export default function useWordViabilities(
   wave: WaveType,
   puzzle: CrosswordPuzzleType,
   words: string[],
-  selectedTilesState: SelectedTilesStateType | null
+  selectedTilesState: SelectedTilesStateType | null,
+  autoFillRunning: boolean,
+  fillAssistActive: boolean
 ): WordViabilityType[] {
+  //console.log(
+  //dictionary,
+  //wave,
+  //puzzle,
+  //words,
+  //selectedTilesState,
+  //autoFillRunning,
+  //fillAssistActive
+  //);
   const [wordViabilities, setWordViabilities] = useState<WordViabilityType[]>(
     []
   );
@@ -33,7 +58,8 @@ export default function useWordViabilities(
     WFCWorkerRef.current = wrap<Remote<WFCWorkerAPIType>>(new WFCWorker());
   }, []);
 
-  // Erase word viabilities if the puzzle version or selection changes
+  // Erase word viabilities if the puzzle version or selection changes or if
+  // fill assist is not active
   const currentPuzzleVersion = useRef<string>(puzzle.version);
   const currentSelectedLocations = useRef<LocationType[]>(
     selectedTilesState?.locations || []
@@ -41,14 +67,19 @@ export default function useWordViabilities(
   useEffect(() => {
     if (!selectedTilesState) return;
     if (
-      puzzle.version !== currentPuzzleVersion.current ||
-      !_.isEqual(selectedTilesState.locations, currentSelectedLocations.current)
+      !shouldRunViabilityChecks(
+        puzzle.version,
+        currentPuzzleVersion.current,
+        selectedTilesState.locations,
+        currentSelectedLocations.current,
+        fillAssistActive
+      )
     ) {
       setWordViabilities([]);
       currentPuzzleVersion.current = puzzle.version;
       currentSelectedLocations.current = selectedTilesState.locations;
     }
-  }, [puzzle.version, selectedTilesState]);
+  }, [puzzle.version, selectedTilesState, fillAssistActive]);
 
   // Iteratively check the viability of the provided words
   const running = useRef(false);
@@ -78,10 +109,12 @@ export default function useWordViabilities(
         );
 
         if (
-          puzzle.version === currentPuzzleVersion.current &&
-          _.isEqual(
+          shouldRunViabilityChecks(
+            puzzle.version,
+            currentPuzzleVersion.current,
             selectedTilesState.locations,
-            currentSelectedLocations.current
+            currentSelectedLocations.current,
+            fillAssistActive
           )
         )
           // Update the viability entry's state given the results (if the
@@ -101,11 +134,14 @@ export default function useWordViabilities(
 
       checkViability();
     },
-    // Only iterate if we haven't reached our limit yet, and there are more
-    // words available to check
+    // Only iterate if we haven't reached our limit yet, there are more words
+    // available to check, the wave has been updated to the current puzzle
+    // version, and auto-fill is not running
     selectedTilesState &&
       wordViabilities.length < VIABILITY_CHECK_LIMIT &&
-      words.length > wordViabilities.length
+      words.length > wordViabilities.length &&
+      wave.puzzleVersion === puzzle.version &&
+      !autoFillRunning && fillAssistActive
       ? 100
       : null
   );

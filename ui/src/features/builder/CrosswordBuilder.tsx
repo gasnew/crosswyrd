@@ -14,6 +14,7 @@ import {
   CrosswordPuzzleType,
   selectCurrentTab,
   selectDraggedWord,
+  selectFillAssistActive,
   selectPuzzle,
   setDraggedWord,
   setPuzzleState,
@@ -92,6 +93,7 @@ export default function CrosswordBuilder({ grid }: Props) {
   const puzzle = useSelector(selectPuzzle);
   const draggedWord = useSelector(selectDraggedWord);
   const currentTab = useSelector(selectCurrentTab);
+  const fillAssistActive = useSelector(selectFillAssistActive);
   const { dictionary, addWordsToDictionary } = useDictionary();
   const { tileNumbers } = useClueData(puzzle);
   const {
@@ -423,6 +425,8 @@ export default function CrosswordBuilder({ grid }: Props) {
                     selectedTilesState={selectedTilesState}
                     onEnter={handleEnterWord}
                     clearSelection={clearSelection}
+                    autoFillRunning={autoFillRunning}
+                    fillAssistActive={fillAssistActive}
                   />
                 }
                 wordBank={

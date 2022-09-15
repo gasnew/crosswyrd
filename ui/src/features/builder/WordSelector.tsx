@@ -78,6 +78,8 @@ interface Props {
   selectedTilesState: SelectedTilesStateType | null;
   onEnter: (word: string) => void;
   clearSelection: () => void;
+  autoFillRunning: boolean;
+  fillAssistActive: boolean;
 }
 
 function WordSelector({
@@ -88,6 +90,8 @@ function WordSelector({
   selectedTilesState,
   onEnter,
   clearSelection,
+  autoFillRunning,
+  fillAssistActive,
 }: Props) {
   const selectedTiles = useMemo(
     () =>
@@ -127,13 +131,16 @@ function WordSelector({
     return sortedWordsExceptSelectedWord;
   }, [wordsFilteredByTiles, selectedTiles, optionsSet]);
 
-  const wordViabilities = useWordViabilities(
-    dictionary,
-    wave,
-    puzzle,
-    possibleWords,
-    selectedTilesState
-  );
+  const wordViabilities = [];
+  //const wordViabilities = useWordViabilities(
+    //dictionary,
+    //wave,
+    //puzzle,
+    //possibleWords,
+    //selectedTilesState,
+    //autoFillRunning,
+    //fillAssistActive
+  //);
 
   const mkHandleClickWord = (index: number) => () => {
     onEnter(possibleWords[index]);
