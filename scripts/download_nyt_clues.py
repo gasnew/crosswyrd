@@ -4,13 +4,21 @@ import json
 from concurrent.futures import ThreadPoolExecutor
 
 
-def extract_grid(data):
+def extract_clues(data):
     if not data:
-        return None
-    grid = data["data"]["grid"]
+        return []
     date = data["date"]
-    print(f"extracting grid of length {len(grid)}")
-    return {"grid": ["." if tile == "." else "0" for tile in grid], "date": date}
+    print(f"extracting clues for date {date}")
+    clues = [
+        {
+            "c": data["data"]["clues"][direction][index].split(". ")[-1],
+            "a": data["data"]["answers"][direction][index],
+            "d": date,
+        }
+        for direction in ["across", "down"]
+        for index in range(len(data["data"]["clues"][direction]))
+    ]
+    return clues
 
 
 def fetch_puzzle_data(year_month_day):
@@ -40,16 +48,18 @@ def generate_year_month_day(years):
 
 
 with ThreadPoolExecutor(max_workers=10) as executor:
-    grids = [
-        extract_grid(data)
+    clues = [
+        clue
         for data in executor.map(
             fetch_puzzle_data,
             generate_year_month_day([2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017]),
+            # generate_year_month_day([2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009]),
+            # generate_year_month_day([2017]),
         )
+        for clue in extract_clues(data)
     ]
 
-filtered_grids = [grid for grid in grids if grid and len(grid["grid"]) == 225]
-print(f"{len(grids)} grids total ({len(filtered_grids)} after filtering).")
+print(f"Downloaded {len(clues)} clues total!")
 
-with open("./nyt_grids.json", "w+") as f:
-    json.dump(filtered_grids, f)
+with open("./nyt_clues.json", "w+") as f:
+    json.dump(clues, f)
