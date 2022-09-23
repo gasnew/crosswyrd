@@ -245,7 +245,7 @@ function AnswerListItem({
 }
 
 const FULL_CLUE_ENTRY_HEIGHT = 540;
-export const CLUE_SUGGESTER_BAR_HEIGHT = 50;
+export const CLUE_SUGGESTER_BAR_HEIGHT = 48;
 export const CLUE_SUGGESTER_BODY_HEIGHT = 150;
 const CLUE_LIST_HEIGHT =
   FULL_CLUE_ENTRY_HEIGHT -
@@ -287,99 +287,100 @@ function ClueEntry({
       dispatch(initClueGrid({ size: puzzle.tiles.length }));
   }, [dispatch, clueGrid, puzzle.tiles.length]);
 
-  if (!clueGrid || clueGrid.length !== puzzle.tiles.length) return null;
+  const selectedWord: string | null = useMemo(
+    () =>
+      (selectedTilesState &&
+        _.find(
+          flattenedAnswers,
+          ({ row, column, direction, answer }) =>
+            selectedTilesState.locations[0].row === row &&
+            selectedTilesState.locations[0].column === column &&
+            selectedTilesState.direction === direction
+        )?.answer?.word) ||
+      null,
+    [flattenedAnswers, selectedTilesState]
+  );
 
-  const selectedWord: string | null =
-    selectedTilesState &&
-    clueGrid[selectedTilesState.primaryLocation.row][
-      selectedTilesState.primaryLocation.column
-    ][selectedTilesState.direction];
+  if (!clueGrid || clueGrid.length !== puzzle.tiles.length) return null;
 
   return (
     <div
       className="clue-entry-container"
       style={{ height: FULL_CLUE_ENTRY_HEIGHT }}
     >
-      <Collapse
-        in={!clueSuggesterExpanded}
-        timeout="auto"
-        collapsedSize={CLUE_LIST_HEIGHT}
+      <List
+        sx={{
+          width: '100%',
+          overflow: 'auto',
+          height:
+            CLUE_LIST_HEIGHT +
+            (clueSuggesterExpanded ? 0 : CLUE_SUGGESTER_BODY_HEIGHT),
+          '& ul': { padding: 0 },
+        }}
+        subheader={<li />}
+        className="clue-entry-list"
       >
-        <List
-          sx={{
-            width: '100%',
-            overflow: 'auto',
-            height:
-              CLUE_LIST_HEIGHT +
-              (clueSuggesterExpanded ? 0 : CLUE_SUGGESTER_BODY_HEIGHT),
-            '& ul': { padding: 0 },
-          }}
-          subheader={<li />}
-        >
-          <li>
-            <ul>
-              {_.map(['across', 'down'], (currentDirection) => (
-                <div key={currentDirection}>
-                  <ListSubheader>
-                    {_.capitalize(currentDirection)}
-                  </ListSubheader>
-                  {_.map(
-                    flattenedAnswers,
-                    (
-                      { row, column, answer, direction: answerDirection },
-                      index
-                    ) => {
-                      if (
-                        currentDirection !== answerDirection ||
-                        !tileNumbers[row][column]
-                      )
-                        return null;
-                      return (
-                        <AnswerListItem
-                          key={`answer-${row}-${column}`}
-                          tileNumber={tileNumbers[row][column] || 999}
-                          answer={answer}
-                          value={clueGrid[row][column][currentDirection] || ''}
-                          onChange={(event) =>
-                            dispatch(
-                              setClue({
-                                row,
-                                column,
-                                direction: currentDirection,
-                                value: event.target.value,
-                              })
-                            )
-                          }
-                          selected={
-                            !!selectedTilesState &&
-                            currentDirection === selectedTilesState.direction &&
-                            row === selectedTilesState.locations[0].row &&
-                            column === selectedTilesState.locations[0].column
-                          }
-                          setSelected={() =>
-                            selectAnswer(answerDirection, row, column, answer)
-                          }
-                          selectNext={() => {
-                            const {
-                              direction,
+        <li>
+          <ul>
+            {_.map(['across', 'down'], (currentDirection) => (
+              <div key={currentDirection}>
+                <ListSubheader>{_.capitalize(currentDirection)}</ListSubheader>
+                {_.map(
+                  flattenedAnswers,
+                  (
+                    { row, column, answer, direction: answerDirection },
+                    index
+                  ) => {
+                    if (
+                      currentDirection !== answerDirection ||
+                      !tileNumbers[row][column]
+                    )
+                      return null;
+                    return (
+                      <AnswerListItem
+                        key={`answer-${row}-${column}`}
+                        tileNumber={tileNumbers[row][column] || 999}
+                        answer={answer}
+                        value={clueGrid[row][column][currentDirection] || ''}
+                        onChange={(event) =>
+                          dispatch(
+                            setClue({
                               row,
                               column,
-                              answer,
-                            } = flattenedAnswers[
-                              (index + 1) % flattenedAnswers.length
-                            ];
-                            selectAnswer(direction, row, column, answer);
-                          }}
-                        />
-                      );
-                    }
-                  )}
-                </div>
-              ))}
-            </ul>
-          </li>
-        </List>
-      </Collapse>
+                              direction: currentDirection,
+                              value: event.target.value,
+                            })
+                          )
+                        }
+                        selected={
+                          !!selectedTilesState &&
+                          currentDirection === selectedTilesState.direction &&
+                          row === selectedTilesState.locations[0].row &&
+                          column === selectedTilesState.locations[0].column
+                        }
+                        setSelected={() =>
+                          selectAnswer(answerDirection, row, column, answer)
+                        }
+                        selectNext={() => {
+                          const {
+                            direction,
+                            row,
+                            column,
+                            answer,
+                          } = flattenedAnswers[
+                            (index + 1) % flattenedAnswers.length
+                          ];
+                          selectAnswer(direction, row, column, answer);
+                        }}
+                      />
+                    );
+                  }
+                )}
+              </div>
+            ))}
+          </ul>
+        </li>
+      </List>
       <ClueSuggester
         expanded={clueSuggesterExpanded}
         setExpanded={setClueSuggesterExpanded}

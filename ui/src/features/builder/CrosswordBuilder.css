@@ -366,6 +366,10 @@ body,
   z-index: 10;
 }
 
+.clue-entry-list {
+  transition: height 200ms ease-out;
+}
+
 .clue-entry-container {
   display: flex;
   flex-direction: column;
@@ -376,4 +380,11 @@ body,
   position: absolute;
   bottom: 0;
   width: 100%;
+  background: white;
+}
+
+.clue-suggester-bar {
+  display: flex;
+  flex-direction: row;
+  padding-top: 8px;
 }

@@ -39,12 +39,21 @@ export default function ClueSuggester({
 
   return (
     <div className="clue-suggester">
+      <Divider style={{ width: '100%' }} />
       <div
         className="clue-suggester-bar"
         style={{ height: CLUE_SUGGESTER_BAR_HEIGHT }}
       >
-        <Divider style={{width: '100%'}}/>
-        <span style={{ fontWeight: 'bold', fontSize: 16 }}>Clue Examples</span>
+        <span
+          style={{
+            fontWeight: 'bold',
+            fontSize: 16,
+            margin: 'auto',
+            marginLeft: 0,
+          }}
+        >
+          Clue Examples
+        </span>
         <ExpandMore
           expand={expanded}
           onClick={handleExpandClick}
