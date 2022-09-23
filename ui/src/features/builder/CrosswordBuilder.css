@@ -365,3 +365,15 @@ body,
   /* Place it above tiles */
   z-index: 10;
 }
+
+.clue-entry-container {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.clue-suggester {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+}
