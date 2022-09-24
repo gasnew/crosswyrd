@@ -387,4 +387,10 @@ body,
   display: flex;
   flex-direction: row;
   padding-top: 8px;
+  cursor: pointer;
+}
+
+.clue-suggester-comment {
+  margin: auto;
+  font-style: italic;
 }

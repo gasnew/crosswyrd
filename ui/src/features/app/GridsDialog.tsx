@@ -30,14 +30,41 @@ export function blankGrid(gridSize: number): GridType {
   };
 }
 
-function getDifficulty(grid: GridType) {
-  const day = dayjs(grid.date).day();
+export function getDifficulty(date?: string) {
+  const day = dayjs(date).day();
   return _.includes([1, 2], day)
     ? 'easy'
     : _.includes([3, 4, 0], day)
     ? 'medium'
     : 'hard';
 }
+export function DifficultyChip({
+  date,
+  short,
+  style,
+}: {
+  date: string;
+  short?: boolean;
+  style?: any;
+}) {
+  const difficulty = getDifficulty(date);
+  return (
+    <Chip
+      size="small"
+      color={
+        difficulty === 'easy'
+          ? 'success'
+          : difficulty === 'medium'
+          ? 'warning'
+          : 'error'
+      }
+      variant="filled"
+      label={short ? _.capitalize(difficulty)[0] : _.capitalize(difficulty)}
+      style={style}
+    />
+  );
+}
+
 export function countWordLengths(grid: GridType): number[] {
   const solid = (tile: boolean | undefined): boolean =>
     tile === undefined || tile;
@@ -86,7 +113,6 @@ function GridButton({
   disabled: boolean;
   selected: boolean;
 }) {
-  const difficulty = getDifficulty(grid);
   return (
     <Button
       variant="outlined"
@@ -109,17 +135,8 @@ function GridButton({
           <span>
             {countWords(grid)} words, {countBlocks(grid)} blocks
           </span>
-          <Chip
-            size="small"
-            color={
-              difficulty === 'easy'
-                ? 'success'
-                : difficulty === 'medium'
-                ? 'warning'
-                : 'error'
-            }
-            variant="filled"
-            label={_.capitalize(difficulty)}
+          <DifficultyChip
+            date={grid.date}
             style={{ pointerEvents: 'none', marginBottom: 5 }}
           />
         </>

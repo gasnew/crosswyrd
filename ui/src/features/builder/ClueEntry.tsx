@@ -1,6 +1,7 @@
 import _ from 'lodash';
-import { Collapse, Input, List, ListItem, ListSubheader } from '@mui/material';
+import { Input, List, ListItem, ListSubheader } from '@mui/material';
 import React, {
+  useCallback,
   useEffect,
   useLayoutEffect,
   useMemo,
@@ -246,7 +247,7 @@ function AnswerListItem({
 
 const FULL_CLUE_ENTRY_HEIGHT = 540;
 export const CLUE_SUGGESTER_BAR_HEIGHT = 48;
-export const CLUE_SUGGESTER_BODY_HEIGHT = 150;
+export const CLUE_SUGGESTER_BODY_HEIGHT = 225;
 const CLUE_LIST_HEIGHT =
   FULL_CLUE_ENTRY_HEIGHT -
   CLUE_SUGGESTER_BAR_HEIGHT -
@@ -277,8 +278,11 @@ function ClueEntry({
   const dispatch = useDispatch();
   const clueGrid = useSelector(selectClueGrid);
 
-  const selectAnswer = (direction, row, column, answer) =>
-    updateSelection({ row, column }, direction);
+  const selectAnswer = useCallback(
+    (direction, row, column, answer) =>
+      updateSelection({ row, column }, direction),
+    [updateSelection]
+  );
 
   // Resize the clue grid if the puzzle size has changed. This can happen when
   // traversing history--only puzzle and wave are included there.
@@ -287,6 +291,21 @@ function ClueEntry({
       dispatch(initClueGrid({ size: puzzle.tiles.length }));
   }, [dispatch, clueGrid, puzzle.tiles.length]);
 
+  const selectNext = useCallback(() => {
+    if (!selectedTilesState) return;
+    const index = _.findIndex(
+      flattenedAnswers,
+      ({ row, column, direction }) =>
+        selectedTilesState.locations[0].row === row &&
+        selectedTilesState.locations[0].column === column &&
+        selectedTilesState.direction === direction
+    );
+    if (index < 0) return;
+    const { direction, row, column, answer } = flattenedAnswers[
+      (index + 1) % flattenedAnswers.length
+    ];
+    selectAnswer(direction, row, column, answer);
+  }, [selectedTilesState, flattenedAnswers, selectAnswer]);
   const selectedWord: string | null = useMemo(
     () =>
       (selectedTilesState &&
@@ -299,6 +318,21 @@ function ClueEntry({
         )?.answer?.word) ||
       null,
     [flattenedAnswers, selectedTilesState]
+  );
+  const enterClue = useCallback(
+    (clue: string) => {
+      if (!selectedTilesState) return;
+      dispatch(
+        setClue({
+          row: selectedTilesState.locations[0].row,
+          column: selectedTilesState.locations[0].column,
+          direction: selectedTilesState.direction,
+          value: clue,
+        })
+      );
+      selectNext();
+    },
+    [dispatch, selectedTilesState, selectNext]
   );
 
   if (!clueGrid || clueGrid.length !== puzzle.tiles.length) return null;
@@ -361,17 +395,7 @@ function ClueEntry({
                         setSelected={() =>
                           selectAnswer(answerDirection, row, column, answer)
                         }
-                        selectNext={() => {
-                          const {
-                            direction,
-                            row,
-                            column,
-                            answer,
-                          } = flattenedAnswers[
-                            (index + 1) % flattenedAnswers.length
-                          ];
-                          selectAnswer(direction, row, column, answer);
-                        }}
+                        selectNext={selectNext}
                       />
                     );
                   }
@@ -385,6 +409,7 @@ function ClueEntry({
         expanded={clueSuggesterExpanded}
         setExpanded={setClueSuggesterExpanded}
         selectedWord={selectedWord}
+        enterClue={enterClue}
       />
     </div>
   );

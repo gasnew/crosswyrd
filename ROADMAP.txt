@@ -151,8 +151,23 @@
 + check suggested words
   + look into infinite running word (wait until wave version matches puzzle version)
   + turn off when fill assist off
-- add DO NOT USE?
 - App Check
+/ clue suggestions
+  + pull historic clues from NYT database
+  + show in clues sidebar
+  + click clue to fill it automatically
+  - update GIF
+  - use compressed clue list
+- pro version
+  - limited publishes (just store in localstorage or localforage)
+  - banner to alert users of the upcoming change
+  - account creation using firebase
+  - stripe for transaction
+- use words and clues from older puzzles (pre-2010)
+- import/export
+  - pro only
+  - grayed out for non-pro?
+- add DO NOT USE?
 
 ingest files as dictionaries
 sell custom dictionaries?
