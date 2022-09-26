@@ -52,8 +52,8 @@ with ThreadPoolExecutor(max_workers=10) as executor:
         clue
         for data in executor.map(
             fetch_puzzle_data,
-            generate_year_month_day(list(range(1990, 2018))),
-            # generate_year_month_day([2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017]),
+            # generate_year_month_day(list(range(1990, 2018))),
+            generate_year_month_day([2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017]),
             # generate_year_month_day([2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009]),
             # generate_year_month_day([2017]),
         )

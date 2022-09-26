@@ -32,6 +32,12 @@ with open("./nyt_clues.json", "r") as f:
 with open("./nyt_clues_norm.json", "w+") as f:
     new_data = {}
     for clue in data:
+        if any(
+            direction in clue["c"]
+            for direction in ["-across", "-Across", "-down", "-Down"]
+        ):
+            # Do not include clues that reference other parts of the puzzle
+            continue
         entry = {
             "last_seen": clue["d"],
             "times_seen": 1,

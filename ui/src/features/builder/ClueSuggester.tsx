@@ -27,21 +27,27 @@ import { DifficultyChip, getDifficulty } from '../app/GridsDialog';
 // with ID "compressed-file-download" to compress and download any file in the
 // public folder.
 //async function download_txt() {
-//console.log('click!!');
-////var textToSave = document?.getElementById('txt')?.innerHTML;
-//var codec = require('json-url')('lzma');
-//var textToSave = await codec.compress(cluesData);
-//console.log('encode!!');
-//if (!textToSave) return;
-//var hiddenElement = document.createElement('a');
+//  console.log('click!!');
 
-//hiddenElement.href = 'data:attachment/text,' + encodeURI(textToSave);
-//hiddenElement.target = '_blank';
-//hiddenElement.download = 'myFile.txt';
-//hiddenElement.click();
-//console.log('download!!');
+//  console.log('download!!');
+//  const response = await axios.get('clues_raw.json');
+//  const cluesData = response.data;
+
+//  console.log('encode!!');
+//  var codec = require('json-url')('lzma');
+//  var textToSave = await codec.compress(cluesData);
+//  if (!textToSave) return;
+
+//  console.log('download!!');
+//  var hiddenElement = document.createElement('a');
+//  hiddenElement.href = 'data:attachment/text,' + encodeURI(textToSave);
+//  hiddenElement.target = '_blank';
+//  hiddenElement.download = 'myFile.txt';
+//  hiddenElement.click();
 //}
-//document?.getElementById('compressed-file-download')?.addEventListener('click', download_txt);
+//document
+//  ?.getElementById('compressed-file-download')
+//  ?.addEventListener('click', download_txt);
 
 interface ClueEntryType {
   clue: string;

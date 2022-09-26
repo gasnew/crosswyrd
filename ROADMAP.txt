@@ -157,7 +157,7 @@
   + show in clues sidebar
   + click clue to fill it automatically
   + use compressed clue list
-  - filter clues with "across" or "down"
+  + filter clues with "across" or "down"
   - update GIF
 - discord integration
   - save edit links to discord automatically
