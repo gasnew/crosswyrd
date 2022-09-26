@@ -4,6 +4,7 @@ import _ from 'lodash';
 import IconButton, { IconButtonProps } from '@mui/material/IconButton';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import {
+  CircularProgress,
   Collapse,
   Divider,
   Table,
@@ -22,6 +23,26 @@ import {
 } from './ClueEntry';
 import { DifficultyChip, getDifficulty } from '../app/GridsDialog';
 
+// NOTE(gnewman): Add me to some code that runs once, and create an element
+// with ID "compressed-file-download" to compress and download any file in the
+// public folder.
+//async function download_txt() {
+//console.log('click!!');
+////var textToSave = document?.getElementById('txt')?.innerHTML;
+//var codec = require('json-url')('lzma');
+//var textToSave = await codec.compress(cluesData);
+//console.log('encode!!');
+//if (!textToSave) return;
+//var hiddenElement = document.createElement('a');
+
+//hiddenElement.href = 'data:attachment/text,' + encodeURI(textToSave);
+//hiddenElement.target = '_blank';
+//hiddenElement.download = 'myFile.txt';
+//hiddenElement.click();
+//console.log('download!!');
+//}
+//document?.getElementById('compressed-file-download')?.addEventListener('click', download_txt);
+
 interface ClueEntryType {
   clue: string;
   lastSeen: string;
@@ -29,22 +50,46 @@ interface ClueEntryType {
 }
 interface HistoricalCluesType {
   getCluesForWord: (word: string | null) => ClueEntryType[];
+  loading: boolean;
 }
 
-function useHistoricalClues(): HistoricalCluesType {
+function useHistoricalClues(selectedWord: string | null): HistoricalCluesType {
   const [clues, setClues] = React.useState<HistoricalCluesType>({
     getCluesForWord: (word) => [],
+    loading: false,
   });
 
-  // Fetch clues on mount
+  // Fetch clues once we have a completed word to fetch for
+  const triedLoad = React.useRef(false);
   React.useEffect(() => {
+    // Only try to fetch once we have a complete word to fetch for
+    if (!selectedWord || _.includes(selectedWord, '-')) return;
+
+    // Don't ever allow fetching to happen more than once (maybe someday we'll
+    // have a retry button?)
+    if (triedLoad.current) return;
+    triedLoad.current = true;
+
+    // Set loading
+    setClues({
+      getCluesForWord: (word) => [],
+      loading: true,
+    });
+
     const fetchClues = async () => {
-      const response = await axios.get('clues_raw.json');
-      const cluesData = response.data as {
+      // Fetch remote clue data
+      const response = await axios.get('clues.lzma');
+      const compressedCluesData = response.data;
+
+      // Decode the data
+      var codec = require('json-url')('lzma');
+      const cluesData = (await codec.decompress(compressedCluesData)) as {
         [word: string]: {
           [clue: string]: { last_seen: string; times_seen: number };
         };
       };
+
+      // Map data to frontend world
       const clues = _.mapValues(cluesData, (clues) =>
         _.map(clues, ({ last_seen, times_seen }, clue) => ({
           lastSeen: last_seen,
@@ -53,16 +98,18 @@ function useHistoricalClues(): HistoricalCluesType {
         }))
       );
 
+      // Set the clues state
       setClues({
         getCluesForWord: (word) => {
           if (!word || _.includes(word, '-')) return [];
           return clues[_.toUpper(word)] || [];
         },
+        loading: false,
       });
     };
 
     fetchClues();
-  }, []);
+  }, [selectedWord]);
 
   return clues;
 }
@@ -95,7 +142,7 @@ export default function ClueSuggester({
   selectedWord,
   enterClue,
 }: Props) {
-  const clues = useHistoricalClues();
+  const clues = useHistoricalClues(selectedWord);
 
   const handleExpandClick = () => setExpanded(!expanded);
   const mkHandleClickClue = (clue: string) => () => enterClue(clue);
@@ -131,7 +178,16 @@ export default function ClueSuggester({
           className="clue-suggester-body"
           style={{ height: CLUE_SUGGESTER_BODY_HEIGHT }}
         >
-          {clues.getCluesForWord(selectedWord).length > 0 ? (
+          {clues.loading ? (
+            <div style={{ display: 'flex', height: '100%' }}>
+              <CircularProgress
+                style={{ margin: 'auto' }}
+                size={50}
+                thickness={4}
+                disableShrink
+              />
+            </div>
+          ) : clues.getCluesForWord(selectedWord).length > 0 ? (
             <Table stickyHeader aria-label="sticky table" size="small">
               <TableHead>
                 <TableRow>

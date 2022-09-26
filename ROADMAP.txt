@@ -156,18 +156,39 @@
   + pull historic clues from NYT database
   + show in clues sidebar
   + click clue to fill it automatically
+  + use compressed clue list
+  - filter clues with "across" or "down"
   - update GIF
-  - use compressed clue list
+- discord integration
+  - save edit links to discord automatically
+  - submit puzzles to personal channel automatically and "all puzzles"
+    (possibly just visible to me) channel on publish
+  - when puzzle played, somehow update discord that puzzle was played?
+  - special discord channel for puzzles completed at least once and played at least 5 times?
+  - channel for curated puzzles?
+  - link to discord puzzles from app, both in explainer and in player
+- use words and clues from older puzzles (pre-2010)
 - pro version
   - limited publishes (just store in localstorage or localforage)
   - banner to alert users of the upcoming change
   - account creation using firebase
   - stripe for transaction
-- use words and clues from older puzzles (pre-2010)
 - import/export
   - pro only
   - grayed out for non-pro?
 - add DO NOT USE?
+- edit puzzles
+  - on first publish, generates private key and plops in URL
+  - when load page, if puzzle UUID in URL, load from firebase, otherwise load
+    from cache
+  - save edit link (includes private key in the puzzle object, not included in
+    the player...? Need to think about how to make this completely private)
+  - when open edit link, loads puzzle saved to firestore and keeps key around
+    in URL param to authorize editing the puzzle
+  - when click publish, indicates publishing changes, auto-fills title and
+    author, etc.
+  - maybe don't allow edits but just supply a "build link" in discord?
+
 
 ingest files as dictionaries
 sell custom dictionaries?
