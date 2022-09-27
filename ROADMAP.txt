@@ -156,9 +156,12 @@
   + pull historic clues from NYT database
   + show in clues sidebar
   + click clue to fill it automatically
-  + use compressed clue list
   + filter clues with "across" or "down"
-  - update GIF
+  x use compressed clue list (may bring this back in future by partitioning
+    clues into 26 parts (one for each letter). For now, we'll just swallow the
+    14 MB cost)
+  + update GIF
+  - stop clue sidebar jittering
 - discord integration
   - save edit links to discord automatically
   - submit puzzles to personal channel automatically and "all puzzles"

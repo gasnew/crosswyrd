@@ -84,16 +84,20 @@ function useHistoricalClues(selectedWord: string | null): HistoricalCluesType {
 
     const fetchClues = async () => {
       // Fetch remote clue data
-      const response = await axios.get('clues.lzma');
-      const compressedCluesData = response.data;
-
-      // Decode the data
-      var codec = require('json-url')('lzma');
-      const cluesData = (await codec.decompress(compressedCluesData)) as {
+      const response = await axios.get('clues.json');
+      const cluesData = response.data as {
         [word: string]: {
           [clue: string]: { last_seen: string; times_seen: number };
         };
       };
+
+      // Decode the data
+      //var codec = require('json-url')('lzma');
+      //const cluesData = (await codec.decompress(compressedCluesData)) as {
+      //  [word: string]: {
+      //    [clue: string]: { last_seen: string; times_seen: number };
+      //  };
+      //};
 
       // Map data to frontend world
       const clues = _.mapValues(cluesData, (clues) =>

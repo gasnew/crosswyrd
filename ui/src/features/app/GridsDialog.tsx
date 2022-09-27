@@ -11,6 +11,7 @@ import {
   IconButton,
   Tabs,
   Tab,
+  Tooltip,
 } from '@mui/material';
 import { useCallback, useMemo, useState } from 'react';
 import { useDispatch } from 'react-redux';
@@ -48,7 +49,7 @@ export function DifficultyChip({
   style?: any;
 }) {
   const difficulty = getDifficulty(date);
-  return (
+  const chip = (
     <Chip
       size="small"
       color={
@@ -60,9 +61,29 @@ export function DifficultyChip({
       }
       variant="filled"
       label={short ? _.capitalize(difficulty)[0] : _.capitalize(difficulty)}
-      style={style}
+      style={{ ...style, cursor: 'pointer' }}
     />
   );
+
+  if (short)
+    return (
+      <Tooltip
+        title={
+          <span>
+            Source puzzle difficulty:{' '}
+            <span style={{ fontWeight: 'bold' }}>
+              {_.capitalize(difficulty)}
+            </span>
+          </span>
+        }
+        placement="top"
+        arrow
+        disableInteractive
+      >
+        {chip}
+      </Tooltip>
+    );
+  return chip;
 }
 
 export function countWordLengths(grid: GridType): number[] {
