@@ -152,10 +152,21 @@ export default function ClueSuggester({
   selectedWord,
   enterClue,
 }: Props) {
+  const [
+    tableContainerRef,
+    setTableContainerRef,
+  ] = React.useState<HTMLElement | null>(null);
+
   const clues = useHistoricalClues(selectedWord);
 
   const handleExpandClick = () => setExpanded(!expanded);
   const mkHandleClickClue = (clue: string) => () => enterClue(clue);
+
+  // Scroll the table to the top whenever a new word is selected
+  React.useEffect(() => {
+    if (!tableContainerRef) return;
+    tableContainerRef.scrollTop = 0;
+  }, [tableContainerRef, selectedWord]);
 
   return (
     <div className="clue-suggester">
@@ -187,6 +198,7 @@ export default function ClueSuggester({
         <TableContainer
           className="clue-suggester-body"
           style={{ height: CLUE_SUGGESTER_BODY_HEIGHT }}
+          ref={setTableContainerRef}
         >
           {clues.loading ? (
             <div style={{ display: 'flex', height: '100%' }}>

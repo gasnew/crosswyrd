@@ -152,7 +152,7 @@
   + look into infinite running word (wait until wave version matches puzzle version)
   + turn off when fill assist off
 - App Check
-/ clue suggestions
++ clue suggestions
   + pull historic clues from NYT database
   + show in clues sidebar
   + click clue to fill it automatically
@@ -161,7 +161,7 @@
     clues into 26 parts (one for each letter). For now, we'll just swallow the
     14 MB cost)
   + update GIF
-  - stop clue sidebar jittering
+  + scroll clue suggestions to top when selected word changes
 - discord integration
   - save edit links to discord automatically
   - submit puzzles to personal channel automatically and "all puzzles"
@@ -170,6 +170,7 @@
   - special discord channel for puzzles completed at least once and played at least 5 times?
   - channel for curated puzzles?
   - link to discord puzzles from app, both in explainer and in player
+  - stop clue sidebar jittering
 - use words and clues from older puzzles (pre-2010)
 - pro version
   - limited publishes (just store in localstorage or localforage)
