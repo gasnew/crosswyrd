@@ -228,7 +228,7 @@ export default function WelcomeDialog({ open, showCheckbox, onClose }: Props) {
           remaining tiles with new words.
         </p>
         <Heading>Writing Clues</Heading>
-        <Img src="/gifs/clues.gif" alt="Writing Clues" height={350} />
+        <Img src="/gifs/cluesv2.gif" alt="Writing Clues" height={350} />
         <p>
           In the <Keyword>Clues</Keyword> tab, you can enter clues for each of
           the answers on the board. There is a lot of literature available
