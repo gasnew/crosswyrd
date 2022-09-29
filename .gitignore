@@ -144,3 +144,6 @@ node_modules
 
 # Firebase stuff
 .firebase
+
+# Personal use stuff
+artifacts

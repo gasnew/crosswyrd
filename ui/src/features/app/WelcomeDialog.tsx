@@ -235,7 +235,8 @@ export default function WelcomeDialog({ open, showCheckbox, onClose }: Props) {
           online about how to write good crossword puzzle clues, but it is much
           more of an art than a science. While this can often be the most
           time-consuming part of constructing a puzzle, it is worth taking the
-          time to write high-quality clues.
+          time to write high-quality clues. Crosswyrd provides clue suggestions
+          from historical New York Times puzzles for inspiration.
         </p>
         <Heading>Publishing Your Puzzle</Heading>
         <Img src="/gifs/publish.gif" alt="Publishing Your Puzzle" />

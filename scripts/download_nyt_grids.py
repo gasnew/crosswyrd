@@ -44,10 +44,7 @@ with ThreadPoolExecutor(max_workers=10) as executor:
         extract_grid(data)
         for data in executor.map(
             fetch_puzzle_data,
-            generate_year_month_day([
-                2010, 2011, 2012, 2013, 2014, 2015, 2016,
-                2017
-            ]),
+            generate_year_month_day([2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017]),
         )
     ]
 
