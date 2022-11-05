@@ -38,6 +38,7 @@ interface BuilderState {
   letterEntryEnabled: boolean;
   defaultGridDialogOpen: boolean;
   welcomeDialogState: WelcomeDialogStateType;
+  tileUpdates: TileUpdateType[];
 }
 
 export const DEFAULT_PUZZLE_SIZE = 15;
@@ -63,6 +64,7 @@ const initialState: BuilderState = {
   // Default grid dialog to open unless in development mode
   defaultGridDialogOpen: !devMode(),
   welcomeDialogState: { open: true, showCheckbox: true },
+  tileUpdates: [],
 };
 
 export function getSymmetricTile(
@@ -104,6 +106,7 @@ export const builderSlice = createSlice({
       _.forEach(action.payload, ({ row, column, value }) => {
         const tile = state.puzzle.tiles[row][column];
         tile.value = value;
+        state.tileUpdates.push({ row, column, value });
       });
       state.puzzle.version = randomId();
     },
@@ -116,6 +119,9 @@ export const builderSlice = createSlice({
         ...state.puzzle,
         ...action.payload,
       };
+      // This function effectively destroys the puzzle, so we should reset our
+      // tracked tile updates as well
+      state.tileUpdates = [];
     },
     setWaveState: (state, action: PayloadAction<WaveType | null>) => {
       state.wave = action.payload;
@@ -205,5 +211,7 @@ export const selectDefaultGridDialogOpen = (state: RootState) =>
   state.builder.defaultGridDialogOpen;
 export const selectWelcomeDialogState = (state: RootState) =>
   state.builder.welcomeDialogState;
+export const selectTileUpdates = (state: RootState) =>
+  state.builder.tileUpdates;
 
 export default builderSlice.reducer;

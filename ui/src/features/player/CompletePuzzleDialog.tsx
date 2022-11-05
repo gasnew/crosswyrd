@@ -23,6 +23,7 @@ import { GarrettNote } from '../app/KoFiButton';
 import { CrosswordPuzzleType } from '../builder/builderSlice';
 import { PuzzleMetadataType } from './CrosswordPlayer';
 import { logEvent } from '../../firebase';
+import useGenerateReplayGIF from './useGenerateReplayGIF';
 
 // Wait half a second before the dialog can be closed again. This is because
 // tap events close the dialog immediately after it is opened.
@@ -143,6 +144,10 @@ export default function CompletePuzzleDialog({
       return () => clearTimeout(timeoutId);
     }
   }, [openState, interactable]);
+
+  // Generate a replay GIF
+  useGenerateReplayGIF(openState.open, puzzleKey);
+
 
   const shareUrl = window.location.href;
   const shareTitle = `I solved "${puzzleMetadata.title}" by "${puzzleMetadata.author}" on Crosswyrd! Check it out:`;

@@ -6359,6 +6359,11 @@ get-value@^2.0.3, get-value@^2.0.6:
   resolved "https://registry.yarnpkg.com/get-value/-/get-value-2.0.6.tgz#dc15ca1c672387ca76bd37ac0a395ba2042a2c28"
   integrity sha512-Ln0UQDlxH1BapMu3GPtf7CuYNwRZf2gwCuPqbyG6pB8WfmFpzqcy4xtAaAMUhnNqjMKTiCPZG2oMT3YSx8U2NA==
 
+gif.js.optimized@^1.0.1:
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/gif.js.optimized/-/gif.js.optimized-1.0.1.tgz#20fa5403654dfec402ae5f41f2385bebd8099105"
+  integrity sha512-IS0F42Xken6lp/iR4irgG4r52tvxRkEKsXGZmlUHUOb00SWNMezJOJwkVaJk2MLW53rqzMbPnnBtEhs9hcMJ9w==
+
 glob-parent@^3.1.0:
   version "3.1.0"
   resolved "https://registry.yarnpkg.com/glob-parent/-/glob-parent-3.1.0.tgz#9e6af6299d8d3bd2bd40430832bd113df906c5ae"
