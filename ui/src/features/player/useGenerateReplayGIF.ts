@@ -13,11 +13,11 @@ import {
 const GIF_SIZE = 260;
 const FRAME_DELAY = 50;
 const LINE_WIDTH = 4;
-const TILE_BLUE_LIGHT = colors.blue[50];
-const TILE_BLUE = colors.blue[700];
-const TILE_RED_LIGHT = colors.red[50];
-const TILE_RED = colors.red[200];
-const TILE_ANIMATE_FRAMES = 5;
+const TILE_BLUE_LIGHT = colors.teal[50];
+const TILE_BLUE = colors.teal[300];
+const TILE_RED_LIGHT = colors.orange[50];
+const TILE_RED = colors.orange[200];
+const TILE_ANIMATE_FRAMES = 4;
 
 interface AnimatedTileType {
   value: TileValueType;
@@ -71,15 +71,22 @@ function drawFrame(
     _.times(puzzleKey.tiles.length, (column) => {
       const tile = animatedPuzzle.tiles[row][column];
       const frameDelta = currentFrame - tile.lastUpdatedFrame;
-      ctx.strokeStyle = '#000';
-      ctx.fillStyle =
+      const newFillStyle =
         tile.value === 'black'
           ? '#000'
           : tile.value === 'empty'
           ? '#fff'
           : tile.value === puzzleKey.tiles[row][column].value
-          ? dynamicColor(TILE_BLUE_LIGHT, TILE_BLUE, frameDelta)
+          ? frameDelta >= TILE_ANIMATE_FRAMES
+            ? TILE_BLUE
+            : dynamicColor(TILE_BLUE_LIGHT, TILE_BLUE, frameDelta)
+          : frameDelta >= TILE_ANIMATE_FRAMES
+          ? TILE_RED
           : dynamicColor(TILE_RED_LIGHT, TILE_RED, frameDelta);
+      // Optimization so we're not setting it all the time (though this is
+      // still the slowest code)
+      // TODO: slow
+      if (ctx.fillStyle !== newFillStyle) ctx.fillStyle = newFillStyle;
       ctx.fillRect(column * tileSize, row * tileSize, tileSize, tileSize);
       ctx.strokeRect(column * tileSize, row * tileSize, tileSize, tileSize);
       if (currentFrame !== 0 && frameDelta === 0)
@@ -119,7 +126,12 @@ export default function useGenerateReplayGIF(
     const canvas = document.createElement('canvas');
     canvas.width = GIF_SIZE;
     canvas.height = GIF_SIZE;
-    const ctx = canvas.getContext('2d');
+    // Setting willReadFrequently to true makes ingesting the canvas into
+    // gif.js much faster, but it also causes TypeScript to get confused, so we
+    // force the type here to be correct.
+    const ctx: CanvasRenderingContext2D | null = canvas.getContext('2d', {
+      willReadFrequently: true,
+    }) as CanvasRenderingContext2D | null;
     if (!ctx) return;
 
     const animatedPuzzle: AnimatedPuzzleType = {
@@ -160,6 +172,7 @@ export default function useGenerateReplayGIF(
       animatedTile.lastUpdatedFrame = currentFrame;
 
       // Mark the animation as done if all tiles are correct
+      // TODO: slow
       if (
         _.every(
           _.flatMap(animatedPuzzle.tiles, (row, rowIndex) =>

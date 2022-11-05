@@ -163,7 +163,12 @@
   + scroll clue suggestions to top when selected word changes
 - replay gifs
   - https://www.npmjs.com/package/gif.js.optimized
-  - blue for correct, red incorrect
+  - gif
+    + blue for correct, red incorrect
+    + flash color changes
+    + optimize drawing the frames
+    - ease in and out of animation
+    - longer flash at end?
   - show when complete, can download on click and share on social media
   - steganography
     - https://npm.io/package/@mykeels/steganography
