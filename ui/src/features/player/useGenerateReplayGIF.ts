@@ -11,9 +11,11 @@ import {
   TileValueType,
 } from '../builder/builderSlice';
 import { buildGlobalPalette, GLOBAL_PALETTE } from './gifGlobalPalette';
+import { TileUpdateType } from '../builder/useWaveFunctionCollapse';
 
 const GIF_SIZE = 259;
-const FRAME_DELAY = 50;
+const FRAME_DELAY = 40;
+const FRAME_COUNT = 120;
 const LINE_WIDTH = 4;
 const TILE_BLUE_LIGHT = colors.teal[50];
 const TILE_BLUE = colors.teal[300];
@@ -110,6 +112,84 @@ function drawFrame(
   }
 }
 
+function cleanTileUpdates(
+  puzzleKey: CrosswordPuzzleType,
+  tileUpdates: TileUpdateType[]
+): TileUpdateType[] {
+  // Return tile updates without redundant updates and without any after the
+  // puzzle is completed
+
+  // Create the animated puzzle, which will be mutated as we process through
+  // tile updates
+  const animatedPuzzle: AnimatedPuzzleType = {
+    tiles: _.times(puzzleKey.tiles.length, (rowIndex) =>
+      _.times(puzzleKey.tiles.length, (columnIndex) => ({
+        value:
+          puzzleKey.tiles[rowIndex][columnIndex].value === 'black'
+            ? 'black'
+            : 'empty',
+        lastUpdatedFrame: 0,
+      }))
+    ),
+  };
+
+  // Filter out redundant tile updates and all updates after the puzzle has
+  // been completed
+  let puzzleCompleted = false;
+  return _.filter(tileUpdates, ({ row, column, value }) => {
+    if (puzzleCompleted) return false;
+    const animatedTile = animatedPuzzle.tiles[row][column];
+    if (animatedTile.value === value)
+      // Don't draw redundant frames
+      return false;
+
+    animatedTile.value = value;
+
+    // Mark the animation as done if all tiles are correct
+    // TODO: slow
+    if (
+      _.every(
+        _.flatMap(animatedPuzzle.tiles, (row, rowIndex) =>
+          _.map(
+            row,
+            (tile, columnIndex) =>
+              tile.value === puzzleKey.tiles[rowIndex][columnIndex].value
+          )
+        )
+      )
+    ) {
+      puzzleCompleted = true;
+    }
+    return true;
+  });
+}
+
+function easeInOutQuart(x: number): number {
+  return x < 0.5 ? 8 * x * x * x * x : 1 - Math.pow(-2 * x + 2, 4) / 2;
+}
+function easeInOutSine(x: number): number {
+  return -(Math.cos(Math.PI * x) - 1) / 2;
+}
+function easedChunks<T>(
+  items: T[],
+  quantity: number,
+  easeFn: (number) => number
+): T[][] {
+  return _.times(quantity, (index) => {
+    const itemsIndex = Math.floor(easeFn(index / quantity) * items.length);
+    const prevItemsIndex =
+      index === 0
+        ? 0
+        : Math.floor(easeFn((index - 1) / quantity) * items.length);
+
+    return index < quantity - 1
+      ? // A slice of items since the last index
+        items.slice(prevItemsIndex, itemsIndex)
+      : // The final slice (make sure to include the last item)
+        items.slice(prevItemsIndex, items.length);
+  });
+}
+
 export default function useGenerateReplayGIF(
   puzzleCompleted: boolean,
   puzzleKey: CrosswordPuzzleType
@@ -123,12 +203,7 @@ export default function useGenerateReplayGIF(
     if (gifUrl || !puzzleCompleted || renderAttempted.current) return;
     renderAttempted.current = true;
 
-    const gif = new GIF({
-      workers: 2,
-      quality: 10,
-      // TODO uncomment
-      //globalPalette: GLOBAL_PALETTE,
-    });
+    // Initialize canvas object
     const canvas = document.createElement('canvas');
     canvas.width = GIF_SIZE;
     canvas.height = GIF_SIZE;
@@ -140,6 +215,21 @@ export default function useGenerateReplayGIF(
     }) as CanvasRenderingContext2D | null;
     if (!ctx) return;
 
+    // Init canvas context things
+    ctx.translate(LINE_WIDTH / 2, LINE_WIDTH / 2);
+    ctx.lineWidth = LINE_WIDTH;
+    ctx.strokeStyle = '#000';
+
+    // Initialize GIF object
+    const gif = new GIF({
+      workers: 2,
+      quality: 10,
+      // TODO uncomment
+      globalPalette: _.flatten(GLOBAL_PALETTE),
+    });
+
+    // Create the animated puzzle, which will be mutated as we process through
+    // frames
     const animatedPuzzle: AnimatedPuzzleType = {
       tiles: _.times(puzzleKey.tiles.length, (rowIndex) =>
         _.times(puzzleKey.tiles.length, (columnIndex) => ({
@@ -152,11 +242,6 @@ export default function useGenerateReplayGIF(
       ),
     };
 
-    // Init context things
-    ctx.translate(LINE_WIDTH / 2, LINE_WIDTH / 2);
-    ctx.lineWidth = LINE_WIDTH;
-    ctx.strokeStyle = '#000';
-
     // Add an initial frame
     let currentFrame = 0;
     drawFrame(ctx, puzzleKey, animatedPuzzle, 0);
@@ -164,41 +249,28 @@ export default function useGenerateReplayGIF(
     currentFrame += 1;
 
     // Add a frame for each tile update
-    let doneAnimating = false;
-    _.forEach(tileUpdates, ({ row, column, value }) => {
-      if (doneAnimating) return;
+    const chunkedTileUpdates = easedChunks(
+      cleanTileUpdates(puzzleKey, tileUpdates),
+      FRAME_COUNT,
+      easeInOutSine
+    );
+    _.forEach(chunkedTileUpdates, (tileUpdates, index) => {
+      // Update animatedPuzzle for each tile update in this chunk
+      _.forEach(tileUpdates, ({ row, column, value }) => {
+        const animatedTile = animatedPuzzle.tiles[row][column];
+        // Ingest tile update into animated puzzle
+        animatedTile.value = value;
+        animatedTile.lastUpdatedFrame = currentFrame;
+      });
 
-      const animatedTile = animatedPuzzle.tiles[row][column];
-      if (animatedTile.value === value)
-        // Don't draw redundant frames
-        return;
-
-      // Ingest tile update into animated puzzle
-      animatedTile.value = value;
-      animatedTile.lastUpdatedFrame = currentFrame;
-
-      // Mark the animation as done if all tiles are correct
-      // TODO: slow
-      if (
-        _.every(
-          _.flatMap(animatedPuzzle.tiles, (row, rowIndex) =>
-            _.map(
-              row,
-              (tile, columnIndex) =>
-                tile.value === puzzleKey.tiles[rowIndex][columnIndex].value
-            )
-          )
-        )
-      ) {
-        doneAnimating = true;
-        // Make all tiles flash
+      // Make all tiles flash if we're at the end
+      if (index === chunkedTileUpdates.length - 1)
         _.forEach(_.flatten(animatedPuzzle.tiles), (tile) => {
           tile.lastUpdatedFrame = Math.max(
             tile.lastUpdatedFrame,
             currentFrame - 1
           );
         });
-      }
 
       // Draw and add the frame
       _.times(2, () => {
