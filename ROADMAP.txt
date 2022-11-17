@@ -169,12 +169,17 @@
     + optimize drawing the frames
     - ease in and out of animation
     - longer flash at end?
+    - move worker script elsewhere
+    - set global palette for each frame using
+      https://github.com/CalderWhite/gif-msg/blob/master/gif_msg.py#L46-L69 as
+      reference for encoding data
   - show when complete, can download on click and share on social media
   - steganography
     - https://npm.io/package/@mykeels/steganography
     - https://npm.io/package/any-steganography
   - possibly, crosswyrd landing page where can upload replay GIF to play or
     build your own puzzle
+    - use gifuct-js to parse out data
 - App Check
 - discord integration
   - save edit links to discord automatically

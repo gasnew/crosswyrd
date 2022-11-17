@@ -3,14 +3,16 @@ import _ from 'lodash';
 import { colors } from '@mui/material';
 import React from 'react';
 import { useSelector } from 'react-redux';
+import { parseGIF, decompressFrames } from 'gifuct-js';
 
 import {
   CrosswordPuzzleType,
   selectTileUpdates,
   TileValueType,
 } from '../builder/builderSlice';
+import { buildGlobalPalette, GLOBAL_PALETTE } from './gifGlobalPalette';
 
-const GIF_SIZE = 260;
+const GIF_SIZE = 259;
 const FRAME_DELAY = 50;
 const LINE_WIDTH = 4;
 const TILE_BLUE_LIGHT = colors.teal[50];
@@ -96,7 +98,7 @@ function drawFrame(
 
   if (updatePosition) {
     ctx.strokeStyle = '#fff';
-    ctx.lineWidth = LINE_WIDTH * 1.25;
+    ctx.lineWidth = LINE_WIDTH + 1;
     ctx.strokeRect(
       updatePosition.column * tileSize,
       updatePosition.row * tileSize,
@@ -116,12 +118,16 @@ export default function useGenerateReplayGIF(
   const tileUpdates = useSelector(selectTileUpdates);
 
   // Render replay GIF
+  const renderAttempted = React.useRef(false);
   React.useEffect(() => {
-    if (gifUrl || !puzzleCompleted) return;
+    if (gifUrl || !puzzleCompleted || renderAttempted.current) return;
+    renderAttempted.current = true;
 
     const gif = new GIF({
       workers: 2,
       quality: 10,
+      // TODO uncomment
+      //globalPalette: GLOBAL_PALETTE,
     });
     const canvas = document.createElement('canvas');
     canvas.width = GIF_SIZE;
@@ -215,7 +221,16 @@ export default function useGenerateReplayGIF(
 
     gif.on('finished', function (blob) {
       //setGifUrl(URL.createObjectURL(blob));
-      window.open(URL.createObjectURL(blob));
+
+      const url = URL.createObjectURL(blob);
+      var promisedGif = fetch(url)
+        .then((resp) => resp.arrayBuffer())
+        .then((buff) => {
+          var gif = parseGIF(buff);
+          var frames = decompressFrames(gif, true);
+          return gif;
+        });
+      window.open(url);
     });
 
     gif.render();
