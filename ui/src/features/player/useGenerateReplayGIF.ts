@@ -3,7 +3,9 @@ import _ from 'lodash';
 import { colors } from '@mui/material';
 import React from 'react';
 import { useSelector } from 'react-redux';
+import { useParams } from 'react-router-dom';
 import { parseGIF, decompressFrames } from 'gifuct-js';
+import { parse as uuidParse, stringify as uuidStringify } from 'uuid';
 
 import {
   CrosswordPuzzleType,
@@ -11,6 +13,7 @@ import {
   TileValueType,
 } from '../builder/builderSlice';
 import { buildGlobalPalette, GLOBAL_PALETTE } from './gifGlobalPalette';
+import { decodePalette, encodePalette } from './gifSteganography';
 import { TileUpdateType } from '../builder/useWaveFunctionCollapse';
 
 const GIF_SIZE = 259;
@@ -197,6 +200,8 @@ export default function useGenerateReplayGIF(
   const [gifUrl, setGifUrl] = React.useState<string | null>(null);
   const tileUpdates = useSelector(selectTileUpdates);
 
+  const { puzzleId } = useParams();
+
   // Render replay GIF
   const renderAttempted = React.useRef(false);
   React.useEffect(() => {
@@ -225,7 +230,12 @@ export default function useGenerateReplayGIF(
       workers: 2,
       quality: 10,
       // TODO uncomment
-      globalPalette: _.flatten(GLOBAL_PALETTE),
+      globalPalette: _.flatten(
+        encodePalette(
+          uuidParse(puzzleId),
+          GLOBAL_PALETTE
+        )
+      ),
     });
 
     // Create the animated puzzle, which will be mutated as we process through
@@ -300,11 +310,13 @@ export default function useGenerateReplayGIF(
         .then((buff) => {
           var gif = parseGIF(buff);
           var frames = decompressFrames(gif, true);
+
+          console.log(uuidStringify(decodePalette(frames[0].colorTable)));
           return gif;
         });
       window.open(url);
     });
 
     gif.render();
-  }, [gifUrl, puzzleCompleted, tileUpdates, puzzleKey]);
+  }, [gifUrl, puzzleCompleted, tileUpdates, puzzleKey, puzzleId]);
 }
