@@ -19,12 +19,13 @@ import { TileUpdateType } from '../builder/useWaveFunctionCollapse';
 const GIF_SIZE = 259;
 const FRAME_DELAY = 40;
 const FRAME_COUNT = 120;
-const LINE_WIDTH = 4;
-const TILE_BLUE_LIGHT = colors.teal[50];
-const TILE_BLUE = colors.teal[300];
-const TILE_RED_LIGHT = colors.orange[50];
-const TILE_RED = colors.orange[200];
-const TILE_ANIMATE_FRAMES = 4;
+//const FRAME_COUNT = 5;
+const LINE_WIDTH = 3;
+const TILE_BLUE = colors.teal[100];
+const TILE_BLUE_LIGHT = colors.teal[400];
+const TILE_RED = colors.orange[100];
+const TILE_RED_LIGHT = colors.orange[400];
+const TILE_ANIMATE_FRAMES = 8;
 
 interface AnimatedTileType {
   value: TileValueType;
@@ -196,7 +197,7 @@ function easedChunks<T>(
 export default function useGenerateReplayGIF(
   puzzleCompleted: boolean,
   puzzleKey: CrosswordPuzzleType
-) {
+): string | null {
   const [gifUrl, setGifUrl] = React.useState<string | null>(null);
   const tileUpdates = useSelector(selectTileUpdates);
 
@@ -231,10 +232,7 @@ export default function useGenerateReplayGIF(
       quality: 10,
       // TODO uncomment
       globalPalette: _.flatten(
-        encodePalette(
-          uuidParse(puzzleId),
-          GLOBAL_PALETTE
-        )
+        encodePalette(uuidParse(puzzleId), GLOBAL_PALETTE)
       ),
     });
 
@@ -291,7 +289,7 @@ export default function useGenerateReplayGIF(
     });
 
     // Draw some extra frames at the end to resolve animations
-    _.times(TILE_ANIMATE_FRAMES, () => {
+    _.times(TILE_ANIMATE_FRAMES + 1, () => {
       drawFrame(ctx, puzzleKey, animatedPuzzle, currentFrame);
       gif.addFrame(canvas, { delay: FRAME_DELAY, copy: true });
       currentFrame += 1;
@@ -302,21 +300,23 @@ export default function useGenerateReplayGIF(
     currentFrame += 1;
 
     gif.on('finished', function (blob) {
-      //setGifUrl(URL.createObjectURL(blob));
+      setGifUrl(URL.createObjectURL(blob));
 
-      const url = URL.createObjectURL(blob);
-      var promisedGif = fetch(url)
-        .then((resp) => resp.arrayBuffer())
-        .then((buff) => {
-          var gif = parseGIF(buff);
-          var frames = decompressFrames(gif, true);
+      //const url = URL.createObjectURL(blob);
+      //var promisedGif = fetch(url)
+      //  .then((resp) => resp.arrayBuffer())
+      //  .then((buff) => {
+      //    var gif = parseGIF(buff);
+      //    var frames = decompressFrames(gif, true);
 
-          console.log(uuidStringify(decodePalette(frames[0].colorTable)));
-          return gif;
-        });
-      window.open(url);
+      //    console.log(uuidStringify(decodePalette(frames[0].colorTable)));
+      //    return gif;
+      //  });
+      //window.open(url);
     });
 
     gif.render();
   }, [gifUrl, puzzleCompleted, tileUpdates, puzzleKey, puzzleId]);
+
+  return gifUrl;
 }

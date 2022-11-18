@@ -61,18 +61,18 @@ export function decodePalette(palette: number[][]): Uint8Array {
 
   // first do the initial values
   _.times(decodedCount, (index) => {
-    const sortedIndex = paletteCopy.indexOf(indexRef[index]);
-    decoded[index] = sortedIndex;
+    const refIndex = paletteCopy.indexOf(indexRef[index]);
+    decoded[index] = refIndex;
 
-    paletteCopy.splice(sortedIndex, 1);
+    paletteCopy.splice(refIndex, 1);
   });
 
   // second do the values that are added on to the initial values to get them up to a byte
   _.forEach(_.range(decodedCount, indexRef.length), (index) => {
-    const sortedIndex = paletteCopy.indexOf(indexRef[index]);
-    decoded[decodedCount - 1 - index] += sortedIndex;
+    const refIndex = paletteCopy.indexOf(indexRef[index]);
+    decoded[decodedCount - 1 - index] += refIndex;
 
-    paletteCopy.splice(sortedIndex, 1);
+    paletteCopy.splice(refIndex, 1);
   });
 
   return decoded;

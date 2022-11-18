@@ -12,12 +12,14 @@ import {
   TwitterIcon,
   TwitterShareButton,
 } from 'react-share';
-import { Divider } from '@mui/material';
+import DownloadIcon from '@mui/icons-material/Download';
+import { CircularProgress, colors, Divider } from '@mui/material';
 import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
 import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
 import BuildIcon from '@mui/icons-material/Build';
+import sanitize from 'sanitize-filename';
 
 import { GarrettNote } from '../app/KoFiButton';
 import { CrosswordPuzzleType } from '../builder/builderSlice';
@@ -28,6 +30,78 @@ import useGenerateReplayGIF from './useGenerateReplayGIF';
 // Wait half a second before the dialog can be closed again. This is because
 // tap events close the dialog immediately after it is opened.
 const DIALOG_INTERACT_DELAY_MS = 200;
+const GIF_HEIGHT = 200;
+
+function ReplayGif({
+  metadata,
+  url,
+}: {
+  metadata: PuzzleMetadataType;
+  url: string | null;
+}) {
+  const [downloadHovered, setDownloadHovered] = React.useState(false);
+
+  const handleDownloadGif = () => {};
+
+  return (
+    <div
+      className="sheet replay-gif-container"
+      style={{ backgroundColor: url ? 'rgb(250, 251, 251)' : colors.grey[300] }}
+    >
+      {url ? (
+        <>
+          <img
+            src={url}
+            alt="Replay GIF"
+            height={GIF_HEIGHT}
+            style={{ height: GIF_HEIGHT }}
+          />
+          <a
+            className="replay-gif-download"
+            download={sanitize(`${metadata.title} by ${metadata.author}`)}
+            href={url}
+            style={{
+              height: GIF_HEIGHT + 16,
+              width: GIF_HEIGHT + 16,
+              backgroundColor: downloadHovered
+                ? 'rgba(0, 0, 0, 0.6)'
+                : 'rgba(0, 0, 0, 0)',
+            }}
+            onMouseOver={() => setDownloadHovered(true)}
+            onMouseOut={() => setDownloadHovered(false)}
+            onClick={handleDownloadGif}
+          >
+            {downloadHovered && (
+              <span
+                className="replay-gif-download-text"
+                style={{ textDecoration: 'none' }}
+              >
+                Click to download
+              </span>
+            )}
+          </a>
+        </>
+      ) : (
+        <div
+          className="replay-gif-making-container"
+          style={{ height: GIF_HEIGHT, width: GIF_HEIGHT }}
+        >
+          <div className="replay-gif-making" style={{ margin: 'auto' }}>
+            <span className="replay-gif-making-progress">
+              <CircularProgress size={20} thickness={5} />
+            </span>
+            <span className="replay-gif-making-text">
+              &nbsp;&nbsp;Making your custom{' '}
+              <span style={{ fontWeight: 'bold', fontSize: 16 }}>
+                Replay&nbsp;GIF
+              </span>
+            </span>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 
 export function ShareButtons({
   shareUrl,
@@ -146,8 +220,7 @@ export default function CompletePuzzleDialog({
   }, [openState, interactable]);
 
   // Generate a replay GIF
-  useGenerateReplayGIF(openState.open, puzzleKey);
-
+  const gifUrl = useGenerateReplayGIF(openState.open, puzzleKey);
 
   const shareUrl = window.location.href;
   const shareTitle = `I solved "${puzzleMetadata.title}" by "${puzzleMetadata.author}" on Crosswyrd! Check it out:`;
@@ -184,6 +257,7 @@ export default function CompletePuzzleDialog({
             </p>
             <p>Thank you for playing on Crosswyrd.</p>
           </div>
+          <ReplayGif metadata={puzzleMetadata} url={gifUrl} />
           <div className="share-container">
             <div className="share-content">
               <ShareButtons
