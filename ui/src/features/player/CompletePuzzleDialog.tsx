@@ -25,12 +25,16 @@ import { GarrettNote } from '../app/KoFiButton';
 import { CrosswordPuzzleType } from '../builder/builderSlice';
 import { PuzzleMetadataType } from './CrosswordPlayer';
 import { logEvent } from '../../firebase';
-import useGenerateReplayGIF from './useGenerateReplayGIF';
+import useGenerateReplayGIF, {
+  GIF_HEIGHT,
+  GIF_WIDTH,
+} from './useGenerateReplayGIF';
 
 // Wait half a second before the dialog can be closed again. This is because
 // tap events close the dialog immediately after it is opened.
 const DIALOG_INTERACT_DELAY_MS = 200;
-const GIF_HEIGHT = 200;
+const GIF_DISPLAY_WIDTH = 200;
+const GIF_DISPLAY_HEIGHT = (200 * GIF_HEIGHT) / GIF_WIDTH;
 
 function ReplayGif({
   metadata,
@@ -53,16 +57,19 @@ function ReplayGif({
           <img
             src={url}
             alt="Replay GIF"
-            height={GIF_HEIGHT}
-            style={{ height: GIF_HEIGHT }}
+            height={GIF_DISPLAY_HEIGHT}
+            width={GIF_DISPLAY_WIDTH}
+            style={{ height: GIF_DISPLAY_HEIGHT, margin: 'auto' }}
           />
           <a
             className="replay-gif-download"
-            download={sanitize(`${metadata.title} by ${metadata.author}`)}
+            download={sanitize(
+              `Crosswyrd - ${metadata.title} by ${metadata.author}`
+            )}
             href={url}
             style={{
-              height: GIF_HEIGHT + 16,
-              width: GIF_HEIGHT + 16,
+              height: GIF_DISPLAY_HEIGHT + 16,
+              width: GIF_DISPLAY_WIDTH + 16,
               backgroundColor: downloadHovered
                 ? 'rgba(0, 0, 0, 0.6)'
                 : 'rgba(0, 0, 0, 0)',
@@ -80,11 +87,21 @@ function ReplayGif({
               </span>
             )}
           </a>
+          <span
+            style={{
+              width: GIF_DISPLAY_WIDTH,
+              textAlign: 'justify',
+              marginTop: 6,
+            }}
+          >
+            Click to download your custom replay GIF, then share it with your
+            friends! They can upload this GIF to play "{metadata.title}".
+          </span>
         </>
       ) : (
         <div
           className="replay-gif-making-container"
-          style={{ height: GIF_HEIGHT, width: GIF_HEIGHT }}
+          style={{ height: GIF_DISPLAY_HEIGHT, width: GIF_DISPLAY_WIDTH }}
         >
           <div className="replay-gif-making" style={{ margin: 'auto' }}>
             <span className="replay-gif-making-progress">

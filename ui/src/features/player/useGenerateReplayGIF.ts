@@ -16,7 +16,10 @@ import { buildGlobalPalette, GLOBAL_PALETTE } from './gifGlobalPalette';
 import { decodePalette, encodePalette } from './gifSteganography';
 import { TileUpdateType } from '../builder/useWaveFunctionCollapse';
 
-const GIF_SIZE = 259;
+const TITLE_HEIGHT = 30;
+const BOARD_SIZE = 259;
+export const GIF_HEIGHT = BOARD_SIZE + TITLE_HEIGHT;
+export const GIF_WIDTH = BOARD_SIZE;
 const FRAME_DELAY = 40;
 const FRAME_COUNT = 120;
 //const FRAME_COUNT = 5;
@@ -73,7 +76,7 @@ function drawFrame(
 ) {
   // Half the line width on either side acts as the GIF border, so we want
   // tiles to be slightly smaller to account for this
-  const tileSize = (GIF_SIZE - LINE_WIDTH) / puzzleKey.tiles.length;
+  const tileSize = (BOARD_SIZE - LINE_WIDTH) / puzzleKey.tiles.length;
   let updatePosition: any = null;
   _.times(puzzleKey.tiles.length, (row) =>
     _.times(puzzleKey.tiles.length, (column) => {
@@ -100,6 +103,23 @@ function drawFrame(
       if (currentFrame !== 0 && frameDelta === 0)
         updatePosition = { row, column };
     })
+  );
+
+  // Draw title
+  ctx.fillStyle = '#000';
+  ctx.fillRect(
+    -LINE_WIDTH / 2,
+    BOARD_SIZE - LINE_WIDTH / 2,
+    GIF_WIDTH,
+    TITLE_HEIGHT
+  );
+  ctx.font = 'bold 15px Roboto';
+  ctx.textAlign = 'center';
+  ctx.fillStyle = '#fff';
+  ctx.fillText(
+    'Upload me at crosswyrd.app to play',
+    GIF_WIDTH / 2 - 2,
+    GIF_HEIGHT - 13
   );
 
   if (updatePosition) {
@@ -211,8 +231,8 @@ export default function useGenerateReplayGIF(
 
     // Initialize canvas object
     const canvas = document.createElement('canvas');
-    canvas.width = GIF_SIZE;
-    canvas.height = GIF_SIZE;
+    canvas.width = GIF_WIDTH;
+    canvas.height = GIF_HEIGHT;
     // Setting willReadFrequently to true makes ingesting the canvas into
     // gif.js much faster, but it also causes TypeScript to get confused, so we
     // force the type here to be correct.
