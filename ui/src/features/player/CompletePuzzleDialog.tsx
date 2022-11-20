@@ -1,6 +1,7 @@
 import confetti from 'canvas-confetti';
+import copy from 'copy-to-clipboard';
 import _ from 'lodash';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   EmailIcon,
@@ -25,6 +26,7 @@ import Dialog from '@mui/material/Dialog';
 import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
 import BuildIcon from '@mui/icons-material/Build';
+import LinkIcon from '@mui/icons-material/Link';
 import sanitize from 'sanitize-filename';
 
 import { GarrettNote } from '../app/KoFiButton';
@@ -32,6 +34,7 @@ import { isMobileOrTablet } from '../../app/util';
 import { CrosswordPuzzleType } from '../builder/builderSlice';
 import { PuzzleMetadataType } from './CrosswordPlayer';
 import { logEvent } from '../../firebase';
+import { CopyAlertSnackbar } from '../app/PublishDialog';
 import useGenerateReplayGIF, {
   GIF_HEIGHT,
   GIF_WIDTH,
@@ -207,7 +210,8 @@ function ReplayGif({
         {isMobileOrTabletMemo
           ? 'Tap to share your custom replay GIF with your friends!'
           : 'Click to download your custom replay GIF, then share it with your friends!'}{' '}
-        They can upload this GIF to play "{metadata.title}".
+        They can upload this GIF to play "{metadata.title}". Or use any of the
+        share buttons below to share a direct link to this puzzle.
       </span>
       <CannotShareSnackbar
         open={cannotShareSnackbarOpen}
@@ -223,8 +227,27 @@ export function ShareButtons({
   shareHashtag,
   mkHandleShareClick,
 }) {
+  const [copyAlertSnackbarOpen, setCopyAlertSnackbarOpen] = useState(false);
+
+  const handleCloseCopyAlertSnackbar = useCallback(() => {
+    setCopyAlertSnackbarOpen(false);
+  }, []);
+
   return (
     <div className="share-buttons">
+      <button
+        className="share-button link-share-button"
+        style={{
+          backgroundColor: colors.grey[500],
+        }}
+        onClick={() => {
+          copy(shareUrl);
+          setCopyAlertSnackbarOpen(true);
+          logEvent('puzzle_link_copied');
+        }}
+      >
+        <LinkIcon style={{ margin: 'auto', color: '#fff' }} />
+      </button>
       <TwitterShareButton
         url={shareUrl}
         title={shareTitle}
@@ -259,6 +282,10 @@ export function ShareButtons({
       >
         <EmailIcon size={32} round />
       </EmailShareButton>
+      <CopyAlertSnackbar
+        open={copyAlertSnackbarOpen}
+        onClose={handleCloseCopyAlertSnackbar}
+      />
     </div>
   );
 }

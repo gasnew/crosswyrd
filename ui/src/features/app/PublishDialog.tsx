@@ -26,7 +26,7 @@ import { ShareButtons } from '../player/CompletePuzzleDialog';
 
 const CHARACTER_LIMIT = 45;
 
-const CopyAlertSnackbar = React.memo(
+export const CopyAlertSnackbar = React.memo(
   ({ open, onClose }: { open: boolean; onClose: () => void }) => {
     return (
       <Snackbar
