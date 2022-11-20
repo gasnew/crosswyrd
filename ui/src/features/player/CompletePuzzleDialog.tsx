@@ -39,18 +39,39 @@ const GIF_DISPLAY_HEIGHT = (200 * GIF_HEIGHT) / GIF_WIDTH;
 function ReplayGif({
   metadata,
   url,
+  blob,
   progress,
 }: {
   metadata: PuzzleMetadataType;
   url: string | null;
+  blob: Blob | null;
   progress: number;
 }) {
   const [downloadHovered, setDownloadHovered] = React.useState(false);
 
-  const shouldShowDownload = React.useMemo(
-    () => downloadHovered && !isMobileOrTablet(),
-    [downloadHovered]
-  );
+  const isMobileOrTabletMemo = React.useMemo(() => isMobileOrTablet(), []);
+  const shouldShowDownload = downloadHovered && !isMobileOrTabletMemo;
+  const getSanitizedFileName = () =>
+    sanitize(`Crosswyrd - ${metadata.title} by ${metadata.author}`);
+
+  const handleClickGIF = async () => {
+    // Do nothing if on desktop because the <a> tag below handles downloads
+    if (!isMobileOrTabletMemo || !blob) return;
+
+    const shareData = {
+      files: [
+        new File([blob], getSanitizedFileName() + '.gif', { type: blob.type }),
+      ],
+      title: metadata.title,
+      text: `I solved "${metadata.title}" by "${metadata.author}" on Crosswyrd! Check it out!`,
+      url: window.location.href,
+    };
+    try {
+      await navigator.share(shareData);
+    } catch (err) {
+      console.error(err.name, err.message);
+    }
+  };
 
   return (
     <div
@@ -65,33 +86,34 @@ function ReplayGif({
             height={GIF_DISPLAY_HEIGHT}
             width={GIF_DISPLAY_WIDTH}
             style={{ height: GIF_DISPLAY_HEIGHT, margin: 'auto' }}
+            onClick={handleClickGIF}
           />
-          <a
-            className="replay-gif-download"
-            download={sanitize(
-              `Crosswyrd - ${metadata.title} by ${metadata.author}`
-            )}
-            href={url}
-            style={{
-              height: GIF_DISPLAY_HEIGHT,
-              width: GIF_DISPLAY_WIDTH,
-              backgroundColor: shouldShowDownload
-                ? 'rgba(0, 0, 0, 0.6)'
-                : 'rgba(0, 0, 0, 0)',
-            }}
-            onMouseOver={() => setDownloadHovered(true)}
-            onMouseOut={() => setDownloadHovered(false)}
-            onClick={() => logEvent('replay_gif_downloaded')}
-          >
-            {shouldShowDownload && (
-              <span
-                className="replay-gif-download-text"
-                style={{ textDecoration: 'none' }}
-              >
-                Click to download
-              </span>
-            )}
-          </a>
+          {!isMobileOrTabletMemo && (
+            <a
+              className="replay-gif-download"
+              download={getSanitizedFileName()}
+              href={url}
+              style={{
+                height: GIF_DISPLAY_HEIGHT,
+                width: GIF_DISPLAY_WIDTH,
+                backgroundColor: shouldShowDownload
+                  ? 'rgba(0, 0, 0, 0.6)'
+                  : 'rgba(0, 0, 0, 0)',
+              }}
+              onMouseOver={() => setDownloadHovered(true)}
+              onMouseOut={() => setDownloadHovered(false)}
+              onClick={() => logEvent('replay_gif_downloaded')}
+            >
+              {shouldShowDownload && (
+                <span
+                  className="replay-gif-download-text"
+                  style={{ textDecoration: 'none' }}
+                >
+                  Click to download
+                </span>
+              )}
+            </a>
+          )}
         </>
       ) : (
         <div
@@ -124,8 +146,10 @@ function ReplayGif({
           marginTop: 6,
         }}
       >
-        Click to download your custom replay GIF, then share it with your
-        friends! They can upload this GIF to play "{metadata.title}".
+        {isMobileOrTabletMemo
+          ? 'Tap to share your custom replay GIF with your friends!'
+          : 'Click to download your custom replay GIF, then share it with your friends!'}{' '}
+        They can upload this GIF to play "{metadata.title}".
       </span>
     </div>
   );
@@ -288,6 +312,7 @@ export default function CompletePuzzleDialog({
           <ReplayGif
             metadata={puzzleMetadata}
             url={gifState.url}
+            blob={gifState.blob}
             progress={gifState.progress}
           />
           <div className="share-container">
