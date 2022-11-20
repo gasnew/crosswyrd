@@ -203,6 +203,16 @@
   margin-right: 6px;
 }
 
+.link-share-button {
+  border: none;
+  border-radius: 32px;
+  padding: 0px;
+  height: 31px;
+  width: 31px;
+  display: flex;
+  cursor: pointer;
+}
+
 .replay-gif-container {
   display: flex;
   flex-direction: column;
