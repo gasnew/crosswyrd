@@ -316,6 +316,13 @@ export default function CompletePuzzleDialog({
               or try your hand at building a puzzle of your own.
             </p>
             <p>Thank you for playing on Crosswyrd.</p>
+            <Link
+              to={window.location.pathname}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <Button>Hey there</Button>
+            </Link>
           </div>
           <ReplayGif
             metadata={puzzleMetadata}
