@@ -363,7 +363,7 @@ export default function CompletePuzzleDialog({
         },
       }}
     >
-      <DialogTitle>Replete</DialogTitle>
+      <DialogTitle>Complete</DialogTitle>
       <DialogContent>
         <div className="sheet share-dialog">
           <div className="share-dialog-text">
