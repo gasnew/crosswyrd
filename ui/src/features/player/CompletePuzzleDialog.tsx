@@ -323,6 +323,15 @@ export default function CompletePuzzleDialog({
             >
               <Button>Hey there</Button>
             </Link>
+            <a
+              href={window.location.pathname}
+              onClick={() => {
+                window.open(window.location.pathname, 'newwindow', 'width=300,height=250');
+                return false;
+              }}
+            >
+              Print
+            </a>
           </div>
           <ReplayGif
             metadata={puzzleMetadata}
