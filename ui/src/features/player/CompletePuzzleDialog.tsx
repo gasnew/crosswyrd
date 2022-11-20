@@ -358,7 +358,7 @@ export default function CompletePuzzleDialog({
         },
       }}
     >
-      <DialogTitle>Complete</DialogTitle>
+      <DialogTitle>Replete</DialogTitle>
       <DialogContent>
         <div className="sheet share-dialog">
           <div className="share-dialog-text">
