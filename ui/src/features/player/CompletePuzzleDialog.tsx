@@ -45,7 +45,7 @@ declare global {
 
 // Wait half a second before the dialog can be closed again. This is because
 // tap events close the dialog immediately after it is opened.
-const DIALOG_INTERACT_DELAY_MS = 200;
+const DIALOG_INTERACT_DELAY_MS = 300;
 const GIF_DISPLAY_WIDTH = 200;
 const GIF_DISPLAY_HEIGHT = (200 * GIF_HEIGHT) / GIF_WIDTH;
 
@@ -350,7 +350,12 @@ export default function CompletePuzzleDialog({
   return (
     <Dialog
       open={openState.open}
-      onClose={() => setOpenState({ open: false, date: Date.now() })}
+      onClose={() => {
+        // An extra check to make sure we're not opening then closing
+        // immediately (Firefox on Android gets confused sometimes at least)
+        if (Date.now() - openState.date <= DIALOG_INTERACT_DELAY_MS) return;
+        setOpenState({ open: false, date: Date.now() });
+      }}
       PaperProps={{
         style: {
           backgroundColor: '#fafbfb',
