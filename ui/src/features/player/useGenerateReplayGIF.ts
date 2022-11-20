@@ -20,8 +20,8 @@ const TITLE_HEIGHT = 30;
 const BOARD_SIZE = 259;
 export const GIF_HEIGHT = BOARD_SIZE + TITLE_HEIGHT;
 export const GIF_WIDTH = BOARD_SIZE;
-const FRAME_DELAY = 40;
-const FRAME_COUNT = 120;
+const FRAME_DELAY = 60;
+const FRAME_COUNT = 100;
 //const FRAME_COUNT = 5;
 const LINE_WIDTH = 3;
 const TILE_BLUE = colors.teal[100];
@@ -191,6 +191,9 @@ function cleanTileUpdates(
 function easeInOutQuart(x: number): number {
   return x < 0.5 ? 8 * x * x * x * x : 1 - Math.pow(-2 * x + 2, 4) / 2;
 }
+function easeInOutCubic(x: number): number {
+  return x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
+}
 function easeInOutSine(x: number): number {
   return -(Math.cos(Math.PI * x) - 1) / 2;
 }
@@ -214,11 +217,16 @@ function easedChunks<T>(
   });
 }
 
+interface GIFState {
+  progress: number;
+  url: string | null;
+}
 export default function useGenerateReplayGIF(
   puzzleCompleted: boolean,
   puzzleKey: CrosswordPuzzleType
-): string | null {
+): GIFState {
   const [gifUrl, setGifUrl] = React.useState<string | null>(null);
+  const [progress, setProgress] = React.useState<number>(0);
   const tileUpdates = useSelector(selectTileUpdates);
 
   const { puzzleId } = useParams();
@@ -280,7 +288,7 @@ export default function useGenerateReplayGIF(
     const chunkedTileUpdates = easedChunks(
       cleanTileUpdates(puzzleKey, tileUpdates),
       FRAME_COUNT,
-      easeInOutSine
+      easeInOutCubic
     );
     _.forEach(chunkedTileUpdates, (tileUpdates, index) => {
       // Update animatedPuzzle for each tile update in this chunk
@@ -301,7 +309,7 @@ export default function useGenerateReplayGIF(
         });
 
       // Draw and add the frame
-      _.times(2, () => {
+      _.times(1, () => {
         drawFrame(ctx, puzzleKey, animatedPuzzle, currentFrame);
         gif.addFrame(canvas, { delay: FRAME_DELAY, copy: true });
         currentFrame += 1;
@@ -319,24 +327,16 @@ export default function useGenerateReplayGIF(
     gif.addFrame(canvas, { delay: 3000, copy: true });
     currentFrame += 1;
 
+    gif.on('progress', setProgress);
     gif.on('finished', function (blob) {
       setGifUrl(URL.createObjectURL(blob));
-
-      //const url = URL.createObjectURL(blob);
-      //var promisedGif = fetch(url)
-      //  .then((resp) => resp.arrayBuffer())
-      //  .then((buff) => {
-      //    var gif = parseGIF(buff);
-      //    var frames = decompressFrames(gif, true);
-
-      //    console.log(uuidStringify(decodePalette(frames[0].colorTable)));
-      //    return gif;
-      //  });
-      //window.open(url);
     });
 
     gif.render();
   }, [gifUrl, puzzleCompleted, tileUpdates, puzzleKey, puzzleId]);
 
-  return gifUrl;
+  return {
+    progress,
+    url: gifUrl,
+  };
 }

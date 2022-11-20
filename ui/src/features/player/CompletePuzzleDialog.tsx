@@ -13,7 +13,12 @@ import {
   TwitterShareButton,
 } from 'react-share';
 import DownloadIcon from '@mui/icons-material/Download';
-import { CircularProgress, colors, Divider } from '@mui/material';
+import {
+  CircularProgress,
+  colors,
+  Divider,
+  LinearProgress,
+} from '@mui/material';
 import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
 import DialogContent from '@mui/material/DialogContent';
@@ -39,14 +44,17 @@ const GIF_DISPLAY_HEIGHT = (200 * GIF_HEIGHT) / GIF_WIDTH;
 function ReplayGif({
   metadata,
   url,
+  progress,
 }: {
   metadata: PuzzleMetadataType;
   url: string | null;
+  progress: number;
 }) {
   const [downloadHovered, setDownloadHovered] = React.useState(false);
 
   const handleDownloadGif = () => {};
 
+  console.log(progress);
   return (
     <div
       className="sheet replay-gif-container"
@@ -68,15 +76,15 @@ function ReplayGif({
             )}
             href={url}
             style={{
-              height: GIF_DISPLAY_HEIGHT + 16,
-              width: GIF_DISPLAY_WIDTH + 16,
+              height: GIF_DISPLAY_HEIGHT,
+              width: GIF_DISPLAY_WIDTH,
               backgroundColor: downloadHovered
                 ? 'rgba(0, 0, 0, 0.6)'
                 : 'rgba(0, 0, 0, 0)',
             }}
             onMouseOver={() => setDownloadHovered(true)}
             onMouseOut={() => setDownloadHovered(false)}
-            onClick={handleDownloadGif}
+            onClick={() => logEvent('replay_gif_downloaded')}
           >
             {downloadHovered && (
               <span
@@ -104,15 +112,21 @@ function ReplayGif({
           style={{ height: GIF_DISPLAY_HEIGHT, width: GIF_DISPLAY_WIDTH }}
         >
           <div className="replay-gif-making" style={{ margin: 'auto' }}>
-            <span className="replay-gif-making-progress">
-              <CircularProgress size={20} thickness={5} />
-            </span>
             <span className="replay-gif-making-text">
               &nbsp;&nbsp;Making your custom{' '}
               <span style={{ fontWeight: 'bold', fontSize: 16 }}>
                 Replay&nbsp;GIF
               </span>
             </span>
+            <LinearProgress
+              variant="determinate"
+              value={Math.min(progress * 100 + 4, 100)}
+              style={{
+                marginTop: 4,
+                height: 6,
+                borderRadius: 5,
+              }}
+            />
           </div>
         </div>
       )}
@@ -237,7 +251,7 @@ export default function CompletePuzzleDialog({
   }, [openState, interactable]);
 
   // Generate a replay GIF
-  const gifUrl = useGenerateReplayGIF(openState.open, puzzleKey);
+  const gifState = useGenerateReplayGIF(openState.open, puzzleKey);
 
   const shareUrl = window.location.href;
   const shareTitle = `I solved "${puzzleMetadata.title}" by "${puzzleMetadata.author}" on Crosswyrd! Check it out:`;
@@ -274,7 +288,11 @@ export default function CompletePuzzleDialog({
             </p>
             <p>Thank you for playing on Crosswyrd.</p>
           </div>
-          <ReplayGif metadata={puzzleMetadata} url={gifUrl} />
+          <ReplayGif
+            metadata={puzzleMetadata}
+            url={gifState.url}
+            progress={gifState.progress}
+          />
           <div className="share-container">
             <div className="share-content">
               <ShareButtons

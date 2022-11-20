@@ -9,6 +9,7 @@ import {
 
 import { devMode } from '../../app/util';
 import Crosswyrd from './Crosswyrd';
+import LandingPage from '../landingPage/LandingPage';
 import CrosswordPlayer from '../player/CrosswordPlayer';
 import StateProvider from './StateProvider';
 
@@ -34,7 +35,12 @@ function App() {
               <CrosswordPlayer />
             </StateProvider>
           </Route>
-          <Redirect to="/builder" />
+          <Route path="/">
+            <StateProvider stateKey="landing">
+              <LandingPage />
+            </StateProvider>
+          </Route>
+          <Redirect to="/" />
         </Switch>
       </Router>
     </>

@@ -236,8 +236,6 @@
 .replay-gif-download {
   display: flex;
   position: absolute;
-  transform: translate(-8px, -8px);
-  border-radius: 8px;
   transition: background-color 200ms ease-out;
   cursor: pointer;
   text-decoration: none !important;
