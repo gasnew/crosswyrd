@@ -63,7 +63,7 @@ function ReplayGif({
         new File([blob], getSanitizedFileName() + '.gif', { type: blob.type }),
       ],
       title: metadata.title,
-      text: `I solved "${metadata.title}" by "${metadata.author}" on Crosswyrd! Check it out!`,
+      text: `I solved "${metadata.title}" by "${metadata.author}" on Crosswyrd!`,
       url: window.location.href,
     };
     try {
