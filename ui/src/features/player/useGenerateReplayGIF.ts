@@ -4,16 +4,15 @@ import { colors } from '@mui/material';
 import React from 'react';
 import { useSelector } from 'react-redux';
 import { useParams } from 'react-router-dom';
-import { parseGIF, decompressFrames } from 'gifuct-js';
-import { parse as uuidParse, stringify as uuidStringify } from 'uuid';
+import { parse as uuidParse } from 'uuid';
 
 import {
   CrosswordPuzzleType,
   selectTileUpdates,
   TileValueType,
 } from '../builder/builderSlice';
-import { buildGlobalPalette, GLOBAL_PALETTE } from './gifGlobalPalette';
-import { decodePalette, encodePalette } from './gifSteganography';
+import { GLOBAL_PALETTE } from './gifGlobalPalette';
+import { encodePalette } from './gifSteganography';
 import { TileUpdateType } from '../builder/useWaveFunctionCollapse';
 
 const TITLE_HEIGHT = 30;
@@ -188,12 +187,16 @@ function cleanTileUpdates(
   });
 }
 
+// https://easings.net/
+// eslint-disable-next-line
 function easeInOutQuart(x: number): number {
   return x < 0.5 ? 8 * x * x * x * x : 1 - Math.pow(-2 * x + 2, 4) / 2;
 }
+// eslint-disable-next-line
 function easeInOutCubic(x: number): number {
   return x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
 }
+// eslint-disable-next-line
 function easeInOutSine(x: number): number {
   return -(Math.cos(Math.PI * x) - 1) / 2;
 }

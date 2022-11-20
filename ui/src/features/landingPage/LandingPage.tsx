@@ -5,7 +5,6 @@ import { Link, useHistory } from 'react-router-dom';
 import { Alert, Button, Divider, Slide, Snackbar } from '@mui/material';
 import BuildIcon from '@mui/icons-material/Build';
 import DownloadIcon from '@mui/icons-material/Download';
-import FileUploadIcon from '@mui/icons-material/FileUpload';
 import { stringify as uuidStringify } from 'uuid';
 
 import Navbar, { NAVBAR_HEIGHT } from '../app/Navbar';
@@ -123,10 +122,6 @@ function UploadReplayGif() {
       />
     </div>
   );
-}
-
-function BuildPuzzle() {
-  return <div className="build-puzzle">Build a puzzle</div>;
 }
 
 export default function LandingPage() {

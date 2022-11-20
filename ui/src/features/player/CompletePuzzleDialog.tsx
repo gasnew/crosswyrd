@@ -12,13 +12,7 @@ import {
   TwitterIcon,
   TwitterShareButton,
 } from 'react-share';
-import DownloadIcon from '@mui/icons-material/Download';
-import {
-  CircularProgress,
-  colors,
-  Divider,
-  LinearProgress,
-} from '@mui/material';
+import { colors, Divider, LinearProgress } from '@mui/material';
 import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
 import DialogContent from '@mui/material/DialogContent';
@@ -52,9 +46,6 @@ function ReplayGif({
 }) {
   const [downloadHovered, setDownloadHovered] = React.useState(false);
 
-  const handleDownloadGif = () => {};
-
-  console.log(progress);
   return (
     <div
       className="sheet replay-gif-container"
