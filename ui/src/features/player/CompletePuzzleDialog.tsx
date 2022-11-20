@@ -69,7 +69,8 @@ const CannotShareSnackbar = React.memo(
         style={{ pointerEvents: 'none' }}
       >
         <Alert severity="error" sx={{ width: '100%' }}>
-          This browser does not support sharing GIFs!
+          This browser does not support sharing GIFs! Please share this puzzle
+          using the share buttons below instead.
         </Alert>
       </Snackbar>
     );
