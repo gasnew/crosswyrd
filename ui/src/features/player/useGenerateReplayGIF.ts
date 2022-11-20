@@ -229,12 +229,14 @@ function easedChunks<T>(
 interface GIFState {
   progress: number;
   url: string | null;
+  blob: Blob | null;
 }
 export default function useGenerateReplayGIF(
   puzzleCompleted: boolean,
   puzzleKey: CrosswordPuzzleType
 ): GIFState {
   const [gifUrl, setGifUrl] = React.useState<string | null>(null);
+  const [gifBlob, setGifBlob] = React.useState<Blob | null>(null);
   const [progress, setProgress] = React.useState<number>(0);
   const tileUpdates = useSelector(selectTileUpdates);
 
@@ -337,7 +339,10 @@ export default function useGenerateReplayGIF(
     currentFrame += 1;
 
     gif.on('progress', setProgress);
-    gif.on('finished', (blob) => setGifUrl(URL.createObjectURL(blob)));
+    gif.on('finished', (blob) => {
+      setGifUrl(URL.createObjectURL(blob));
+      setGifBlob(blob);
+    });
 
     gif.render();
   }, [gifUrl, puzzleCompleted, tileUpdates, puzzleKey, puzzleId]);
@@ -345,5 +350,6 @@ export default function useGenerateReplayGIF(
   return {
     progress,
     url: gifUrl,
+    blob: gifBlob,
   };
 }
