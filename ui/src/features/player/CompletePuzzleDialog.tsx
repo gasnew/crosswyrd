@@ -56,7 +56,15 @@ function ReplayGif({
 
   const handleClickGIF = async () => {
     // Do nothing if on desktop because the <a> tag below handles downloads
-    if (!isMobileOrTabletMemo || !blob) return;
+    if (!isMobileOrTabletMemo || !blob || !url) return;
+
+    var a = document.createElement('a');
+    document.body.appendChild(a);
+    //a.style = 'display: none';
+    a.href = url;
+    a.download = 'blah.gif';
+    a.click();
+    window.URL.revokeObjectURL(url);
 
     const shareData = {
       files: [
