@@ -8,6 +8,7 @@ import DownloadIcon from '@mui/icons-material/Download';
 import { stringify as uuidStringify } from 'uuid';
 
 import Navbar, { NAVBAR_HEIGHT } from '../app/Navbar';
+import { isMobileOrTablet } from '../../app/util';
 import { logEvent } from '../../firebase';
 import { decodePalette } from '../player/gifSteganography';
 import './LandingPage.css';
@@ -109,6 +110,10 @@ function UploadReplayGif() {
           <strong>Drop the GIF here...</strong>
         ) : isDragReject ? (
           <strong>Only GIFs, please!</strong>
+        ) : isMobileOrTablet() ? (
+          <span>
+            <strong>Tap to choose a GIF</strong>
+          </span>
         ) : (
           <span>
             <strong className="choose-a-gif">Choose a GIF</strong> or drag it
@@ -133,7 +138,7 @@ export default function LandingPage() {
         <div className="landing-page-header-block">
           <span className="landing-page-header">Welcome to CROSSWYRD</span>
           <span className="landing-page-subtitle">
-            Build, Share, and Solve Crossword Puzzles Online
+            Build, Share, and Solve Crossword Puzzles
           </span>
         </div>
         <div className="sheet landing-page-sheet">

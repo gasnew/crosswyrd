@@ -92,16 +92,6 @@ function ReplayGif({
               </span>
             )}
           </a>
-          <span
-            style={{
-              width: GIF_DISPLAY_WIDTH,
-              textAlign: 'justify',
-              marginTop: 6,
-            }}
-          >
-            Click to download your custom replay GIF, then share it with your
-            friends! They can upload this GIF to play "{metadata.title}".
-          </span>
         </>
       ) : (
         <div
@@ -110,7 +100,7 @@ function ReplayGif({
         >
           <div className="replay-gif-making" style={{ margin: 'auto' }}>
             <span className="replay-gif-making-text">
-              &nbsp;&nbsp;Making your custom{' '}
+              &nbsp;&nbsp;Preparing your custom{' '}
               <span style={{ fontWeight: 'bold', fontSize: 16 }}>
                 Replay&nbsp;GIF
               </span>
@@ -127,6 +117,16 @@ function ReplayGif({
           </div>
         </div>
       )}
+      <span
+        style={{
+          width: GIF_DISPLAY_WIDTH,
+          textAlign: 'justify',
+          marginTop: 6,
+        }}
+      >
+        Click to download your custom replay GIF, then share it with your
+        friends! They can upload this GIF to play "{metadata.title}".
+      </span>
     </div>
   );
 }
