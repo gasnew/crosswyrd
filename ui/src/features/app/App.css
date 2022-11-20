@@ -94,6 +94,7 @@ kbd {
   margin: 12px;
   margin-right: 0px;
   max-height: 35px;
+  cursor: pointer;
 }
 
 .navbar-puzzle-title-container {

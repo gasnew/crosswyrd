@@ -22,12 +22,17 @@ export const GIF_WIDTH = BOARD_SIZE;
 const FRAME_DELAY = 60;
 const FRAME_COUNT = 100;
 //const FRAME_COUNT = 5;
-const LINE_WIDTH = 3;
 const TILE_BLUE = colors.teal[100];
 const TILE_BLUE_LIGHT = colors.teal[400];
 const TILE_RED = colors.orange[100];
 const TILE_RED_LIGHT = colors.orange[400];
 const TILE_ANIMATE_FRAMES = 8;
+
+function getLineWidth(tileCount: number): number {
+  if (tileCount < 10) return 5;
+  if (tileCount < 15) return 4;
+  return 3;
+}
 
 interface AnimatedTileType {
   value: TileValueType;
@@ -75,7 +80,8 @@ function drawFrame(
 ) {
   // Half the line width on either side acts as the GIF border, so we want
   // tiles to be slightly smaller to account for this
-  const tileSize = (BOARD_SIZE - LINE_WIDTH) / puzzleKey.tiles.length;
+  const lineWidth = getLineWidth(puzzleKey.tiles.length);
+  const tileSize = (BOARD_SIZE - lineWidth) / puzzleKey.tiles.length;
   let updatePosition: any = null;
   _.times(puzzleKey.tiles.length, (row) =>
     _.times(puzzleKey.tiles.length, (column) => {
@@ -107,8 +113,8 @@ function drawFrame(
   // Draw title
   ctx.fillStyle = '#000';
   ctx.fillRect(
-    -LINE_WIDTH / 2,
-    BOARD_SIZE - LINE_WIDTH / 2,
+    -lineWidth / 2,
+    BOARD_SIZE - lineWidth / 2,
     GIF_WIDTH,
     TITLE_HEIGHT
   );
@@ -123,14 +129,14 @@ function drawFrame(
 
   if (updatePosition) {
     ctx.strokeStyle = '#fff';
-    ctx.lineWidth = LINE_WIDTH + 1;
+    ctx.lineWidth = lineWidth + 1;
     ctx.strokeRect(
       updatePosition.column * tileSize,
       updatePosition.row * tileSize,
       tileSize,
       tileSize
     );
-    ctx.lineWidth = LINE_WIDTH;
+    ctx.lineWidth = lineWidth;
     ctx.strokeStyle = '#000';
   }
 }
@@ -253,15 +259,15 @@ export default function useGenerateReplayGIF(
     if (!ctx) return;
 
     // Init canvas context things
-    ctx.translate(LINE_WIDTH / 2, LINE_WIDTH / 2);
-    ctx.lineWidth = LINE_WIDTH;
+    const lineWidth = getLineWidth(puzzleKey.tiles.length);
+    ctx.translate(lineWidth / 2, lineWidth / 2);
+    ctx.lineWidth = lineWidth;
     ctx.strokeStyle = '#000';
 
     // Initialize GIF object
     const gif = new GIF({
       workers: 2,
       quality: 10,
-      // TODO uncomment
       globalPalette: _.flatten(
         encodePalette(uuidParse(puzzleId), GLOBAL_PALETTE)
       ),

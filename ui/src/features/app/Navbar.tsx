@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useDispatch } from 'react-redux';
+import { useHistory } from 'react-router-dom';
 import AppBar from '@mui/material/AppBar';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import Box from '@mui/material/Box';
@@ -55,6 +56,8 @@ function DrawerControls({
   supportsDesktopSidebar?: boolean;
   children: (handleClose: () => void) => React.ReactNode;
 }) {
+  const history = useHistory();
+
   return (
     <div>
       <Toolbar style={{ height: NAVBAR_HEIGHT }}>
@@ -73,6 +76,7 @@ function DrawerControls({
             alt="Crosswyrd"
             className="navbar-crosswyrd-logo"
             style={{ margin: 'auto' }}
+            onClick={() => history.push('/')}
           />
           <span className="navbar-puzzle-crosswyrd">CROSSWYRD</span>
         </div>
@@ -98,6 +102,7 @@ export default function Navbar({
   const [mobileOpen, setMobileOpen] = React.useState(false);
 
   const dispatch = useDispatch();
+  const history = useHistory();
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
@@ -152,7 +157,8 @@ export default function Navbar({
               src="/logo152.png"
               alt="Crosswyrd"
               className="navbar-crosswyrd-logo"
-              style={children ? {} : { marginLeft: 0 }}
+              style={children ? {} : { marginLeft: 0, cursor: 'auto' }}
+              onClick={() => children && history.push('/')}
             />
             {(showFullCrosswyrd || supportsDesktopSidebar) && (
               <span className="navbar-puzzle-crosswyrd">CROSSWYRD</span>
