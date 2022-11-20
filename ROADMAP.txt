@@ -151,7 +151,6 @@
 + check suggested words
   + look into infinite running word (wait until wave version matches puzzle version)
   + turn off when fill assist off
-- App Check
 + clue suggestions
   + pull historic clues from NYT database
   + show in clues sidebar
@@ -162,6 +161,26 @@
     14 MB cost)
   + update GIF
   + scroll clue suggestions to top when selected word changes
++ replay gifs
+  + https://www.npmjs.com/package/gif.js.optimized
+  + gif
+    + blue for correct, red incorrect
+    + flash color changes
+    + optimize drawing the frames
+    + ease in and out of animation
+    + longer flash at end?
+    x move worker script elsewhere
+    + set global palette for each frame using
+      https://github.com/CalderWhite/gif-msg/blob/master/gif_msg.py#L46-L69 as
+      reference for encoding data
+  + show when complete, can download on click and share on social media
+  + steganography
+    + https://npm.io/package/@mykeels/steganography
+    + https://npm.io/package/any-steganography
+  + possibly, crosswyrd landing page where can upload replay GIF to play or
+    build your own puzzle
+    + use gifuct-js to parse out data
+- App Check
 - discord integration
   - save edit links to discord automatically
   - submit puzzles to personal channel automatically and "all puzzles"
@@ -212,6 +231,8 @@ BEEG BOARD
   - custom previews for puzzles
 
 - possible future features
+  - sort words by grid score (could just be sum of entropies of blank tiles if
+    the word were to be placed)
   - heatmap for failures: count up contradictions per tile somehow?
   - auto-fill prioritizes word bank?
   - dictionary with more common words?
@@ -229,3 +250,13 @@ BEEG BOARD
   - button to clear word bank in one click
   - optimization: don't reset puzzle during auto-fill (now that wave is a part of history)
   - add virtual keyboard to builder
+  - region filler
+    - new tab called "Refill"...?
+    - select a region => tab gets populated with N possible solutions for that
+      area
+    - user clicks one option to fill that region that way
+    - find some way to prevent duplicate solutions and determine when we've
+      tried every possible solution
+      - probably keep a map from puzzle state hashes to list of next words
+        chosen. Never pick a word from the list that matches your puzzle state
+        hash

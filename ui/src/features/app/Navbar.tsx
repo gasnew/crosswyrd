@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useDispatch } from 'react-redux';
+import { useHistory } from 'react-router-dom';
 import AppBar from '@mui/material/AppBar';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import Box from '@mui/material/Box';
@@ -55,6 +56,8 @@ function DrawerControls({
   supportsDesktopSidebar?: boolean;
   children: (handleClose: () => void) => React.ReactNode;
 }) {
+  const history = useHistory();
+
   return (
     <div>
       <Toolbar style={{ height: NAVBAR_HEIGHT }}>
@@ -73,6 +76,7 @@ function DrawerControls({
             alt="Crosswyrd"
             className="navbar-crosswyrd-logo"
             style={{ margin: 'auto' }}
+            onClick={() => history.push('/')}
           />
           <span className="navbar-puzzle-crosswyrd">CROSSWYRD</span>
         </div>
@@ -83,7 +87,7 @@ function DrawerControls({
   );
 }
 interface Props {
-  children: (handleClose: () => void) => React.ReactNode;
+  children?: (handleClose: () => void) => React.ReactNode;
   supportsDesktopSidebar?: boolean;
   showInfoButton?: boolean;
   meta?: PuzzleMetadataType | null;
@@ -98,6 +102,7 @@ export default function Navbar({
   const [mobileOpen, setMobileOpen] = React.useState(false);
 
   const dispatch = useDispatch();
+  const history = useHistory();
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
@@ -126,17 +131,19 @@ export default function Navbar({
         elevation={0}
       >
         <Toolbar style={{ height: NAVBAR_HEIGHT, width: '100%' }}>
-          <IconButton
-            color="inherit"
-            aria-label="open drawer"
-            edge="start"
-            onClick={handleDrawerToggle}
-            sx={
-              supportsDesktopSidebar ? { mr: 2, display: { lg: 'none' } } : {}
-            }
-          >
-            <MenuIcon />
-          </IconButton>
+          {children && (
+            <IconButton
+              color="inherit"
+              aria-label="open drawer"
+              edge="start"
+              onClick={handleDrawerToggle}
+              sx={
+                supportsDesktopSidebar ? { mr: 2, display: { lg: 'none' } } : {}
+              }
+            >
+              <MenuIcon />
+            </IconButton>
+          )}
           <Box
             sx={
               supportsDesktopSidebar
@@ -150,6 +157,8 @@ export default function Navbar({
               src="/logo152.png"
               alt="Crosswyrd"
               className="navbar-crosswyrd-logo"
+              style={children ? {} : { marginLeft: 0, cursor: 'auto' }}
+              onClick={() => children && history.push('/')}
             />
             {(showFullCrosswyrd || supportsDesktopSidebar) && (
               <span className="navbar-puzzle-crosswyrd">CROSSWYRD</span>
@@ -179,46 +188,29 @@ export default function Navbar({
           )}
         </Toolbar>
       </AppBar>
-      <Box
-        component="nav"
-        sx={
-          supportsDesktopSidebar
-            ? { width: { lg: DRAWER_WIDTH }, flexShrink: { lg: 0 } }
-            : {}
-        }
-        aria-label="mailbox folders"
-      >
-        <Drawer
-          variant="temporary"
-          open={mobileOpen}
-          onClose={handleDrawerToggle}
-          sx={{
-            ...(supportsDesktopSidebar
-              ? { display: { xs: 'block', lg: 'none' } }
-              : {}),
-            '& .MuiDrawer-paper': {
-              boxSizing: 'border-box',
-              width: DRAWER_WIDTH,
-            },
-          }}
+      {children && (
+        <Box
+          component="nav"
+          sx={
+            supportsDesktopSidebar
+              ? { width: { lg: DRAWER_WIDTH }, flexShrink: { lg: 0 } }
+              : {}
+          }
+          aria-label="mailbox folders"
         >
-          <DrawerControls
-            handleDrawerToggle={handleDrawerToggle}
-            supportsDesktopSidebar={supportsDesktopSidebar}
-            children={children}
-          />
-        </Drawer>
-        {supportsDesktopSidebar && (
           <Drawer
-            variant="permanent"
+            variant="temporary"
+            open={mobileOpen}
+            onClose={handleDrawerToggle}
             sx={{
-              display: { xs: 'none', lg: 'block' },
+              ...(supportsDesktopSidebar
+                ? { display: { xs: 'block', lg: 'none' } }
+                : {}),
               '& .MuiDrawer-paper': {
                 boxSizing: 'border-box',
                 width: DRAWER_WIDTH,
               },
             }}
-            open
           >
             <DrawerControls
               handleDrawerToggle={handleDrawerToggle}
@@ -226,8 +218,27 @@ export default function Navbar({
               children={children}
             />
           </Drawer>
-        )}
-      </Box>
+          {supportsDesktopSidebar && (
+            <Drawer
+              variant="permanent"
+              sx={{
+                display: { xs: 'none', lg: 'block' },
+                '& .MuiDrawer-paper': {
+                  boxSizing: 'border-box',
+                  width: DRAWER_WIDTH,
+                },
+              }}
+              open
+            >
+              <DrawerControls
+                handleDrawerToggle={handleDrawerToggle}
+                supportsDesktopSidebar={supportsDesktopSidebar}
+                children={children}
+              />
+            </Drawer>
+          )}
+        </Box>
+      )}
     </>
   );
 }

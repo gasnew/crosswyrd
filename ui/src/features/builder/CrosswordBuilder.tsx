@@ -7,6 +7,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
+import { Helmet } from 'react-helmet';
 import { useDispatch, useSelector } from 'react-redux';
 
 import { GridWithVersionType } from '../app/Crosswyrd';
@@ -379,6 +380,9 @@ export default function CrosswordBuilder({ grid }: Props) {
 
   return (
     <div className="content-container">
+      <Helmet>
+        <title>Crosswyrd - Builder</title>
+      </Helmet>
       <div className="puzzle-builder-container">
         <div className="puzzle-container sheet">
           <PuzzleBanner

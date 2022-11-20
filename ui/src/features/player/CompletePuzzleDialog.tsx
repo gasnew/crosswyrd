@@ -12,21 +12,124 @@ import {
   TwitterIcon,
   TwitterShareButton,
 } from 'react-share';
-import { Divider } from '@mui/material';
+import { colors, Divider, LinearProgress } from '@mui/material';
 import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
 import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
 import BuildIcon from '@mui/icons-material/Build';
+import sanitize from 'sanitize-filename';
 
 import { GarrettNote } from '../app/KoFiButton';
+import { isMobileOrTablet } from '../../app/util';
 import { CrosswordPuzzleType } from '../builder/builderSlice';
 import { PuzzleMetadataType } from './CrosswordPlayer';
 import { logEvent } from '../../firebase';
+import useGenerateReplayGIF, {
+  GIF_HEIGHT,
+  GIF_WIDTH,
+} from './useGenerateReplayGIF';
 
 // Wait half a second before the dialog can be closed again. This is because
 // tap events close the dialog immediately after it is opened.
 const DIALOG_INTERACT_DELAY_MS = 200;
+const GIF_DISPLAY_WIDTH = 200;
+const GIF_DISPLAY_HEIGHT = (200 * GIF_HEIGHT) / GIF_WIDTH;
+
+function ReplayGif({
+  metadata,
+  url,
+  progress,
+}: {
+  metadata: PuzzleMetadataType;
+  url: string | null;
+  progress: number;
+}) {
+  const [downloadHovered, setDownloadHovered] = React.useState(false);
+
+  const shouldShowDownload = React.useMemo(
+    () => downloadHovered && !isMobileOrTablet(),
+    [downloadHovered]
+  );
+
+  return (
+    <div
+      className="sheet replay-gif-container"
+      style={{ backgroundColor: url ? 'rgb(250, 251, 251)' : colors.grey[300] }}
+    >
+      {url ? (
+        <>
+          <img
+            src={url}
+            alt="Replay GIF"
+            height={GIF_DISPLAY_HEIGHT}
+            width={GIF_DISPLAY_WIDTH}
+            style={{ height: GIF_DISPLAY_HEIGHT, margin: 'auto' }}
+          />
+          <a
+            className="replay-gif-download"
+            download={sanitize(
+              `Crosswyrd - ${metadata.title} by ${metadata.author}`
+            )}
+            href={url}
+            style={{
+              height: GIF_DISPLAY_HEIGHT,
+              width: GIF_DISPLAY_WIDTH,
+              backgroundColor: shouldShowDownload
+                ? 'rgba(0, 0, 0, 0.6)'
+                : 'rgba(0, 0, 0, 0)',
+            }}
+            onMouseOver={() => setDownloadHovered(true)}
+            onMouseOut={() => setDownloadHovered(false)}
+            onClick={() => logEvent('replay_gif_downloaded')}
+          >
+            {shouldShowDownload && (
+              <span
+                className="replay-gif-download-text"
+                style={{ textDecoration: 'none' }}
+              >
+                Click to download
+              </span>
+            )}
+          </a>
+        </>
+      ) : (
+        <div
+          className="replay-gif-making-container"
+          style={{ height: GIF_DISPLAY_HEIGHT, width: GIF_DISPLAY_WIDTH }}
+        >
+          <div className="replay-gif-making" style={{ margin: 'auto' }}>
+            <span className="replay-gif-making-text">
+              &nbsp;&nbsp;Preparing your custom{' '}
+              <span style={{ fontWeight: 'bold', fontSize: 16 }}>
+                Replay&nbsp;GIF
+              </span>
+            </span>
+            <LinearProgress
+              variant="determinate"
+              value={Math.min(progress * 100 + 4, 100)}
+              style={{
+                marginTop: 4,
+                height: 6,
+                borderRadius: 5,
+              }}
+            />
+          </div>
+        </div>
+      )}
+      <span
+        style={{
+          width: GIF_DISPLAY_WIDTH,
+          textAlign: 'justify',
+          marginTop: 6,
+        }}
+      >
+        Click to download your custom replay GIF, then share it with your
+        friends! They can upload this GIF to play "{metadata.title}".
+      </span>
+    </div>
+  );
+}
 
 export function ShareButtons({
   shareUrl,
@@ -144,6 +247,9 @@ export default function CompletePuzzleDialog({
     }
   }, [openState, interactable]);
 
+  // Generate a replay GIF
+  const gifState = useGenerateReplayGIF(openState.open, puzzleKey);
+
   const shareUrl = window.location.href;
   const shareTitle = `I solved "${puzzleMetadata.title}" by "${puzzleMetadata.author}" on Crosswyrd! Check it out:`;
   const shareHashtag = 'crosswyrd';
@@ -179,6 +285,11 @@ export default function CompletePuzzleDialog({
             </p>
             <p>Thank you for playing on Crosswyrd.</p>
           </div>
+          <ReplayGif
+            metadata={puzzleMetadata}
+            url={gifState.url}
+            progress={gifState.progress}
+          />
           <div className="share-container">
             <div className="share-content">
               <ShareButtons

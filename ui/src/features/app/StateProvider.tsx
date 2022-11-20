@@ -42,7 +42,7 @@ export type RootState = ReturnType<typeof tempStore.getState>;
 // TODO: Optimize...?
 interface Props {
   children: React.ReactNode;
-  stateKey: 'builder' | 'player';
+  stateKey: 'builder' | 'player' | 'landing';
 }
 export default function StateProvider({ children, stateKey }: Props) {
   // Prevent rendering child components until/unless the redux state has been
