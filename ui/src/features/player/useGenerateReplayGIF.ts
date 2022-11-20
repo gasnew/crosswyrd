@@ -4,7 +4,8 @@ import { colors } from '@mui/material';
 import React from 'react';
 import { useSelector } from 'react-redux';
 import { useParams } from 'react-router-dom';
-import { parse as uuidParse } from 'uuid';
+import { parse as uuidParse, stringify as uuidStringify } from 'uuid';
+import { parseGIF, decompressFrames } from 'gifuct-js';
 
 import {
   CrosswordPuzzleType,
@@ -12,7 +13,7 @@ import {
   TileValueType,
 } from '../builder/builderSlice';
 import { GLOBAL_PALETTE } from './gifGlobalPalette';
-import { encodePalette } from './gifSteganography';
+import { decodePalette, encodePalette } from './gifSteganography';
 import { TileUpdateType } from '../builder/useWaveFunctionCollapse';
 
 const TITLE_HEIGHT = 30;
@@ -337,7 +338,19 @@ export default function useGenerateReplayGIF(
     currentFrame += 1;
 
     gif.on('progress', setProgress);
-    gif.on('finished', (blob) => setGifUrl(URL.createObjectURL(blob)));
+    gif.on('finished', (blob) => {
+      setGifUrl(URL.createObjectURL(blob));
+      const url = URL.createObjectURL(blob);
+      var promisedGif = fetch(url)
+        .then((resp) => resp.arrayBuffer())
+        .then((buff) => {
+          var gif = parseGIF(buff);
+          var frames = decompressFrames(gif, true);
+
+          console.log(uuidStringify(decodePalette(frames[0].colorTable)));
+          return gif;
+        });
+    });
 
     gif.render();
   }, [gifUrl, puzzleCompleted, tileUpdates, puzzleKey, puzzleId]);
