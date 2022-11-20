@@ -3,7 +3,7 @@
   margin: 0 auto;
   height: 100%;
   width: 100%;
-  overflow: hidden;
+  overflow-x: hidden;
 
   display: flex;
   flex-direction: column;
@@ -12,7 +12,8 @@
 .upload-replay-gif {
   display: flex;
   flex-direction: column;
-  width: 350px;
+  width: 100%;
+  max-width: 350px;
   height: 200px;
   margin: auto;
   margin-bottom: 8px;
@@ -28,6 +29,7 @@
 
 .upload-replay-gif:hover {
   background-color: #bbdefb;
+  border: 3px dashed #64b5f6;
 }
 
 .upload-replay-gif--accept {
@@ -59,11 +61,13 @@
   display: flex;
   flex-direction: column;
   margin-bottom: 48px;
+  margin-top: 12px;
 }
 
 .landing-page-header {
   font-size: 52px;
   margin: auto;
+  text-align: center;
 }
 
 .landing-page-subtitle {
@@ -71,6 +75,7 @@
   margin: auto;
   margin-top: -8px;
   color: rgb(1, 67, 97);
+  text-align: center;
 }
 
 .landing-page-subheader {
@@ -79,6 +84,7 @@
 }
 
 .landing-page-sheet {
+  margin: 12px;
   display: flex;
   flex-direction: column;
 }

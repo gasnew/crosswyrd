@@ -21,6 +21,7 @@ import BuildIcon from '@mui/icons-material/Build';
 import sanitize from 'sanitize-filename';
 
 import { GarrettNote } from '../app/KoFiButton';
+import { isMobileOrTablet } from '../../app/util';
 import { CrosswordPuzzleType } from '../builder/builderSlice';
 import { PuzzleMetadataType } from './CrosswordPlayer';
 import { logEvent } from '../../firebase';
@@ -46,6 +47,11 @@ function ReplayGif({
 }) {
   const [downloadHovered, setDownloadHovered] = React.useState(false);
 
+  const shouldShowDownload = React.useMemo(
+    () => downloadHovered && !isMobileOrTablet(),
+    [downloadHovered]
+  );
+
   return (
     <div
       className="sheet replay-gif-container"
@@ -69,7 +75,7 @@ function ReplayGif({
             style={{
               height: GIF_DISPLAY_HEIGHT,
               width: GIF_DISPLAY_WIDTH,
-              backgroundColor: downloadHovered
+              backgroundColor: shouldShowDownload
                 ? 'rgba(0, 0, 0, 0.6)'
                 : 'rgba(0, 0, 0, 0)',
             }}
@@ -77,7 +83,7 @@ function ReplayGif({
             onMouseOut={() => setDownloadHovered(false)}
             onClick={() => logEvent('replay_gif_downloaded')}
           >
-            {downloadHovered && (
+            {shouldShowDownload && (
               <span
                 className="replay-gif-download-text"
                 style={{ textDecoration: 'none' }}

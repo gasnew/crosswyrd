@@ -79,7 +79,7 @@ function UploadReplayGif() {
     getInputProps,
     isDragAccept,
     isDragReject,
-  } = useDropzone({ onDrop, accept: { 'image/gif': [] } });
+  } = useDropzone({ onDrop, multiple: false, accept: { 'image/gif': [] } });
 
   return (
     <div
@@ -128,7 +128,7 @@ export default function LandingPage() {
   return (
     <div className="landing-page-content-container">
       <Navbar />
-      <div style={{ height: NAVBAR_HEIGHT }} />
+      <div style={{ height: NAVBAR_HEIGHT, minHeight: NAVBAR_HEIGHT }} />
       <div className="landing-page-content">
         <div className="landing-page-header-block">
           <span className="landing-page-header">Welcome to CROSSWYRD</span>
@@ -141,7 +141,7 @@ export default function LandingPage() {
             Solve a puzzle
           </span>
           <span className="landing-page-description">
-            Upload someone else's <strong>replay GIF</strong> below to play that
+            Upload someone else's <strong>Replay GIF</strong> below to play that
             puzzle!
           </span>
           <UploadReplayGif />
@@ -155,7 +155,7 @@ export default function LandingPage() {
           <span className="landing-page-description">
             Use Crosswyrd's accessible yet powerful crossword builder.
           </span>
-          <Link to="/builder" style={{ margin: 'auto' }}>
+          <Link to="/builder" style={{ margin: 'auto', marginBottom: 8 }}>
             <Button
               variant="contained"
               onClick={() => logEvent('build_puzzle_clicked')}

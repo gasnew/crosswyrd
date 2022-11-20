@@ -331,9 +331,7 @@ export default function useGenerateReplayGIF(
     currentFrame += 1;
 
     gif.on('progress', setProgress);
-    gif.on('finished', function (blob) {
-      setGifUrl(URL.createObjectURL(blob));
-    });
+    gif.on('finished', (blob) => setGifUrl(URL.createObjectURL(blob)));
 
     gif.render();
   }, [gifUrl, puzzleCompleted, tileUpdates, puzzleKey, puzzleId]);
