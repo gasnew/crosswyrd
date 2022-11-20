@@ -12,7 +12,14 @@ import {
   TwitterIcon,
   TwitterShareButton,
 } from 'react-share';
-import { colors, Divider, LinearProgress } from '@mui/material';
+import {
+  Alert,
+  colors,
+  Divider,
+  LinearProgress,
+  Slide,
+  Snackbar,
+} from '@mui/material';
 import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
 import DialogContent from '@mui/material/DialogContent';
@@ -30,11 +37,41 @@ import useGenerateReplayGIF, {
   GIF_WIDTH,
 } from './useGenerateReplayGIF';
 
+declare global {
+  interface Navigator {
+    canShare: any;
+  }
+}
+
 // Wait half a second before the dialog can be closed again. This is because
 // tap events close the dialog immediately after it is opened.
-const DIALOG_INTERACT_DELAY_MS = 200;
+const DIALOG_INTERACT_DELAY_MS = 300;
 const GIF_DISPLAY_WIDTH = 200;
 const GIF_DISPLAY_HEIGHT = (200 * GIF_HEIGHT) / GIF_WIDTH;
+
+const CannotShareSnackbar = React.memo(
+  ({ open, onClose }: { open: boolean; onClose: () => void }) => {
+    return (
+      <Snackbar
+        open={open}
+        onClose={(event, reason) => {
+          if (reason === 'clickaway') {
+            return;
+          }
+          onClose();
+        }}
+        autoHideDuration={4000}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+        TransitionComponent={(props) => <Slide {...props} direction="down" />}
+        style={{ pointerEvents: 'none' }}
+      >
+        <Alert severity="error" sx={{ width: '100%' }}>
+          This browser does not support sharing GIFs!
+        </Alert>
+      </Snackbar>
+    );
+  }
+);
 
 function ReplayGif({
   metadata,
@@ -48,6 +85,9 @@ function ReplayGif({
   progress: number;
 }) {
   const [downloadHovered, setDownloadHovered] = React.useState(false);
+  const [cannotShareSnackbarOpen, setCannotShareSnackbarOpen] = React.useState(
+    false
+  );
 
   const isMobileOrTabletMemo = React.useMemo(() => isMobileOrTablet(), []);
   const shouldShowDownload = downloadHovered && !isMobileOrTabletMemo;
@@ -56,7 +96,7 @@ function ReplayGif({
 
   const handleClickGIF = async () => {
     // Do nothing if on desktop because the <a> tag below handles downloads
-    if (!isMobileOrTabletMemo || !blob) return;
+    if (!isMobileOrTabletMemo || !blob || !url) return;
 
     const shareData = {
       files: [
@@ -66,6 +106,24 @@ function ReplayGif({
       text: `I solved "${metadata.title}" by "${metadata.author}" on Crosswyrd! Check it out!`,
       url: window.location.href,
     };
+    try {
+      // Check if sharing is supported
+      if (!navigator.canShare(shareData))
+        throw new Error('This browser does not support sharing!');
+    } catch (err) {
+      // Alert the user that we can't share
+      setCannotShareSnackbarOpen(true);
+
+      // Try to download the GIF anyway as a last resort
+      var a = document.createElement('a');
+      document.body.appendChild(a);
+      a.href = url;
+      a.download = getSanitizedFileName();
+      a.click();
+
+      // Don't even try to share if we know we can't
+      return;
+    }
     try {
       await navigator.share(shareData);
     } catch (err) {
@@ -151,6 +209,10 @@ function ReplayGif({
           : 'Click to download your custom replay GIF, then share it with your friends!'}{' '}
         They can upload this GIF to play "{metadata.title}".
       </span>
+      <CannotShareSnackbar
+        open={cannotShareSnackbarOpen}
+        onClose={() => setCannotShareSnackbarOpen(false)}
+      />
     </div>
   );
 }
@@ -288,7 +350,12 @@ export default function CompletePuzzleDialog({
   return (
     <Dialog
       open={openState.open}
-      onClose={() => setOpenState({ open: false, date: Date.now() })}
+      onClose={() => {
+        // An extra check to make sure we're not opening then closing
+        // immediately (Firefox on Android gets confused sometimes at least)
+        if (Date.now() - openState.date <= DIALOG_INTERACT_DELAY_MS) return;
+        setOpenState({ open: false, date: Date.now() });
+      }}
       PaperProps={{
         style: {
           backgroundColor: '#fafbfb',

@@ -208,6 +208,7 @@
   flex-direction: column;
   padding: 8px;
   margin: auto;
+  transition: background-color 200ms ease-out;
 }
 
 .replay-gif-making-container {
