@@ -1,4 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import {
+  uniqueNamesGenerator,
+  adjectives,
+  animals,
+} from 'unique-names-generator';
 import { v4 as uuidv4 } from 'uuid';
 
 export function useInterval(callback: () => void, delay: number | null) {
@@ -106,4 +111,23 @@ export function isMobileOrTablet() {
       thing.substr(0, 4)
     )
   );
+}
+
+const USERNAME_SEED_STRING = 'username_seed';
+export function getRandomUsername(): string {
+  // Returns a random, friendly username, either given a seed previously used
+  // to generate a username or with a new seed. Seeds are persisted in
+  // localStorage.
+  let seed = window.localStorage.getItem(USERNAME_SEED_STRING) || '';
+  if (!seed) {
+    seed = uuidv4();
+    window.localStorage.setItem(USERNAME_SEED_STRING, seed);
+  }
+
+  return uniqueNamesGenerator({
+    dictionaries: [adjectives, animals],
+    separator: ' ',
+    style: 'capital',
+    seed,
+  });
 }

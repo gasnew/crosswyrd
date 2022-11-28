@@ -49,6 +49,7 @@
     "roman-numerals": "^0.3.2",
     "sanitize-filename": "^1.6.3",
     "typescript": "~4.2.4",
+    "unique-names-generator": "^4.7.1",
     "uuid": "^8.3.2",
     "worker-loader": "^3.0.8"
   },
