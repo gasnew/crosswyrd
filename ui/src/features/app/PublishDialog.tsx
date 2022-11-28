@@ -1,3 +1,4 @@
+import axios from 'axios';
 import copy from 'copy-to-clipboard';
 import { doc, setDoc } from 'firebase/firestore';
 import React, { useState } from 'react';
@@ -52,6 +53,10 @@ export interface CompletePuzzleDataType {
   clueGrid: ClueGridType;
 }
 
+function getPuzzleLink(id: string): string {
+  return `${window.location.origin}/puzzles/${id}`;
+}
+
 interface Props {
   open: boolean;
   onClose: () => void;
@@ -70,9 +75,7 @@ export default function PublishDialog({ open, onClose }: Props) {
   const clueGrid = useSelector(selectClueGrid);
 
   const fieldsFilled = !!title && !!author;
-  const puzzleLink = id
-    ? `${window.location.origin}/puzzles/${id}`
-    : 'No ID found';
+  const puzzleLink = id ? getPuzzleLink(id) : 'No ID found';
 
   const handlePublish = async () => {
     if (!clueGrid || !fieldsFilled) return;
@@ -97,6 +100,16 @@ export default function PublishDialog({ open, onClose }: Props) {
     setId(id);
     setState('published');
     logEvent('puzzle_published', { title, author });
+
+    // Send the puzzle to Discord (it's totally OK if this fails)
+    try {
+      await axios.post(
+        'https://discord.com/api/webhooks/1045940418816262215/6Swf9rOOI7CmdSy773ZZW5kR9AiAqbQ8ey8Gc1wcwA1Kbycy4472oAd0DF6RcD4uA6Rg',
+        {
+          content: `${author} just published "${title}"! ${getPuzzleLink(id)}`,
+        }
+      );
+    } catch {}
   };
 
   const copyLink = () => {

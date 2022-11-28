@@ -1,3 +1,4 @@
+import axios from 'axios';
 import confetti from 'canvas-confetti';
 import copy from 'copy-to-clipboard';
 import _ from 'lodash';
@@ -39,6 +40,7 @@ import useGenerateReplayGIF, {
   GIF_HEIGHT,
   GIF_WIDTH,
 } from './useGenerateReplayGIF';
+import { getRandomUsername } from '../../app/util';
 
 declare global {
   interface Navigator {
@@ -51,6 +53,35 @@ declare global {
 const DIALOG_INTERACT_DELAY_MS = 300;
 const GIF_DISPLAY_WIDTH = 200;
 const GIF_DISPLAY_HEIGHT = (200 * GIF_HEIGHT) / GIF_WIDTH;
+
+function useUploadReplayGIFToDiscord(
+  metadata: PuzzleMetadataType,
+  blob: Blob | null
+) {
+  // Upload a replay GIF to Discord
+  const uploaded = React.useRef(false);
+  useEffect(() => {
+    if (!blob || uploaded.current) return;
+    uploaded.current = true;
+
+    const upload = async () => {
+      const title = sanitize(`${metadata.title} by ${metadata.author}`);
+      const file = new File([blob], `${title}.gif`, { type: blob.type });
+      const form = new FormData();
+      form.append('files', file);
+      form.append('content', `${getRandomUsername()} just solved "${title}"!`);
+
+      // Send the replay GIF to Discord (it's totally OK if this fails)
+      try {
+        await axios.post(
+          'https://discord.com/api/webhooks/1046646749219008562/zNUV1HtVZivHR3GDrWaxS21L7Yk6ZGeU2mBejOVQg2kMdKzqc9ZBNyacq2utnq69Jv1_',
+          form
+        );
+      } catch {}
+    };
+    upload();
+  }, [blob, metadata]);
+}
 
 const CannotShareSnackbar = React.memo(
   ({ open, onClose }: { open: boolean; onClose: () => void }) => {
@@ -363,6 +394,8 @@ export default function CompletePuzzleDialog({
 
   // Generate a replay GIF
   const gifState = useGenerateReplayGIF(openState.open, puzzleKey);
+
+  useUploadReplayGIFToDiscord(puzzleMetadata, gifState.blob);
 
   const shareUrl = window.location.href;
   const shareTitle = `I solved "${puzzleMetadata.title}" by "${puzzleMetadata.author}" on Crosswyrd! Check it out:`;
