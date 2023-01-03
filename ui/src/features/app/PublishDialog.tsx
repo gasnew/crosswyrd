@@ -243,6 +243,18 @@ export default function PublishDialog({ open, onClose }: Props) {
                   mkHandleShareClick={mkHandleShareClick}
                 />
               </div>
+              <p style={{ margin: 0 }}>
+                You are invited to share your puzzle to{' '}
+                <a
+                  href="https://discord.gg/xvb9MhkY"
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  <strong>our new online community on Discord</strong>
+                </a>
+                . Get feedback from other builders, and play puzzles that others
+                have made. Check it out!
+              </p>
               <GarrettNote />
             </>
           )}
