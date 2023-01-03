@@ -247,6 +247,21 @@ export default function WelcomeDialog({ open, showCheckbox, onClose }: Props) {
           get a shareable link. Send this link out to your friends or community
           so they can try their hand at solving your creation.
         </p>
+        <Heading>Feedback</Heading>
+        <p style={{marginTop: 8, marginBottom: 0}}>
+          Crosswyrd is my best attempt at an accessible yet powerful crossword
+          builder, but there is no limit to the ways it could be improved. I
+          welcome any and all feedback, including feature requests and bug
+          reports, on{' '}
+          <a
+            href="https://discord.gg/xvb9MhkY"
+            target="_blank"
+            rel="noreferrer"
+          >
+            our Discord server
+          </a>
+          .
+        </p>
         <GarrettNote />
       </DialogContent>
       {showCheckbox && (

@@ -180,16 +180,20 @@
   + possibly, crosswyrd landing page where can upload replay GIF to play or
     build your own puzzle
     + use gifuct-js to parse out data
-- App Check
-- discord integration
++ discord integration
+  + submit published and played puzzles to private channels (only visible to me)
+  + link to discord puzzles from app
+    + landing page
+    + publish dialog
+    + explainer
+  + indicate that puzzle is filled but not completed correctly
+- advanced discord integration
   - save edit links to discord automatically
-  - submit puzzles to personal channel automatically and "all puzzles"
-    (possibly just visible to me) channel on publish
-  - when puzzle played, somehow update discord that puzzle was played?
+  - submit puzzles to personal channel automatically
   - special discord channel for puzzles completed at least once and played at least 5 times?
   - channel for curated puzzles?
-  - link to discord puzzles from app, both in explainer and in player
   - stop clue sidebar jittering
+- App Check
 - use words and clues from older puzzles (pre-2010)
 - pro version
   - limited publishes (just store in localstorage or localforage)

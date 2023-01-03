@@ -143,19 +143,36 @@ export default function LandingPage() {
         </div>
         <div className="sheet landing-page-sheet">
           <span className="landing-page-subheader" style={{ marginBottom: 8 }}>
-            Solve a puzzle
+            Ways to Play
           </span>
-          <span className="landing-page-description">
-            Upload someone else's <strong>Replay GIF</strong> below to play that
-            puzzle!
-          </span>
-          <UploadReplayGif />
+          <ol className="landing-page-list">
+            <li>
+              <span className="landing-page-description">
+                Upload someone else's <strong>Replay GIF</strong> below to play
+                that puzzle!
+              </span>
+              <UploadReplayGif />
+            </li>
+            <li>
+              <span className="landing-page-description">
+                Play a puzzle posted on{' '}
+                <a
+                  href="https://discord.gg/xvb9MhkY"
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  <strong>Crosswyrd's new online community</strong> (Discord server)
+                </a>
+              </span>
+              !
+            </li>
+          </ol>
           <div className="landing-page-divider">
             <Divider style={{ margin: 'auto' }} />
             <span className="landing-page-divider-or">or</span>
           </div>
           <span className="landing-page-subheader" style={{ marginBottom: 8 }}>
-            Build your own
+            Build Your Own
           </span>
           <span className="landing-page-description">
             Use Crosswyrd's accessible yet powerful crossword builder.

@@ -322,6 +322,26 @@ export function ShareButtons({
   );
 }
 
+const PuzzleNotCompletedAlertSnackbar = React.memo(
+  ({ open }: { open: boolean }) => {
+    return (
+      <Snackbar
+        open={open}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+        TransitionComponent={(props) => <Slide {...props} direction="down" />}
+        style={{ pointerEvents: 'none' }}
+      >
+        <Alert
+          severity="warning"
+          sx={{ width: '100%', maxHeight: 64, overflowY: 'hidden' }}
+        >
+          There is still at least one error in the puzzle.
+        </Alert>
+      </Snackbar>
+    );
+  }
+);
+
 interface Props {
   puzzle: CrosswordPuzzleType;
   puzzleKey: CrosswordPuzzleType;
@@ -340,6 +360,7 @@ export default function CompletePuzzleDialog({
 
   // Open the dialog when the puzzle is completed
   const prevPuzzleVersion = useRef<string>(puzzle.version);
+  const [completed, setCompleted] = useState(false);
   useEffect(() => {
     // If the puzzle's version hasn't changed, skip.
     if (prevPuzzleVersion.current === puzzle.version) return;
@@ -353,13 +374,35 @@ export default function CompletePuzzleDialog({
         )
       )
     ) {
+      // All tiles match the key, so the puzzle is completed
       setOpenState({ open: true, date: Date.now() });
+      setCompleted(true);
       logEvent('puzzle_completed', {
         title: puzzleMetadata.title,
         author: puzzleMetadata.author,
       });
     }
+    // Not all tiles match the key, so the puzzle isn't completed
+    else setCompleted(false);
   }, [puzzle, puzzleKey, puzzleMetadata]);
+
+  // Show or hide the PuzzleNotCompletedAlertSnackbar
+  const [
+    showPuzzleNotCompletedAlert,
+    setShowPuzzleNotCompletedAlert,
+  ] = useState(false);
+  useEffect(() => {
+    if (
+      !completed &&
+      _.every(puzzle.tiles, (row, rowIndex) =>
+        _.every(row, (tile, columnIndex) => tile.value !== 'empty')
+      )
+    )
+      // The puzzle is filled incorrectly => open alert
+      setShowPuzzleNotCompletedAlert(true);
+    // The puzzle is not filled or is filled correctly => close alert
+    else setShowPuzzleNotCompletedAlert(false);
+  }, [puzzle, completed]);
 
   // Render confetti
   useEffect(() => {
@@ -409,67 +452,70 @@ export default function CompletePuzzleDialog({
   };
 
   return (
-    <Dialog
-      open={openState.open}
-      onClose={() => {
-        // An extra check to make sure we're not opening then closing
-        // immediately (Firefox on Android gets confused sometimes at least)
-        if (Date.now() - openState.date <= DIALOG_INTERACT_DELAY_MS) return;
-        setOpenState({ open: false, date: Date.now() });
-      }}
-      PaperProps={{
-        style: {
-          backgroundColor: '#fafbfb',
-          pointerEvents: interactable ? 'all' : 'none',
-        },
-      }}
-    >
-      <DialogTitle>Complete</DialogTitle>
-      <DialogContent>
-        <div className="sheet share-dialog">
-          <div className="share-dialog-text">
-            <p>
-              <span style={{ fontWeight: 'bold' }}>
-                You solved "{puzzleMetadata.title}"!
-              </span>{' '}
-              Great work. If you liked this puzzle, share it with your friends,
-              or try your hand at building a puzzle of your own.
-            </p>
-            <p>Thank you for playing on Crosswyrd.</p>
-          </div>
-          <ReplayGif
-            metadata={puzzleMetadata}
-            url={gifState.url}
-            blob={gifState.blob}
-            progress={gifState.progress}
-          />
-          <div className="share-container">
-            <div className="share-content">
-              <ShareButtons
-                shareUrl={shareUrl}
-                shareTitle={shareTitle}
-                shareHashtag={shareHashtag}
-                mkHandleShareClick={mkHandleShareClick}
-              />
-              <Divider
-                variant="middle"
-                flexItem
-                style={{ marginTop: 8, marginBottom: 8 }}
-              />
-              <Link to="/builder">
-                <Button
-                  variant="contained"
-                  endIcon={<BuildIcon />}
-                  onClick={() => logEvent('build_puzzle_clicked')}
-                >
-                  Build a Puzzle
-                </Button>
-              </Link>
+    <>
+      <Dialog
+        open={openState.open}
+        onClose={() => {
+          // An extra check to make sure we're not opening then closing
+          // immediately (Firefox on Android gets confused sometimes at least)
+          if (Date.now() - openState.date <= DIALOG_INTERACT_DELAY_MS) return;
+          setOpenState({ open: false, date: Date.now() });
+        }}
+        PaperProps={{
+          style: {
+            backgroundColor: '#fafbfb',
+            pointerEvents: interactable ? 'all' : 'none',
+          },
+        }}
+      >
+        <DialogTitle>Complete</DialogTitle>
+        <DialogContent>
+          <div className="sheet share-dialog">
+            <div className="share-dialog-text">
+              <p>
+                <span style={{ fontWeight: 'bold' }}>
+                  You solved "{puzzleMetadata.title}"!
+                </span>{' '}
+                Great work. If you liked this puzzle, share it with your
+                friends, or try your hand at building a puzzle of your own.
+              </p>
+              <p>Thank you for playing on Crosswyrd.</p>
             </div>
+            <ReplayGif
+              metadata={puzzleMetadata}
+              url={gifState.url}
+              blob={gifState.blob}
+              progress={gifState.progress}
+            />
+            <div className="share-container">
+              <div className="share-content">
+                <ShareButtons
+                  shareUrl={shareUrl}
+                  shareTitle={shareTitle}
+                  shareHashtag={shareHashtag}
+                  mkHandleShareClick={mkHandleShareClick}
+                />
+                <Divider
+                  variant="middle"
+                  flexItem
+                  style={{ marginTop: 8, marginBottom: 8 }}
+                />
+                <Link to="/builder">
+                  <Button
+                    variant="contained"
+                    endIcon={<BuildIcon />}
+                    onClick={() => logEvent('build_puzzle_clicked')}
+                  >
+                    Build a Puzzle
+                  </Button>
+                </Link>
+              </div>
+            </div>
+            <GarrettNote />
           </div>
-          <GarrettNote />
-        </div>
-      </DialogContent>
-    </Dialog>
+        </DialogContent>
+      </Dialog>
+      <PuzzleNotCompletedAlertSnackbar open={showPuzzleNotCompletedAlert} />
+    </>
   );
 }
