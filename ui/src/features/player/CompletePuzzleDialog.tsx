@@ -359,7 +359,7 @@ export default function CompletePuzzleDialog({
   });
 
   // Open the dialog when the puzzle is completed
-  const prevPuzzleVersion = useRef<string>(puzzle.version);
+  const prevPuzzleVersion = useRef<string | null>(null);
   const [completed, setCompleted] = useState(false);
   useEffect(() => {
     // If the puzzle's version hasn't changed, skip.
