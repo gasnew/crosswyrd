@@ -264,3 +264,14 @@ BEEG BOARD
       - probably keep a map from puzzle state hashes to list of next words
         chosen. Never pick a word from the list that matches your puzzle state
         hash
+  - upload custom scored dictionary
+  - custom grid sizes
+  - reject words from dictionary/grid (see Crosserville
+    https://www.youtube.com/watch?v=qADZHK_rxO4)
+    - perhaps add a Words tab where you can edit your dictionary and try
+      auto-fill again
+    - undo undoes whole autofill
+    - can find substring duplicates
+  - check/reveal in solver
+  - leave notes when publishing a puzzle (send note to friend or add custom
+    puzzle rules)
