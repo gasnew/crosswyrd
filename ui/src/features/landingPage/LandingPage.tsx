@@ -157,7 +157,7 @@ export default function LandingPage() {
               <span className="landing-page-description">
                 Play a puzzle posted on{' '}
                 <a
-                  href="https://discord.gg/xvb9MhkY"
+                  href="https://discord.gg/tp3hQChd6S"
                   target="_blank"
                   rel="noreferrer"
                 >

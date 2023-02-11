@@ -246,7 +246,7 @@ export default function PublishDialog({ open, onClose }: Props) {
               <p style={{ margin: 0 }}>
                 You are invited to share your puzzle to{' '}
                 <a
-                  href="https://discord.gg/xvb9MhkY"
+                  href="https://discord.gg/tp3hQChd6S"
                   target="_blank"
                   rel="noreferrer"
                 >

@@ -254,7 +254,7 @@ export default function WelcomeDialog({ open, showCheckbox, onClose }: Props) {
           welcome any and all feedback, including feature requests and bug
           reports, on{' '}
           <a
-            href="https://discord.gg/xvb9MhkY"
+            href="https://discord.gg/tp3hQChd6S"
             target="_blank"
             rel="noreferrer"
           >
