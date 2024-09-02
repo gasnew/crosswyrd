@@ -124,17 +124,6 @@ function wordsToLettersSets(
   });
 
   return lettersSets;
-  // TODO optimize to not push so many letters to the array (but maybe not
-  // because that might break entropy)
-  //const map = _.times(wordLength, () => ({}));
-  ////const lettersSets = _.times(wordLength, () => new Array<LetterType>());
-  //_.forEach(words, (word) => {
-  //_.forEach(word, (letter, letterIndex) => {
-  //map[letterIndex][letter] = true;
-  //});
-  //});
-
-  //return _.map(map, (letters) => _.keys(letters) as LetterType[]);
 }
 
 function computeDownElementUpdates(
@@ -247,11 +236,6 @@ function withNewObservationAtLocation(
     // Update the element with the intersection of the current options and the
     // update's options
     element.options = intersection(element.options, update.options);
-    // TODO: think about if it's OK to set entropy like this, even though we're
-    // not strictly setting this element's options to the update's options
-    // UPDATE: Probably actually calculate entropy from the unique set of
-    // letters with scrabble weights (e.g., ['a', 'e'] is higher entropy than
-    // ['z', 'x'])
     element.entropy = element.options.length === 1 ? 0 : update.entropy;
 
     // Enqueue updates for all tiles in the down word that intersects this tile
@@ -437,7 +421,4 @@ const WFCWorkerAPI: WFCWorkerAPIType = {
 
 expose(WFCWorkerAPI);
 
-//TODO: Decide if it's OK not to have the following line. The guide recommends
-//it, but it doesn't work right now.
-//declare const self: DedicatedWorkerGlobalScope;
 export default {} as typeof Worker & { new (): Worker };
