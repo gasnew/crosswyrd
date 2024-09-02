@@ -35,9 +35,7 @@ function initStore<S>(reducer: Reducer<S>): EnhancedStore<S> {
 const ROOT_REDUCER = combineReducers({
   builder: builderSliceReducer,
 });
-// TODO Get this type without instantiating tempStore
-const tempStore = initStore(ROOT_REDUCER);
-export type RootState = ReturnType<typeof tempStore.getState>;
+export type RootState = ReturnType<typeof ROOT_REDUCER>;
 
 // TODO: Optimize...?
 interface Props {
