@@ -60,7 +60,7 @@ You can run Crosswyrd locally with the following instructions.
 
 1. Clone the repo
    ```sh
-   git clone https://github.com/gasnew/crosswyrd.git
+   git clone git@github.com:gasnew/crosswyrd.git
    ```
 2. Navigate to the `ui/` directory
    ```sh
