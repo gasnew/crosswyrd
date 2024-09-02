@@ -3,11 +3,10 @@
   "version": "0.1.0",
   "author": {
     "name": "Garrett Newman",
-    "email": "garrett.s.newman@gmail.com",
     "url": "https://github.com/gasnew"
   },
   "repository": "github:gasnew/crosswyrd",
-  "license": "UNLICENSED",
+  "license": "MIT",
   "dependencies": {
     "@blueprintjs/core": "^4.4.0",
     "@emotion/react": "^11.9.0",
