@@ -1,7 +1,4 @@
 <!-- README adapted from https://github.com/othneildrew/Best-README-Template -->
-<!-- Improved compatibility of back to top link: See: https://github.com/othneildrew/Best-README-Template/pull/73 -->
-<a id="readme-top"></a>
-
 
 <!-- PROJECT SHIELDS -->
 [![Contributors][contributors-shield]][contributors-url]
@@ -51,8 +48,6 @@ To learn more about how this works, you can check out [the app's original
 Reddit post][reddit-post-url] and the [WFCWorker module][wfc-worker-url] that
 implements the algorithm.
 
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
-
 
 <!-- GETTING STARTED -->
 ## Getting Started
@@ -85,8 +80,6 @@ You can run Crosswyrd locally with the following instructions.
    After a few moments, you should be able to interact with Crosswyrd locally
    at [http://localhost:3000](http://localhost:3000).
 
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
-
 
 <!-- CONTRIBUTING -->
 ## Contributing
@@ -105,30 +98,17 @@ create a pull request. You can also simply open an issue with the tag
 4. Push to the Branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
 
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
-
-### Top contributors:
-
-<a href="https://github.com/gasnew/crosswyrd/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=gasnew/crosswyrd" alt="contrib.rocks image" />
-</a>
-
-
 
 <!-- LICENSE -->
 ## License
 
 Distributed under the MIT License. See `LICENSE.txt` for more information.
 
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
-
 
 <!-- CONTACT -->
 ## Contact
 
 @gasnew on [the Crosswyrd Community Discord Server](https://discord.gg/tp3hQChd6S)
-
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 
 <!-- MARKDOWN LINKS & IMAGES -->
