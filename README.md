@@ -1,11 +1,13 @@
 <!-- README adapted from https://github.com/othneildrew/Best-README-Template -->
 
 <!-- PROJECT SHIELDS -->
-[![Contributors][contributors-shield]][contributors-url]
-[![Forks][forks-shield]][forks-url]
-[![Stargazers][stars-shield]][stars-url]
-[![Issues][issues-shield]][issues-url]
-[![MIT License][license-shield]][license-url]
+<div align="center">
+
+  <a href="">[![Forks][forks-shield]][forks-url]</a>
+  <a href="">[![Stargazers][stars-shield]][stars-url]</a>
+  <a href="">[![Issues][issues-shield]][issues-url]</a>
+
+</div>
 
 
 <!-- PROJECT LOGO -->
@@ -34,7 +36,7 @@
 
 <div align="center">
   <a href="https://crosswyrd.app">
-    <img src="ui/public/screenshot.png" alt="Screenshot" width="240" height="240">
+    <img src="ui/public/gifs/fill.gif" alt="Animation" width="200" height="200">
   </a>
 </div>
 
@@ -108,16 +110,12 @@ Distributed under the MIT License. See `LICENSE.txt` for more information.
 
 <!-- MARKDOWN LINKS & IMAGES -->
 <!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
-[contributors-shield]: https://img.shields.io/github/contributors/gasnew/crosswyrd.svg?style=for-the-badge
-[contributors-url]: https://github.com/gasnew/crosswyrd/graphs/contributors
 [forks-shield]: https://img.shields.io/github/forks/gasnew/crosswyrd.svg?style=for-the-badge
 [forks-url]: https://github.com/gasnew/crosswyrd/network/members
 [stars-shield]: https://img.shields.io/github/stars/gasnew/crosswyrd.svg?style=for-the-badge
 [stars-url]: https://github.com/gasnew/crosswyrd/stargazers
 [issues-shield]: https://img.shields.io/github/issues/gasnew/crosswyrd.svg?style=for-the-badge
 [issues-url]: https://github.com/gasnew/crosswyrd/issues
-[license-shield]: https://img.shields.io/github/license/gasnew/crosswyrd.svg?style=for-the-badge
-[license-url]: https://github.com/gasnew/crosswyrd/blob/master/LICENSE.txt
 [wfc-worker-url]: https://github.com/gasnew/crosswyrd/blob/master/ui/src/features/builder/WFCWorker.worker.ts
 [wfc-url]: https://github.com/mxgmn/WaveFunctionCollapse
 [reddit-post-url]: https://www.reddit.com/r/computerscience/comments/xh1lzi/a_dense_nytstyle_crossword_constructor_using_wave/
