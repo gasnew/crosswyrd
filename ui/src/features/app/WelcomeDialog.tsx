@@ -247,8 +247,8 @@ export default function WelcomeDialog({ open, showCheckbox, onClose }: Props) {
           get a shareable link. Send this link out to your friends or community
           so they can try their hand at solving your creation.
         </p>
-        <Heading>Feedback</Heading>
-        <p style={{marginTop: 8, marginBottom: 0}}>
+        <Heading>Feedback & Contributing</Heading>
+        <p style={{ marginTop: 8, marginBottom: 0 }}>
           Crosswyrd is my best attempt at an accessible yet powerful crossword
           builder, but there is no limit to the ways it could be improved. I
           welcome any and all feedback, including feature requests and bug
@@ -260,7 +260,15 @@ export default function WelcomeDialog({ open, showCheckbox, onClose }: Props) {
           >
             our Discord server
           </a>
-          .
+          . Additionally,{' '}
+          <a
+            href="https://github.com/gasnew/crosswyrd.git"
+            target="_blank"
+            rel="noreferrer"
+          >
+            Crosswyrd is an open source project
+          </a>
+          , so if coding is your jam, please help me make Crosswyrd better!
         </p>
         <GarrettNote />
       </DialogContent>
