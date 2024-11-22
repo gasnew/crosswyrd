@@ -12,7 +12,7 @@ import Dialog from '@mui/material/Dialog';
 import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
 import NewspaperIcon from '@mui/icons-material/Newspaper';
-import UpdateIcon from '@mui/icons-material/Update';
+import PublishedWithChangesIcon from '@mui/icons-material/PublishedWithChanges';
 import LinkIcon from '@mui/icons-material/Link';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -265,7 +265,7 @@ export default function PublishDialog({ open, onClose }: Props) {
                     onClick={() => handlePublish(true)}
                     variant="contained"
                     color="warning"
-                    endIcon={<UpdateIcon />}
+                    endIcon={<PublishedWithChangesIcon />}
                     disabled={!fieldsFilled}
                   >
                     Publish Update
