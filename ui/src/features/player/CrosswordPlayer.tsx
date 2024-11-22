@@ -18,8 +18,8 @@ import KoFiButton from '../app/KoFiButton';
 import { CompletePuzzleDataType } from '../app/PublishDialog';
 import {
   CrosswordPuzzleType,
+  mergePuzzleState,
   selectPuzzle,
-  setPuzzleState,
 } from '../builder/builderSlice';
 import { ALL_LETTERS } from '../builder/constants';
 import { LocationType } from '../builder/CrosswordBuilder';
@@ -96,10 +96,8 @@ function usePuzzleData(
 ): PuzzleDataReturnType {
   const [failed, setFailed] = useState(false);
   const [puzzleKey, setPuzzleKey] = useState<CrosswordPuzzleType | null>(null);
-  const [
-    puzzleMetadata,
-    setPuzzleMetadata,
-  ] = useState<PuzzleMetadataType | null>(null);
+  const [puzzleMetadata, setPuzzleMetadata] =
+    useState<PuzzleMetadataType | null>(null);
 
   const dispatch = useDispatch();
 
@@ -120,21 +118,13 @@ function usePuzzleData(
         remoteData.dataLzma
       )) as CompletePuzzleDataType;
 
-      // Set a puzzle with empty tiles (if this puzzle hasn't been preloaded
-      // with redux-persist)
-      if (!puzzlePreloaded)
-        dispatch(
-          setPuzzleState({
-            ...puzzle,
-            tiles: _.map(puzzle.tiles, (row) =>
-              _.map(row, (tile) => ({
-                ...tile,
-                value: tile.value === 'black' ? 'black' : 'empty',
-              }))
-            ),
-            uuid: puzzleId,
-          })
-        );
+      // Merge the preloaded puzzle state with the remote puzzle state
+      dispatch(
+        mergePuzzleState({
+          remotePuzzle: puzzle,
+          puzzleId,
+        })
+      );
       // Set a list of clues in the order of flattened answers
       setClues(
         _.map(
@@ -234,9 +224,10 @@ export default function CrosswordPlayer() {
     updateSelection,
     selectAnswer,
   } = useTileSelection(puzzle, null, false, false, true);
-  const clearHoveredTile = useCallback(() => setHoveredTile(null), [
-    setHoveredTile,
-  ]);
+  const clearHoveredTile = useCallback(
+    () => setHoveredTile(null),
+    [setHoveredTile]
+  );
   const { inputKey, releaseKey } = useTileInput(
     puzzle,
     selectedTilesState,
@@ -253,9 +244,8 @@ export default function CrosswordPlayer() {
     puzzleMetadata,
     failed: puzzleFetchFailed,
   } = usePuzzleData(puzzleId, setClues, puzzleId === puzzle.uuid);
-  const { scale: puzzleScale, sidebarShouldRender } = usePuzzleScaleToFit(
-    puzzleRef
-  );
+  const { scale: puzzleScale, sidebarShouldRender } =
+    usePuzzleScaleToFit(puzzleRef);
 
   // Default the selection to the first clue
   useEffect(() => {

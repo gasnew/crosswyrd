@@ -2,8 +2,8 @@ import axios from 'axios';
 import copy from 'copy-to-clipboard';
 import { doc, setDoc } from 'firebase/firestore';
 import React, { useState } from 'react';
-import { useSelector } from 'react-redux';
-import { colors, Slide, Snackbar } from '@mui/material';
+import { useDispatch, useSelector } from 'react-redux';
+import { colors, Divider, Slide, Snackbar } from '@mui/material';
 import Alert from '@mui/material/Alert';
 import Button from '@mui/material/Button';
 import CircularProgress from '@mui/material/CircularProgress';
@@ -12,6 +12,7 @@ import Dialog from '@mui/material/Dialog';
 import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
 import NewspaperIcon from '@mui/icons-material/Newspaper';
+import UpdateIcon from '@mui/icons-material/Update';
 import LinkIcon from '@mui/icons-material/Link';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -20,6 +21,8 @@ import {
   ClueGridType,
   selectPuzzle,
   selectClueGrid,
+  setPublishInfo,
+  selectPublishInfo,
 } from '../builder/builderSlice';
 import { db, logEvent } from '../../firebase';
 import { GarrettNote } from './KoFiButton';
@@ -48,6 +51,29 @@ export const CopyAlertSnackbar = React.memo(
   }
 );
 
+function PuzzleLink({ puzzleLink, copyLink }) {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'row' }}>
+      <Button
+        className="publish-dialog-copy-link"
+        onClick={copyLink}
+        variant="contained"
+        endIcon={<LinkIcon />}
+      >
+        Copy&nbsp;Link
+      </Button>
+      <pre
+        className="sheet publish-dialog-link"
+        style={{
+          backgroundColor: colors.grey[100],
+        }}
+      >
+        {puzzleLink}
+      </pre>
+    </div>
+  );
+}
+
 export interface CompletePuzzleDataType {
   puzzle: CrosswordPuzzleType;
   clueGrid: ClueGridType;
@@ -63,23 +89,31 @@ interface Props {
 }
 
 export default function PublishDialog({ open, onClose }: Props) {
-  const [title, setTitle] = useState('');
-  const [author, setAuthor] = useState('');
-  const [state, setState] = useState<'prePublish' | 'publishing' | 'published'>(
-    'prePublish'
-  );
-  const [id, setId] = useState<string | null>('');
+  const publishInfo = useSelector(selectPublishInfo);
+  const title = publishInfo.title;
+  const author = publishInfo.author;
+  const id = publishInfo.id;
+  const [state, setState] = useState<
+    | 'prePublish'
+    | 'publishingNew'
+    | 'publishingUpdate'
+    | 'published'
+    | 'updated'
+  >('prePublish');
   const [copyAlertSnackbarOpen, setCopyAlertSnackbarOpen] = useState(false);
 
   const puzzle = useSelector(selectPuzzle);
   const clueGrid = useSelector(selectClueGrid);
+  const dispatch = useDispatch();
 
-  const fieldsFilled = !!title && !!author;
-  const puzzleLink = id ? getPuzzleLink(id) : 'No ID found';
+  const fieldsFilled = !!publishInfo.title && !!publishInfo.author;
+  const puzzleLink = publishInfo.id
+    ? getPuzzleLink(publishInfo.id)
+    : 'No ID found';
 
-  const handlePublish = async () => {
+  const handlePublish = async (updateExisting: boolean) => {
     if (!clueGrid || !fieldsFilled) return;
-    setState('publishing');
+    setState(updateExisting ? 'publishingUpdate' : 'publishingNew');
 
     // Compress the puzzle data into a base64-encoded string
     const completePuzzleData: CompletePuzzleDataType = {
@@ -89,24 +123,28 @@ export default function PublishDialog({ open, onClose }: Props) {
     var codec = require('json-url')('lzma');
     const dataLzma = await codec.compress(completePuzzleData);
 
-    // Create a new puzzle document
-    const id = uuidv4();
-    await setDoc(doc(db, 'puzzles', id), {
+    // Create a new puzzle document, or update an existing one
+    const newId = updateExisting && publishInfo.id ? publishInfo.id : uuidv4();
+    // NOTE(gnewman): Currently, anyone with the puzzle UUID _could_ in theory
+    // overwrite an existing puzzle. For the time being, I will assume there
+    // are no such malicious actors, but if this becomes a problem, we'll use
+    // Firebase Auth to lock down puzzle updates.
+    await setDoc(doc(db, 'puzzles', newId), {
       title,
       author,
       dataLzma,
     });
 
-    setId(id);
-    setState('published');
+    setState(updateExisting ? 'updated' : 'published');
     logEvent('puzzle_published', { title, author });
+    dispatch(setPublishInfo({ title, author, id: newId }));
 
     // Send the puzzle to Discord (it's totally OK if this fails)
     try {
       await axios.post(
         'https://discord.com/api/webhooks/1045940418816262215/6Swf9rOOI7CmdSy773ZZW5kR9AiAqbQ8ey8Gc1wcwA1Kbycy4472oAd0DF6RcD4uA6Rg',
         {
-          content: `${author} just published "${title}"! ${getPuzzleLink(id)}`,
+          content: `${author} just published ${updateExisting ? 'an update to' : ''} "${title}"! ${getPuzzleLink(newId)}`,
         }
       );
     } catch {}
@@ -126,24 +164,35 @@ export default function PublishDialog({ open, onClose }: Props) {
   return (
     <Dialog
       open={open}
-      onClose={onClose}
+      onClose={() => {
+        onClose();
+        setState('prePublish');
+      }}
       PaperProps={{ style: { backgroundColor: '#fafbfb' } }}
     >
       <DialogTitle>Publish Your Puzzle!</DialogTitle>
       <DialogContent>
         <div
           style={{
-            pointerEvents: state === 'publishing' ? 'none' : 'initial',
+            pointerEvents:
+              state === 'publishingNew' || state === 'publishingUpdate'
+                ? 'none'
+                : 'initial',
           }}
           className="sheet publish-dialog-container"
         >
-          {(state === 'prePublish' || state === 'publishing') && (
+          {(state === 'prePublish' ||
+            state === 'publishingNew' ||
+            state === 'publishingUpdate') && (
             <div
               className="publish-dialog-prepublish-container"
               style={{
                 display: 'flex',
                 flexDirection: 'column',
-                opacity: state === 'publishing' ? 0.35 : 1,
+                opacity:
+                  state === 'publishingNew' || state === 'publishingUpdate'
+                    ? 0.35
+                    : 1,
               }}
             >
               <p>
@@ -157,12 +206,19 @@ export default function PublishDialog({ open, onClose }: Props) {
                 style={{ margin: 'auto', marginTop: 12 }}
                 value={title}
                 onChange={(event) =>
-                  setTitle(event.target.value.slice(0, CHARACTER_LIMIT))
+                  dispatch(
+                    setPublishInfo({
+                      ...publishInfo,
+                      title: event.target.value.slice(0, CHARACTER_LIMIT),
+                    })
+                  )
                 }
                 onKeyPress={(event) => {
                   if (event.key === 'Enter') {
                     event.preventDefault();
-                    handlePublish();
+                    // Publish an update by default if this puzzle has been
+                    // published previously
+                    handlePublish(publishInfo.id ? true : false);
                   }
                 }}
               />
@@ -172,39 +228,77 @@ export default function PublishDialog({ open, onClose }: Props) {
                 style={{ margin: 'auto', marginTop: 12 }}
                 value={author}
                 onChange={(event) =>
-                  setAuthor(event.target.value.slice(0, CHARACTER_LIMIT))
+                  dispatch(
+                    setPublishInfo({
+                      ...publishInfo,
+                      author: event.target.value.slice(0, CHARACTER_LIMIT),
+                    })
+                  )
                 }
                 onKeyPress={(event) => {
                   if (event.key === 'Enter') {
                     event.preventDefault();
-                    handlePublish();
+                    // Publish an update by default if this puzzle has been
+                    // published previously
+                    handlePublish(publishInfo.id ? true : false);
                   }
                 }}
               />
-              <Button
-                onClick={handlePublish}
-                variant="contained"
-                style={{ margin: 'auto', marginTop: 12 }}
-                endIcon={<NewspaperIcon />}
-                disabled={!fieldsFilled}
+              <div
+                style={{
+                  display: 'flex',
+                  gap: 12,
+                  marginTop: 12,
+                  justifyContent: 'center',
+                }}
               >
-                Publish
-              </Button>
+                <Button
+                  onClick={() => handlePublish(false)}
+                  variant="contained"
+                  endIcon={<NewspaperIcon />}
+                  disabled={!fieldsFilled}
+                >
+                  Publish{publishInfo.id && ' New'}
+                </Button>
+                {publishInfo.id && (
+                  <Button
+                    onClick={() => handlePublish(true)}
+                    variant="contained"
+                    color="warning"
+                    endIcon={<UpdateIcon />}
+                    disabled={!fieldsFilled}
+                  >
+                    Publish Update
+                  </Button>
+                )}
+              </div>
+              {id && (
+                <>
+                  <Divider sx={{ m: 2 }} />
+                  <Alert severity="success" style={{ marginBottom: 12 }}>
+                    This puzzle is currently published at the below link:
+                  </Alert>
+                  <PuzzleLink puzzleLink={puzzleLink} copyLink={copyLink} />
+                </>
+              )}
             </div>
           )}
-          {state === 'publishing' && (
+          {(state === 'publishingNew' || state === 'publishingUpdate') && (
             <div className="publish-dialog-publishing">
               <span className="publish-dialog-publishing-progress">
                 <CircularProgress size={20} thickness={5} />
               </span>
-              <span>&nbsp;&nbsp;Publishing...</span>
+              <span>
+                &nbsp;&nbsp;
+                {state === 'publishingNew' ? 'Publishing' : 'Updating'}...
+              </span>
             </div>
           )}
-          {state === 'published' && (
+          {(state === 'published' || state === 'updated') && (
             <>
               <Alert severity="success" style={{ marginBottom: 12 }}>
-                <span style={{ fontWeight: 'bold' }}>{title}</span> has been
-                published successfully!
+                <span style={{ fontWeight: 'bold' }}>{title}</span> has been{' '}
+                {state} successfully!
               </Alert>
               <p>
                 Share the link below with others so that they can play your
@@ -217,24 +311,7 @@ export default function PublishDialog({ open, onClose }: Props) {
                 If the link is lost, you will not be able to retrieve your
                 puzzle again.
               </p>
-              <div style={{ display: 'flex', flexDirection: 'row' }}>
-                <Button
-                  className="publish-dialog-copy-link"
-                  onClick={copyLink}
-                  variant="contained"
-                  endIcon={<LinkIcon />}
-                >
-                  Copy&nbsp;Link
-                </Button>
-                <pre
-                  className="sheet publish-dialog-link"
-                  style={{
-                    backgroundColor: colors.grey[100],
-                  }}
-                >
-                  {puzzleLink}
-                </pre>
-              </div>
+              <PuzzleLink puzzleLink={puzzleLink} copyLink={copyLink} />
               <div style={{ display: 'flex', width: '100%', marginTop: 16 }}>
                 <ShareButtons
                   shareUrl={puzzleLink}

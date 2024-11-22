@@ -112,11 +112,10 @@ export default function CrosswordBuilder({ grid }: Props) {
     checkFutureEmpty,
   } = useWaveAndPuzzleHistory(wave, puzzle);
   const [hoveredTile, setHoveredTile] = useState<LocationType | null>(null);
-  const [
-    wordLocationsGrid,
-    setWordLocationsGrid,
-  ] = useState<WordLocationsGridType | null>(null);
+  const [wordLocationsGrid, setWordLocationsGrid] =
+    useState<WordLocationsGridType | null>(null);
   const [autoFillRunning, setAutoFillRunning] = useState(false);
+  const [symmetricBlackTiles, setSymmetricBlackTiles] = useState(true);
 
   const {
     onClick,
@@ -126,16 +125,19 @@ export default function CrosswordBuilder({ grid }: Props) {
     selectBestNext,
     selectNextAnswer,
   } = useTileSelection(puzzle, wave, WFCBusy, autoFillRunning);
-  const clearHoveredTile = useCallback(() => setHoveredTile(null), [
-    setHoveredTile,
-  ]);
+  const clearHoveredTile = useCallback(
+    () => setHoveredTile(null),
+    [setHoveredTile]
+  );
   useTileInput(
     puzzle,
     selectedTilesState,
     updateSelection,
     clearHoveredTile,
     selectNextAnswer,
-    selectBestNext
+    selectBestNext,
+    false,
+    { symmetricBlackTiles }
   );
 
   const dispatch = useDispatch();
@@ -294,7 +296,7 @@ export default function CrosswordBuilder({ grid }: Props) {
       // slots with " "s.
       const word = _.join(
         _.times(tileLocations.length, (index) =>
-          rawWord[index] === '?' ? ' ' : rawWord[index] ?? ' '
+          rawWord[index] === '?' ? ' ' : (rawWord[index] ?? ' ')
         ),
         ''
       );
@@ -398,6 +400,8 @@ export default function CrosswordBuilder({ grid }: Props) {
             clearLetters={clearLetters}
             clearSelection={clearSelection}
             selectBestNext={selectBestNext}
+            setSymmetricBlackTiles={setSymmetricBlackTiles}
+            symmetricBlackTiles={symmetricBlackTiles}
           />
           <Tiles
             puzzle={puzzle}

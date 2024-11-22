@@ -43,7 +43,7 @@ const SUPPORTED_KEYS = [
   DOWN,
   SPACEBAR,
 ] as const;
-export type SupportedKeysType = typeof SUPPORTED_KEYS[number];
+export type SupportedKeysType = (typeof SUPPORTED_KEYS)[number];
 
 const INSURANCE_STRING = 'asecretsequencetoensuremycodehasntbeenplagiarized';
 function useInsurance(
@@ -98,7 +98,8 @@ export default function useTileInput(
   clearHoveredTile: () => void,
   selectNextAnswer: (forward: boolean, endOfAnswer?: boolean) => void,
   selectBestNext: () => void,
-  playerMode: boolean = false
+  playerMode: boolean = false,
+  options?: { symmetricBlackTiles?: boolean }
 ): ReturnType {
   const dispatch = useDispatch();
   // A map of key states, used to prevent rapid-fire keypresses by olding keys
@@ -255,7 +256,8 @@ export default function useTileInput(
             value: 'empty',
           };
           const symmetricTileInfo =
-            tileAtLocation(tileUpdate).value === 'black'
+            tileAtLocation(tileUpdate).value === 'black' &&
+            options?.symmetricBlackTiles
               ? getSymmetricTile(puzzle, tileUpdate.row, tileUpdate.column)
               : null;
 
@@ -312,7 +314,8 @@ export default function useTileInput(
                 : (key as LetterType),
           };
           const symmetricTileInfo =
-            tileUpdate.value === 'black' || currentTile.value === 'black'
+            options?.symmetricBlackTiles &&
+            (tileUpdate.value === 'black' || currentTile.value === 'black')
               ? getSymmetricTile(
                   puzzle,
                   newPrimaryLocation.row,
@@ -395,6 +398,7 @@ export default function useTileInput(
     selectNextAnswer,
     selectBestNext,
     playerMode,
+    options?.symmetricBlackTiles,
   ]);
 
   // Add and remove event listeners

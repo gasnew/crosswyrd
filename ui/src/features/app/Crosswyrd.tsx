@@ -19,6 +19,7 @@ import {
   setWelcomeDialogState,
   selectDefaultGridDialogOpen,
   selectWelcomeDialogState,
+  setPublishInfo,
 } from '../builder/builderSlice';
 import CrosswordBuilder from '../builder/CrosswordBuilder';
 import GridsDialog, { blankGrid } from './GridsDialog';
@@ -137,6 +138,9 @@ export default function CrossWyrd() {
           // Now that we've selected a grid, we no longer need the dialog to be
           // open by default
           dispatch(setDefaultGridDialogOpen(false));
+          // We're starting a new puzzle, so don't persist any previous publish
+          // info
+          dispatch(setPublishInfo({ title: '', author: '', id: null }));
         }}
       />
       <PublishDialog

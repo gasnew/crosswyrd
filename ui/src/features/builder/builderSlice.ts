@@ -7,7 +7,7 @@ import { DirectionType } from './useTileSelection';
 import { TileUpdateType, WaveType } from './useWaveFunctionCollapse';
 import { devMode, randomId } from '../../app/util';
 
-export type LetterType = typeof ALL_LETTERS[number];
+export type LetterType = (typeof ALL_LETTERS)[number];
 
 export type TileValueType = LetterType | 'empty' | 'black';
 export interface TileType {
@@ -27,6 +27,11 @@ interface WelcomeDialogStateType {
   open: boolean;
   showCheckbox: boolean;
 }
+interface PublishInfoType {
+  title: string;
+  author: string;
+  id: string | null;
+}
 interface BuilderState {
   puzzle: CrosswordPuzzleType;
   wave: WaveType | null;
@@ -39,6 +44,7 @@ interface BuilderState {
   defaultGridDialogOpen: boolean;
   welcomeDialogState: WelcomeDialogStateType;
   tileUpdates: TileUpdateType[];
+  publishInfo: PublishInfoType;
 }
 
 export const DEFAULT_PUZZLE_SIZE = 15;
@@ -65,6 +71,7 @@ const initialState: BuilderState = {
   defaultGridDialogOpen: !devMode(),
   welcomeDialogState: { open: true, showCheckbox: true },
   tileUpdates: [],
+  publishInfo: { title: '', author: '', id: null },
 };
 
 export function getSymmetricTile(
@@ -91,15 +98,18 @@ export const builderSlice = createSlice({
       action: PayloadAction<{
         row: number;
         column: number;
+        symmetricBlackTiles: boolean;
       }>
     ) => {
       const { row, column } = action.payload;
       const tile = state.puzzle.tiles[row][column];
       const newValue = tile.value === 'black' ? 'empty' : 'black';
-      const symmetricTile = getSymmetricTile(state.puzzle, row, column).tile;
 
       tile.value = newValue;
-      symmetricTile.value = newValue;
+      if (action.payload.symmetricBlackTiles) {
+        const symmetricTile = getSymmetricTile(state.puzzle, row, column).tile;
+        symmetricTile.value = newValue;
+      }
       state.puzzle.version = randomId();
     },
     setPuzzleTileValues: (state, action: PayloadAction<TileUpdateType[]>) => {
@@ -118,6 +128,42 @@ export const builderSlice = createSlice({
       state.puzzle = {
         ...state.puzzle,
         ...action.payload,
+      };
+      // This function effectively destroys the puzzle, so we should reset our
+      // tracked tile updates as well
+      state.tileUpdates = [];
+    },
+    mergePuzzleState: (
+      state,
+      action: PayloadAction<{
+        remotePuzzle: CrosswordPuzzleType;
+        puzzleId: string;
+      }>
+    ) => {
+      // Merge the preloaded puzzle atop the remote puzzle
+      state.puzzle = {
+        ...action.payload.remotePuzzle,
+        tiles: _.map(action.payload.remotePuzzle.tiles, (row, rowIndex) =>
+          _.map(row, (tile, columnIndex) => {
+            const preloadedTileValue: TileValueType | undefined =
+              action.payload.puzzleId === state.puzzle.uuid
+                ? state.puzzle.tiles[rowIndex]?.[columnIndex]?.value
+                : undefined;
+            return {
+              ...tile,
+              value:
+                tile.value === 'black'
+                  ? // Black remote tiles should always be preserved
+                    'black'
+                  : preloadedTileValue === 'black'
+                    ? // Black preloaded tiles should be treated as empty if the remote tile is empty
+                      'empty'
+                    : // Try to use the preloaded value if it's available--otherwise, empty
+                      (preloadedTileValue ?? 'empty'),
+            };
+          })
+        ),
+        uuid: action.payload.puzzleId,
       };
       // This function effectively destroys the puzzle, so we should reset our
       // tracked tile updates as well
@@ -174,6 +220,9 @@ export const builderSlice = createSlice({
     ) => {
       state.welcomeDialogState = action.payload;
     },
+    setPublishInfo: (state, action: PayloadAction<PublishInfoType>) => {
+      state.publishInfo = action.payload;
+    },
   },
 });
 
@@ -182,6 +231,7 @@ export const {
   bumpPuzzleVersion,
   toggleTileBlack,
   setPuzzleState,
+  mergePuzzleState,
   setDraggedWord,
   setCurrentTab,
   setFillAssistActive,
@@ -194,6 +244,7 @@ export const {
   setWaveState,
   setDefaultGridDialogOpen,
   setWelcomeDialogState,
+  setPublishInfo,
 } = builderSlice.actions;
 
 export const selectPuzzle = (state: RootState) => state.builder.puzzle;
@@ -213,5 +264,7 @@ export const selectWelcomeDialogState = (state: RootState) =>
   state.builder.welcomeDialogState;
 export const selectTileUpdates = (state: RootState) =>
   state.builder.tileUpdates;
+export const selectPublishInfo = (state: RootState) =>
+  state.builder.publishInfo;
 
 export default builderSlice.reducer;
