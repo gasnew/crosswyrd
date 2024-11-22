@@ -7,7 +7,7 @@ import { DirectionType } from './useTileSelection';
 import { TileUpdateType, WaveType } from './useWaveFunctionCollapse';
 import { devMode, randomId } from '../../app/util';
 
-export type LetterType = typeof ALL_LETTERS[number];
+export type LetterType = (typeof ALL_LETTERS)[number];
 
 export type TileValueType = LetterType | 'empty' | 'black';
 export interface TileType {
@@ -91,15 +91,18 @@ export const builderSlice = createSlice({
       action: PayloadAction<{
         row: number;
         column: number;
+        symmetricBlackTiles: boolean;
       }>
     ) => {
       const { row, column } = action.payload;
       const tile = state.puzzle.tiles[row][column];
       const newValue = tile.value === 'black' ? 'empty' : 'black';
-      const symmetricTile = getSymmetricTile(state.puzzle, row, column).tile;
 
       tile.value = newValue;
-      symmetricTile.value = newValue;
+      if (action.payload.symmetricBlackTiles) {
+        const symmetricTile = getSymmetricTile(state.puzzle, row, column).tile;
+        symmetricTile.value = newValue;
+      }
       state.puzzle.version = randomId();
     },
     setPuzzleTileValues: (state, action: PayloadAction<TileUpdateType[]>) => {

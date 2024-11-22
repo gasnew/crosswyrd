@@ -2,6 +2,7 @@ import _ from 'lodash';
 import CloseIcon from '@mui/icons-material/Close';
 import UndoIcon from '@mui/icons-material/Undo';
 import RedoIcon from '@mui/icons-material/Redo';
+import BalanceIcon from '@mui/icons-material/Balance';
 import DoneIcon from '@mui/icons-material/Done';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import StopIcon from '@mui/icons-material/Stop';
@@ -14,10 +15,11 @@ import {
   Divider,
   IconButton,
   Popover,
+  ToggleButton,
   Tooltip,
   Typography,
 } from '@mui/material';
-import { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
 import {
@@ -26,6 +28,7 @@ import {
   setFillAssistActive,
 } from './builderSlice';
 import { AUTO_FILL_ASSIST_SUGGESTION_TOGGLE_THRESHOLD } from './constants';
+import { Clear, NavigateNext } from '@mui/icons-material';
 
 function FillAssistPopover({ anchorEl }: { anchorEl: HTMLElement }) {
   const [open, setOpen] = useState(false);
@@ -195,6 +198,8 @@ interface Props {
   clearLetters: () => void;
   clearSelection: () => void;
   selectBestNext: () => void;
+  setSymmetricBlackTiles: (value: boolean) => void;
+  symmetricBlackTiles: boolean;
 }
 
 export default function PuzzleBanner({
@@ -210,11 +215,11 @@ export default function PuzzleBanner({
   clearLetters,
   clearSelection,
   selectBestNext,
+  setSymmetricBlackTiles,
+  symmetricBlackTiles,
 }: Props) {
-  const [
-    fillAssistElement,
-    setFillAssistElement,
-  ] = useState<HTMLElement | null>(null);
+  const [fillAssistElement, setFillAssistElement] =
+    useState<HTMLElement | null>(null);
 
   const dispatch = useDispatch();
 
@@ -264,9 +269,13 @@ export default function PuzzleBanner({
         enterDelay={500}
       >
         <div style={{ marginTop: 'auto', marginBottom: 'auto' }}>
-          <Button disabled={WFCBusy || autoFillRunning} onClick={clearLetters}>
-            Clear
-          </Button>
+          <IconButton
+            disabled={WFCBusy || autoFillRunning}
+            onClick={clearLetters}
+            color="primary"
+          >
+            <Clear />
+          </IconButton>
         </div>
       </Tooltip>
       <Tooltip
@@ -277,13 +286,38 @@ export default function PuzzleBanner({
         enterDelay={500}
       >
         <div style={{ marginTop: 'auto', marginBottom: 'auto' }}>
-          <Button
+          <IconButton
             disabled={WFCBusy || autoFillRunning}
             onClick={selectBestNext}
+            color="primary"
           >
-            Next
-          </Button>
+            <NavigateNext />
+          </IconButton>
         </div>
+      </Tooltip>
+      <Tooltip
+        title={
+          symmetricBlackTiles
+            ? 'Turn off black tile symmetry'
+            : 'Turn on black tile symmetry'
+        }
+        placement="top"
+        arrow
+        disableInteractive
+        enterDelay={500}
+      >
+        <span>
+          <ToggleButton
+            size="small"
+            color="primary"
+            value="check"
+            onClick={() => setSymmetricBlackTiles(!symmetricBlackTiles)}
+            selected={symmetricBlackTiles}
+            component="span"
+          >
+            <BalanceIcon />
+          </ToggleButton>
+        </span>
       </Tooltip>
       <Divider
         orientation="vertical"
@@ -340,8 +374,8 @@ export default function PuzzleBanner({
               WFCBusy || autoFillRunning
                 ? 'running'
                 : autoFillErrored
-                ? 'error'
-                : 'success'
+                  ? 'error'
+                  : 'success'
             }
           />
           <Tooltip
