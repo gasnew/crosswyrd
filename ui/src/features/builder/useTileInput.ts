@@ -314,7 +314,8 @@ export default function useTileInput(
                 : (key as LetterType),
           };
           const symmetricTileInfo =
-            tileUpdate.value === 'black' || currentTile.value === 'black'
+            options?.symmetricBlackTiles &&
+            (tileUpdate.value === 'black' || currentTile.value === 'black')
               ? getSymmetricTile(
                   puzzle,
                   newPrimaryLocation.row,
