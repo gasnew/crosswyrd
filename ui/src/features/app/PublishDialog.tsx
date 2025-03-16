@@ -141,12 +141,13 @@ export default function PublishDialog({ open, onClose }: Props) {
 
     // Send the puzzle to Discord (it's totally OK if this fails)
     try {
-      await axios.post(
-        'https://discord.com/api/webhooks/1045940418816262215/6Swf9rOOI7CmdSy773ZZW5kR9AiAqbQ8ey8Gc1wcwA1Kbycy4472oAd0DF6RcD4uA6Rg',
-        {
-          content: `${author} just published ${updateExisting ? 'an update to' : ''} "${title}"! ${getPuzzleLink(newId)}`,
-        }
-      );
+      const publishUrl = process.env.REACT_APP_DISCORD_PUBLISH_WEBHOOK;
+      if (publishUrl)
+        await axios.post(publishUrl, {
+          content: `${author} just published ${
+            updateExisting ? 'an update to' : ''
+          } "${title}"! ${getPuzzleLink(newId)}`,
+        });
     } catch {}
   };
 

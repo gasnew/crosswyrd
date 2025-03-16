@@ -7,6 +7,8 @@ jobs:
   build_and_preview:
     if: '${{ github.event.pull_request.head.repo.full_name == github.repository }}'
     runs-on: ubuntu-latest
+    env:
+      REACT_APP_DISCORD_PUBLISH_WEBHOOK: ${{ secrets.DISCORD_PUBLISH_WEBHOOK }}
     steps:
       - uses: actions/checkout@v2
       - name: Install and Build 🔧
