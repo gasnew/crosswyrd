@@ -73,10 +73,8 @@ function useUploadReplayGIFToDiscord(
 
       // Send the replay GIF to Discord (it's totally OK if this fails)
       try {
-        await axios.post(
-          'https://discord.com/api/webhooks/1046646749219008562/zNUV1HtVZivHR3GDrWaxS21L7Yk6ZGeU2mBejOVQg2kMdKzqc9ZBNyacq2utnq69Jv1_',
-          form
-        );
+        const solveUrl = process.env.REACT_APP_DISCORD_SOLVE_WEBHOOK;
+        if (solveUrl) await axios.post(solveUrl, form);
       } catch {}
     };
     upload();

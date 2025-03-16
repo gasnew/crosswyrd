@@ -9,6 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       REACT_APP_DISCORD_PUBLISH_WEBHOOK: ${{ secrets.DISCORD_PUBLISH_WEBHOOK }}
+      REACT_APP_DISCORD_SOLVE_WEBHOOK: ${{ secrets.DISCORD_SOLVE_WEBHOOK }}
     steps:
       - uses: actions/checkout@v2
       - name: Install and Build 🔧
