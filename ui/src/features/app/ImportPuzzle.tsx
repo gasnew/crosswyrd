@@ -113,6 +113,7 @@ const VisuallyHiddenInput = styled('input')({
 export default function ImportPuzzle({ onImport }: { onImport: () => void }) {
   const publishInfo = useSelector(selectPublishInfo);
   const dispatch = useDispatch();
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   const [successSnackbarOpenState, setSuccessSnackbarOpenState] =
     React.useState<{ title: string } | null>(null);
@@ -205,12 +206,13 @@ export default function ImportPuzzle({ onImport }: { onImport: () => void }) {
   };
 
   return (
-    <ListItemButton component="label">
+    <ListItemButton onClick={() => fileInputRef.current?.click()}>
       <ListItemIcon>
         <FileUploadIcon />
       </ListItemIcon>
       <ListItemText primary="Import" />
       <VisuallyHiddenInput
+        ref={fileInputRef}
         type="file"
         accept=".puz"
         onChange={(event) => {
