@@ -190,6 +190,12 @@ body,
   margin-top: 10px;
 }
 
+.selector-fallback-notice {
+  text-align: center;
+  font-style: italic;
+  padding: 8px 12px 4px;
+}
+
 .selector-add-word-text {
   position: relative;
   left: -5px;
